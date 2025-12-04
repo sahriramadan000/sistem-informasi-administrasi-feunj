@@ -6,21 +6,21 @@ Sistem Informasi Administrasi Surat untuk Fakultas Ekonomi Universitas Negeri Ja
 
 ## 🛠️ Tech Stack
 
-- **Laravel 10.x** - PHP Framework
-- **PHP 8.1+** - Programming Language
-- **MySQL 8.0** - Relational Database
-- **Tailwind CSS 3.x** - Utility-first CSS Framework
-- **Alpine.js** - Lightweight JavaScript Framework
+-   **Laravel 10.x** - PHP Framework
+-   **PHP 8.1+** - Programming Language
+-   **MySQL 8.0** - Relational Database
+-   **Tailwind CSS 3.x** - Utility-first CSS Framework
+-   **Alpine.js** - Lightweight JavaScript Framework
 
 ---
 
 ## 💻 Requirements
 
-- PHP >= 8.1
-- Composer >= 2.5
-- Node.js >= 18.x
-- NPM >= 9.x
-- MySQL >= 8.0 atau MariaDB >= 10.3
+-   PHP >= 8.1
+-   Composer >= 2.5
+-   Node.js >= 18.x
+-   NPM >= 9.x
+-   MySQL >= 8.0 atau MariaDB >= 10.3
 
 ---
 
@@ -96,11 +96,13 @@ php artisan storage:link
 Buka **2 terminal** secara bersamaan:
 
 **Terminal 1 - Laravel Server:**
+
 ```bash
 php artisan serve
 ```
 
 **Terminal 2 - Vite Dev Server:**
+
 ```bash
 npm run dev
 ```
@@ -111,11 +113,11 @@ Buka browser: **http://localhost:8000**
 
 ## 🔑 Default Login
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@feb.unj.ac.id | password123 |
+| Role     | Email                  | Password    |
+| -------- | ---------------------- | ----------- |
+| Admin    | admin@feb.unj.ac.id    | password123 |
 | Operator | operator@feb.unj.ac.id | password123 |
-| Viewer | viewer@feb.unj.ac.id | password123 |
+| Viewer   | viewer@feb.unj.ac.id   | password123 |
 
 ⚠️ **PENTING**: Ubah password setelah login pertama kali!
 
@@ -138,4 +140,4 @@ composer install --optimize-autoloader --no-dev
 
 ## 📝 Lisensi
 
-MIT License - © 2024 Fakultas Ekonomi Universitas Negeri Jakarta
+MIT License - © 2025 Fakultas Ekonomi Universitas Negeri Jakarta
