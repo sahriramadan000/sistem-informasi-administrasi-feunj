@@ -25,11 +25,26 @@ class SignatoryController extends Controller
     /**
      * Menampilkan daftar penandatangan
      * 
+     * @param Request $request
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $signatories = Signatory::orderBy('name')->paginate(10);
+        $query = Signatory::query();
+
+        // Search berdasarkan nama, jabatan, atau NIP
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('position', 'like', "%{$search}%")
+                  ->orWhere('nip', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+
+        $signatories = $query->orderBy('name')->paginate(10);
+        
         return view('master.signatory.index', compact('signatories'));
     }
 
@@ -147,7 +162,7 @@ class SignatoryController extends Controller
     }
 
     /**
-     * Menghapus penandatangan
+     * Menonaktifkan penandatangan (soft delete)
      * 
      * @param Signatory $signatory
      * @return \Illuminate\Http\RedirectResponse
@@ -155,18 +170,18 @@ class SignatoryController extends Controller
     public function destroy(Signatory $signatory)
     {
         try {
-            // Cek apakah penandatangan digunakan oleh surat
-            if ($signatory->letters()->exists()) {
+            // Cek apakah penandatangan sudah nonaktif
+            if (!$signatory->is_active) {
                 return back()
-                    ->withErrors(['error' => 'Penandatangan tidak dapat dihapus karena sudah digunakan dalam surat.']);
+                    ->withErrors(['error' => 'Penandatangan sudah dalam status nonaktif.']);
             }
 
-            // Hapus data menggunakan transaction
+            // Nonaktifkan data menggunakan transaction
             DB::transaction(function () use ($signatory) {
-                $signatory->delete();
+                $signatory->update(['is_active' => false]);
             });
 
-            Log::info('Signatory deleted', [
+            Log::info('Signatory deactivated', [
                 'id' => $signatory->id,
                 'code' => $signatory->code,
                 'user_id' => auth()->id()
@@ -174,17 +189,17 @@ class SignatoryController extends Controller
 
             return redirect()
                 ->route('master.signatories.index')
-                ->with('success', 'Penandatangan berhasil dihapus.');
+                ->with('success', 'Penandatangan berhasil dinonaktifkan.');
 
         } catch (\Throwable $e) {
-            Log::error('Error deleting signatory', [
+            Log::error('Error deactivating signatory', [
                 'id' => $signatory->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
             return back()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menghapus data. Silakan coba lagi.']);
+                ->withErrors(['error' => 'Terjadi kesalahan saat menonaktifkan data. Silakan coba lagi.']);
         }
     }
 }

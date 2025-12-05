@@ -28,11 +28,25 @@ class ClassificationLetterController extends Controller
     /**
      * Menampilkan daftar klasifikasi surat
      *
+     * @param Request $request
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $classifications = ClassificationLetter::orderBy('name')->paginate(10);
+        $query = ClassificationLetter::query();
+
+        // Search berdasarkan nama klasifikasi atau deskripsi
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+
+        $classifications = $query->orderBy('name')->paginate(10);
+        
         return view('master.classification.index', compact('classifications'));
     }
 
@@ -146,7 +160,7 @@ class ClassificationLetterController extends Controller
     }
 
     /**
-     * Menghapus klasifikasi surat
+     * Menonaktifkan klasifikasi surat (soft delete)
      *
      * @param ClassificationLetter $classificationLetter
      * @return \Illuminate\Http\RedirectResponse
@@ -154,18 +168,18 @@ class ClassificationLetterController extends Controller
     public function destroy(ClassificationLetter $classificationLetter)
     {
         try {
-            // Cek apakah klasifikasi digunakan oleh surat
-            if ($classificationLetter->letters()->exists()) {
+            // Cek apakah klasifikasi sudah nonaktif
+            if (!$classificationLetter->is_active) {
                 return back()
-                    ->withErrors(['error' => 'Klasifikasi tidak dapat dihapus karena sudah digunakan dalam surat.']);
+                    ->withErrors(['error' => 'Klasifikasi sudah dalam status nonaktif.']);
             }
 
-            // Hapus data menggunakan transaction
+            // Nonaktifkan data menggunakan transaction
             DB::transaction(function () use ($classificationLetter) {
-                $classificationLetter->delete();
+                $classificationLetter->update(['is_active' => false]);
             });
 
-            Log::info('Classification letter deleted', [
+            Log::info('Classification letter deactivated', [
                 'id' => $classificationLetter->id,
                 'code' => $classificationLetter->code,
                 'user_id' => auth()->id()
@@ -173,16 +187,16 @@ class ClassificationLetterController extends Controller
 
             return redirect()
                 ->route('master.classification-letters.index')
-                ->with('success', 'Klasifikasi surat berhasil dihapus.');
+                ->with('success', 'Klasifikasi surat berhasil dinonaktifkan.');
         } catch (\Throwable $e) {
-            Log::error('Error deleting classification letter', [
+            Log::error('Error deactivating classification letter', [
                 'id' => $classificationLetter->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
             return back()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menghapus data. Silakan coba lagi.']);
+                ->withErrors(['error' => 'Terjadi kesalahan saat menonaktifkan data. Silakan coba lagi.']);
         }
     }
 

@@ -25,11 +25,24 @@ class LetterPurposeController extends Controller
     /**
      * Menampilkan daftar keperluan surat
      * 
+     * @param Request $request
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $letterPurposes = LetterPurpose::orderBy('name')->paginate(10);
+        $query = LetterPurpose::query();
+
+        // Search berdasarkan nama atau deskripsi
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $letterPurposes = $query->orderBy('name')->paginate(10);
+        
         return view('master.letter-purposes.index', compact('letterPurposes'));
     }
 
@@ -142,7 +155,7 @@ class LetterPurposeController extends Controller
     }
 
     /**
-     * Menghapus keperluan surat
+     * Menonaktifkan keperluan surat (soft delete)
      * 
      * @param LetterPurpose $letterPurpose
      * @return \Illuminate\Http\RedirectResponse
@@ -150,18 +163,18 @@ class LetterPurposeController extends Controller
     public function destroy(LetterPurpose $letterPurpose)
     {
         try {
-            // Cek apakah keperluan digunakan oleh surat
-            if ($letterPurpose->letters()->exists()) {
+            // Cek apakah keperluan sudah nonaktif
+            if (!$letterPurpose->is_active) {
                 return back()
-                    ->withErrors(['error' => 'Keperluan tidak dapat dihapus karena sudah digunakan dalam surat.']);
+                    ->withErrors(['error' => 'Keperluan surat sudah dalam status nonaktif.']);
             }
 
-            // Hapus data menggunakan transaction
+            // Nonaktifkan data menggunakan transaction
             DB::transaction(function () use ($letterPurpose) {
-                $letterPurpose->delete();
+                $letterPurpose->update(['is_active' => false]);
             });
 
-            Log::info('Letter purpose deleted', [
+            Log::info('Letter purpose deactivated', [
                 'id' => $letterPurpose->id,
                 'name' => $letterPurpose->name,
                 'user_id' => auth()->id()
@@ -169,17 +182,17 @@ class LetterPurposeController extends Controller
 
             return redirect()
                 ->route('master.letter-purposes.index')
-                ->with('success', 'Keperluan surat berhasil dihapus.');
+                ->with('success', 'Keperluan surat berhasil dinonaktifkan.');
 
         } catch (\Throwable $e) {
-            Log::error('Error deleting letter purpose', [
+            Log::error('Error deactivating letter purpose', [
                 'id' => $letterPurpose->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
             return back()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menghapus data. Silakan coba lagi.']);
+                ->withErrors(['error' => 'Terjadi kesalahan saat menonaktifkan data. Silakan coba lagi.']);
         }
     }
 }

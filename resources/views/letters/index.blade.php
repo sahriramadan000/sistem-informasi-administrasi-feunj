@@ -223,9 +223,11 @@
                                 <td class="px-3 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900 flex items-center gap-2">
                                         {{ $letter->letter_number }}
-                                        @if($letter->isNewFor(auth()->id()))
-                                            <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800 animate-pulse">
-                                                <i data-lucide="sparkles" class="w-3 h-3 mr-1"></i>
+                                        {{-- Debug: created_at={{ $letter->created_at }}, created_by={{ $letter->created_by }}, auth_id={{ auth()->id() }}, isNew={{ $letter->isNewFor(auth()->id()) ? 'true' : 'false' }} --}}
+                                        {{-- {{ dd($letter->isNewFor(auth()->id())) }} --}}
+                                        @if ($letter->isNewFor(auth()->id()))
+                                            <span
+                                                class="inline-flex items-center rounded-full bg-red-500 px-2.5 py-0.5 text-xs font-bold text-white shadow-sm animate-pulse">
                                                 NEW
                                             </span>
                                         @endif
@@ -337,8 +339,3 @@
         </script>
     @endpush
 @endsection
-
-
-
-
-

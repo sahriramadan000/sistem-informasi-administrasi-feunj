@@ -25,11 +25,25 @@ class LetterTypeController extends Controller
     /**
      * Menampilkan daftar jenis surat
      * 
+     * @param Request $request
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $letterTypes = LetterType::orderBy('name')->paginate(10);
+        $query = LetterType::query();
+
+        // Search berdasarkan nama atau deskripsi
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+
+        $letterTypes = $query->orderBy('name')->paginate(10);
+        
         return view('master.letter_type.index', compact('letterTypes'));
     }
 
@@ -155,7 +169,7 @@ class LetterTypeController extends Controller
     }
 
     /**
-     * Menghapus jenis surat
+     * Menonaktifkan jenis surat (soft delete)
      * 
      * @param LetterType $letterType
      * @return \Illuminate\Http\RedirectResponse
@@ -163,18 +177,18 @@ class LetterTypeController extends Controller
     public function destroy(LetterType $letterType)
     {
         try {
-            // Cek apakah jenis surat digunakan oleh surat
-            if ($letterType->letters()->exists()) {
+            // Cek apakah jenis surat sudah nonaktif
+            if (!$letterType->is_active) {
                 return back()
-                    ->withErrors(['error' => 'Jenis surat tidak dapat dihapus karena sudah digunakan dalam surat.']);
+                    ->withErrors(['error' => 'Jenis surat sudah dalam status nonaktif.']);
             }
 
-            // Hapus data menggunakan transaction
+            // Nonaktifkan data menggunakan transaction
             DB::transaction(function () use ($letterType) {
-                $letterType->delete();
+                $letterType->update(['is_active' => false]);
             });
 
-            Log::info('Letter type deleted', [
+            Log::info('Letter type deactivated', [
                 'id' => $letterType->id,
                 'code' => $letterType->code,
                 'user_id' => auth()->id()
@@ -182,17 +196,17 @@ class LetterTypeController extends Controller
 
             return redirect()
                 ->route('master.letter-types.index')
-                ->with('success', 'Jenis surat berhasil dihapus.');
+                ->with('success', 'Jenis surat berhasil dinonaktifkan.');
 
         } catch (\Throwable $e) {
-            Log::error('Error deleting letter type', [
+            Log::error('Error deactivating letter type', [
                 'id' => $letterType->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
             return back()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menghapus data. Silakan coba lagi.']);
+                ->withErrors(['error' => 'Terjadi kesalahan saat menonaktifkan data. Silakan coba lagi.']);
         }
     }
 

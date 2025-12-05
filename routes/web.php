@@ -47,3 +47,16 @@ Route::prefix('master')->name('master.')->group(function () {
 
 // Letter Routes (Middleware di Controller)
 Route::resource('letters', LetterController::class);
+
+// Debug route untuk testing badge
+Route::get('/debug-badge', function () {
+    $letters = \App\Models\Letter::with(['creator', 'viewedByUsers'])
+        ->active()
+        ->orderBy('created_at', 'desc')
+        ->limit(5)
+        ->get();
+    
+    $currentUser = auth()->user();
+    
+    return view('debug-badge', compact('letters', 'currentUser'));
+})->middleware('auth')->name('debug.badge');

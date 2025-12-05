@@ -27,11 +27,25 @@ class UserController extends Controller
     /**
      * Menampilkan daftar pengguna
      * 
+     * @param Request $request
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::orderBy('name')->paginate(10);
+        $query = User::query();
+
+        // Search berdasarkan nama, username, atau email
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->orderBy('name')->paginate(10);
+        
         return view('master.users.index', compact('users'));
     }
 
@@ -176,7 +190,7 @@ class UserController extends Controller
     }
 
     /**
-     * Menghapus pengguna
+     * Menonaktifkan pengguna (soft delete)
      * 
      * @param User $user
      * @return \Illuminate\Http\RedirectResponse
@@ -187,39 +201,39 @@ class UserController extends Controller
             // Cek apakah user sedang login
             if ($user->id === auth()->id()) {
                 return back()
-                    ->withErrors(['error' => 'Anda tidak dapat menghapus akun yang sedang digunakan.']);
+                    ->withErrors(['error' => 'Anda tidak dapat menonaktifkan akun yang sedang digunakan.']);
             }
 
-            // Cek apakah user memiliki surat
-            if ($user->letters()->exists()) {
+            // Cek apakah user sudah nonaktif
+            if (!$user->is_active) {
                 return back()
-                    ->withErrors(['error' => 'Pengguna tidak dapat dihapus karena memiliki riwayat pembuatan surat.']);
+                    ->withErrors(['error' => 'Pengguna sudah dalam status nonaktif.']);
             }
 
-            // Hapus data menggunakan transaction
+            // Nonaktifkan data menggunakan transaction
             DB::transaction(function () use ($user) {
-                $user->delete();
+                $user->update(['is_active' => false]);
             });
 
-            Log::info('User deleted', [
+            Log::info('User deactivated', [
                 'id' => $user->id,
                 'username' => $user->username,
-                'deleted_by' => auth()->id()
+                'deactivated_by' => auth()->id()
             ]);
 
             return redirect()
                 ->route('master.users.index')
-                ->with('success', 'Pengguna berhasil dihapus.');
+                ->with('success', 'Pengguna berhasil dinonaktifkan.');
 
         } catch (\Throwable $e) {
-            Log::error('Error deleting user', [
+            Log::error('Error deactivating user', [
                 'id' => $user->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
             return back()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menghapus data. Silakan coba lagi.']);
+                ->withErrors(['error' => 'Terjadi kesalahan saat menonaktifkan data. Silakan coba lagi.']);
         }
     }
 }

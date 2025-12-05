@@ -102,19 +102,19 @@ class Letter extends Model
     }
 
     /**
-     * Check apakah surat baru untuk user tertentu (dibuat dalam 2 menit dan belum dilihat)
+     * Check apakah surat baru untuk user tertentu (dibuat dalam 24 jam dan belum dilihat)
      */
     public function isNewFor($userId)
     {
-        // Surat dianggap baru jika dibuat dalam 2 menit terakhir
+        // Surat dianggap baru jika dibuat dalam 24 jam terakhir
         $isRecent = $this->created_at >= now()->subMinutes(2);
-        
+
         // Dan belum dilihat oleh user tersebut
         $notViewed = !$this->isViewedBy($userId);
-        
+
         // Tapi bukan dibuat oleh user tersebut
-        $notCreatedByUser = $this->created_by != $userId;
-        
+        $notCreatedByUser = $this->created_by == $userId;
+
         return $isRecent && $notViewed && $notCreatedByUser;
     }
 
@@ -157,9 +157,9 @@ class Letter extends Model
     {
         return $query->where(function ($q) use ($search) {
             $q->where('letter_number', 'like', "%{$search}%")
-              ->orWhere('subject', 'like', "%{$search}%")
-              ->orWhere('student_name', 'like', "%{$search}%")
-              ->orWhere('recipient', 'like', "%{$search}%");
+                ->orWhere('subject', 'like', "%{$search}%")
+                ->orWhere('student_name', 'like', "%{$search}%")
+                ->orWhere('recipient', 'like', "%{$search}%");
         });
     }
 

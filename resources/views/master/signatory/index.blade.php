@@ -19,10 +19,51 @@
         </a>
     </div>
 
+    {{-- Search Section --}}
+    <div class="mb-6">
+        <form method="GET" action="{{ route('master.signatories.index') }}">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i data-lucide="search" class="h-5 w-5 text-gray-400"></i>
+                </div>
+                <input type="text" name="search" value="{{ request('search') }}"
+                    class="block w-full pl-12 pr-32 h-12 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent text-sm bg-white"
+                    placeholder="Cari berdasarkan kode, nama, jabatan, atau NIP...">
+                <div class="absolute inset-y-0 right-0 flex items-center pr-2 gap-2">
+                    @if (request('search'))
+                        <a href="{{ route('master.signatories.index') }}"
+                            class="inline-flex items-center rounded-md px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
+                            <i data-lucide="x" class="h-3.5 w-3.5 mr-1"></i>
+                            Clear
+                        </a>
+                    @endif
+                    <button type="submit"
+                        class="inline-flex items-center rounded-md bg-brand px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 transition-colors">
+                        <i data-lucide="search" class="h-3.5 w-3.5 mr-1.5"></i>
+                        Cari
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
     {{-- Table Section --}}
     <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
         <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-base font-semibold text-gray-900">Daftar Penandatangan</h3>
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-semibold text-gray-900">Daftar Penandatangan</h3>
+                @if ($signatories->count() > 0)
+                    <span class="text-sm text-gray-500">
+                        {{ $signatories->total() }} penandatangan ditemukan
+                        @if(request('search'))
+                            <span class="ml-2 inline-flex items-center rounded-full bg-brand-lighter px-2.5 py-0.5 text-xs font-medium text-brand-dark">
+                                <i data-lucide="search" class="mr-1 h-3 w-3"></i>
+                                Pencarian: "{{ request('search') }}"
+                            </span>
+                        @endif
+                    </span>
+                @endif
+            </div>
         </div>
         <div class="overflow-x-auto">
             @if($signatories->count() > 0)
@@ -78,18 +119,20 @@
                                         <i data-lucide="edit" class="mr-1 h-4 w-4"></i>
                                         Edit
                                     </a>
+                                    @if($signatory->is_active)
                                     <form method="POST" 
                                           action="{{ route('master.signatories.destroy', $signatory) }}" 
-                                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus penandatangan ini?')"
+                                          onsubmit="return confirm('Apakah Anda yakin ingin menonaktifkan penandatangan ini? Data tidak akan dihapus dari database.')"
                                           class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" 
                                                 class="inline-flex items-center rounded-md border border-red-600 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
-                                            <i data-lucide="trash-2" class="mr-1 h-4 w-4"></i>
-                                            Hapus
+                                            <i data-lucide="x-circle" class="mr-1 h-4 w-4"></i>
+                                            Nonaktifkan
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -98,7 +141,9 @@
                 </table>
 
                 {{-- Pagination --}}
-                {{ $signatories->links() }}
+                <div class="px-6 py-4">
+                    {{ $signatories->appends(request()->query())->links() }}
+                </div>
             @else
                 <div class="text-center py-12">
                     <i data-lucide="user-check" class="mx-auto h-12 w-12 text-gray-400"></i>
@@ -118,8 +163,10 @@
 
     @push('scripts')
     <script>
-        // Re-initialize Lucide icons
-        lucide.createIcons();
+        // Re-initialize Lucide icons on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
     </script>
     @endpush
 @endsection
