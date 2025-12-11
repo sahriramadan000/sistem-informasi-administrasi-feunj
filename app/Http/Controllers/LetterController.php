@@ -167,9 +167,9 @@ class LetterController extends Controller
                     $runningNumber = $startingRunningNumber + $i;
                     $runningNumberFormatted = str_pad($runningNumber, 3, '0', STR_PAD_LEFT);
 
-                    // Generate nomor surat dengan format: [running_3_digit]/[kode_penandatangan].[kode_klasifikasi]/[tahun]
+                    // Generate nomor surat dengan format: [running_3_digit]/[kode_penandatangan]/[kode_klasifikasi]/[tahun]
                     $letterNumber = sprintf(
-                        '%s/%s.%s/%d',
+                        '%s/%s/%s/%d',
                         $runningNumberFormatted,
                         $signatory->code,
                         $classification->code,
