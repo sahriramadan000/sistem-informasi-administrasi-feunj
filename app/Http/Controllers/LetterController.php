@@ -113,16 +113,32 @@ class LetterController extends Controller
             // Cek apakah jenis surat memerlukan keperluan
             $letterType = LetterType::findOrFail($request->letter_type_id);
 
+            // Ambil jumlah surat dan mode
+            $quantity = $request->input('quantity', 1);
+            $multipleMode = $request->input('multiple_mode', 'same');
+
             // Validasi input dasar
             $rules = [
                 'signatory_id' => 'required|exists:signatories,id',
                 'classification_id' => 'required|exists:classification_letters,id',
                 'letter_type_id' => 'required|exists:letter_types,id',
                 'letter_date' => 'required|date',
-                'subject' => 'required|string|max:255',
-                'recipient' => 'required|string|max:255',
                 'quantity' => 'nullable|integer|min:1|max:50',
+                'multiple_mode' => 'nullable|in:same,different',
             ];
+
+            // Validasi subjects dan recipients berdasarkan mode
+            if ($quantity > 1 && $multipleMode === 'different') {
+                // Mode berbeda: validasi array subjects dan recipients
+                $rules['subjects'] = 'required|array|min:' . $quantity;
+                $rules['subjects.*'] = 'required|string|max:255';
+                $rules['recipients'] = 'required|array|min:' . $quantity;
+                $rules['recipients.*'] = 'required|string|max:255';
+            } else {
+                // Mode sama atau single: validasi subject dan recipient tunggal
+                $rules['subject'] = 'required|string|max:255';
+                $rules['recipient'] = 'required|string|max:255';
+            }
 
             // Jika jenis surat memerlukan keperluan, tambahkan validasi
             if ($letterType->requires_purpose) {
@@ -133,14 +149,46 @@ class LetterController extends Controller
                 $rules['student_name'] = 'nullable|string|max:255';
             }
 
-            $validated = $request->validate($rules);
+            // Custom validation messages
+            $messages = [
+                'subjects.required' => 'Perihal untuk setiap surat wajib diisi.',
+                'subjects.*.required' => 'Perihal surat ke-:position wajib diisi.',
+                'subjects.*.max' => 'Perihal surat ke-:position maksimal 255 karakter.',
+                'recipients.required' => 'Tujuan untuk setiap surat wajib diisi.',
+                'recipients.*.required' => 'Tujuan surat ke-:position wajib diisi.',
+                'recipients.*.max' => 'Tujuan surat ke-:position maksimal 255 karakter.',
+                'subject.required' => 'Perihal surat wajib diisi.',
+                'recipient.required' => 'Tujuan surat wajib diisi.',
+            ];
 
-            // Ambil jumlah surat yang akan dibuat (default 1)
-            $quantity = $validated['quantity'] ?? 1;
-            unset($validated['quantity']); // Hapus quantity dari validated data
+            $validated = $request->validate($rules, $messages);
+
+            // Hapus quantity dan multiple_mode dari validated data
+            unset($validated['quantity']);
+            unset($validated['multiple_mode']);
+
+            // Siapkan data subjects dan recipients
+            $subjectsArray = [];
+            $recipientsArray = [];
+
+            if ($quantity > 1 && $multipleMode === 'different') {
+                // Mode berbeda: gunakan array dari form
+                $subjectsArray = $validated['subjects'];
+                $recipientsArray = $validated['recipients'];
+                unset($validated['subjects']);
+                unset($validated['recipients']);
+            } else {
+                // Mode sama: gunakan subject dan recipient yang sama untuk semua
+                for ($i = 0; $i < $quantity; $i++) {
+                    $subjectsArray[] = $validated['subject'];
+                    $recipientsArray[] = $validated['recipient'];
+                }
+                unset($validated['subject']);
+                unset($validated['recipient']);
+            }
 
             // Generate nomor surat menggunakan transaction untuk mencegah race condition
-            $createdLetters = DB::transaction(function () use ($validated, $quantity) {
+            $createdLetters = DB::transaction(function () use ($validated, $quantity, $subjectsArray, $recipientsArray) {
                 // Ambil tahun dari tanggal surat
                 $year = date('Y', strtotime($validated['letter_date']));
 
@@ -176,11 +224,13 @@ class LetterController extends Controller
                         $year
                     );
 
-                    // Siapkan data surat
+                    // Siapkan data surat dengan subject dan recipient yang sesuai
                     $letterData = array_merge($validated, [
                         'letter_number' => $letterNumber,
                         'running_number' => $runningNumber,
                         'year' => $year,
+                        'subject' => $subjectsArray[$i],
+                        'recipient' => $recipientsArray[$i],
                         'status' => 'final',
                         'is_active' => true,
                         'created_by' => auth()->id(),

@@ -208,6 +208,9 @@
                                 Perihal</th>
                             <th scope="col"
                                 class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                                Tujuan</th>
+                            <th scope="col"
+                                class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                                 Status</th>
                             <th scope="col"
                                 class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
@@ -247,7 +250,12 @@
                                 </td>
                                 <td class="px-3 py-4 text-sm text-gray-900">
                                     <div class="flex items-start gap-2">
-                                        <span>{{ Str::limit($letter->subject, 50) }}</span>
+                                        <span>{{ Str::limit($letter->subject, 20) }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-3 py-4 text-sm text-gray-900">
+                                    <div class="flex items-start gap-2">
+                                        <span>{{ Str::limit($letter->recipient, 20) }}</span>
                                     </div>
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap">

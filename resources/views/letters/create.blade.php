@@ -171,6 +171,28 @@
                                         {{ $message }}
                                     </p>
                                 @enderror
+
+                                {{-- Mode Selection for Multiple Letters --}}
+                                <div id="multiple_mode_selection" class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200" style="display: none;">
+                                    <p class="text-sm font-medium text-blue-800 mb-3 flex items-center gap-2">
+                                        <i data-lucide="settings" class="w-4 h-4"></i>
+                                        Pengaturan untuk surat lebih dari 1
+                                    </p>
+                                    <div class="flex flex-wrap gap-3">
+                                        <label class="flex items-center gap-2 cursor-pointer group">
+                                            <input type="radio" name="multiple_mode" value="same" class="w-4 h-4 text-brand focus:ring-brand" checked>
+                                            <span class="text-sm text-gray-700 group-hover:text-brand transition-colors">
+                                                <strong>Sama semua</strong> - Perihal dan tujuan sama untuk semua surat
+                                            </span>
+                                        </label>
+                                        <label class="flex items-center gap-2 cursor-pointer group">
+                                            <input type="radio" name="multiple_mode" value="different" class="w-4 h-4 text-brand focus:ring-brand">
+                                            <span class="text-sm text-gray-700 group-hover:text-brand transition-colors">
+                                                <strong>Berbeda</strong> - Isi perihal dan tujuan berbeda per surat
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -186,11 +208,12 @@
                             </div>
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900">Isi Surat</h3>
-                                <p class="text-sm text-gray-500">Masukkan perihal dan tujuan surat</p>
+                                <p class="text-sm text-gray-500" id="section3_description">Masukkan perihal dan tujuan surat</p>
                             </div>
                         </div>
 
-                        <div class="space-y-6 pl-0 md:pl-13">
+                        {{-- Single Mode (Default) --}}
+                        <div id="single_letter_content" class="space-y-6 pl-0 md:pl-13">
                             {{-- Perihal --}}
                             <div class="space-y-2">
                                 <label for="subject" class="label flex items-center gap-2">
@@ -231,6 +254,58 @@
                                         {{ $message }}
                                     </p>
                                 @enderror
+                            </div>
+                        </div>
+
+                        {{-- Multiple Different Mode (Hidden by default) --}}
+                        <div id="multiple_letter_content" class="pl-0 md:pl-13" style="display: none;">
+                            {{-- Info Banner --}}
+                            <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                                <div class="flex items-start gap-3">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <i data-lucide="list-ordered" class="w-4 h-4 text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-blue-800">Mode Input Berbeda untuk Setiap Surat</p>
+                                        <p class="text-xs text-blue-600 mt-1">Isi perihal dan tujuan untuk masing-masing surat di bawah. Nomor surat akan di-generate berurutan.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Validation Errors for Multiple Mode --}}
+                            @if ($errors->has('subjects') || $errors->has('subjects.*') || $errors->has('recipients') || $errors->has('recipients.*'))
+                                <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                    <div class="flex items-start gap-2">
+                                        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5"></i>
+                                        <div>
+                                            <p class="text-sm font-medium text-red-800">Terdapat kesalahan pada isian surat:</p>
+                                            <ul class="mt-2 text-sm text-red-700 list-disc list-inside space-y-1">
+                                                @foreach ($errors->all() as $error)
+                                                    @if (str_contains($error, 'Perihal') || str_contains($error, 'Tujuan') || str_contains($error, 'subjects') || str_contains($error, 'recipients'))
+                                                        <li>{{ $error }}</li>
+                                                    @endif
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- Dynamic Letter Items Container --}}
+                            <div id="letter_items_container" class="space-y-4">
+                                {{-- Letter items will be generated dynamically --}}
+                            </div>
+
+                            {{-- Quick Actions --}}
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                <button type="button" id="btn_copy_first_to_all" class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                    Salin dari Surat 1 ke Semua
+                                </button>
+                                <button type="button" id="btn_clear_all" class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    Kosongkan Semua
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -362,6 +437,10 @@
                 @endforeach
             };
 
+            // State management
+            let currentQuantity = 1;
+            let currentMode = 'same';
+
             // Function to toggle conditional fields
             function toggleConditionalFields(letterTypeId) {
                 const additionalSection = document.getElementById('additional_section');
@@ -386,6 +465,149 @@
                     studentNameInput.removeAttribute('required');
                     letterPurposeSelect.value = '';
                     studentNameInput.value = '';
+                }
+            }
+
+            // Function to create a letter item card
+            function createLetterItemCard(index) {
+                const cardNumber = index + 1;
+                return `
+                    <div class="letter-item-card bg-white border border-gray-200 rounded-lg p-4 hover:border-brand/50 hover:shadow-sm transition-all" data-index="${index}">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-brand to-orange-500 text-dark text-sm font-bold shadow-sm border border-dark">
+                                ${cardNumber}
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-sm font-semibold text-gray-800">Surat ke-${cardNumber}</h4>
+                                <p class="text-xs text-gray-500">Nomor surat akan di-generate otomatis</p>
+                            </div>
+                            <button type="button" class="btn-copy-previous p-1.5 text-gray-400 hover:text-brand hover:bg-orange-50 rounded transition-colors" title="Salin dari surat sebelumnya" ${index === 0 ? 'style="display:none"' : ''}>
+                                <i data-lucide="copy-check" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-medium text-gray-600 flex items-center gap-1">
+                                    <i data-lucide="align-left" class="w-3 h-3"></i>
+                                    Perihal <span class="text-destructive">*</span>
+                                </label>
+                                <input type="text" 
+                                    name="subjects[${index}]" 
+                                    class="input input-sm text-sm" 
+                                    placeholder="Masukkan perihal surat"
+                                    required>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-xs font-medium text-gray-600 flex items-center gap-1">
+                                    <i data-lucide="send" class="w-3 h-3"></i>
+                                    Ditujukan Kepada <span class="text-destructive">*</span>
+                                </label>
+                                <input type="text" 
+                                    name="recipients[${index}]" 
+                                    class="input input-sm text-sm" 
+                                    placeholder="Masukkan tujuan surat"
+                                    required>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Function to generate letter items based on quantity
+            function generateLetterItems(quantity) {
+                const container = document.getElementById('letter_items_container');
+                container.innerHTML = '';
+                
+                for (let i = 0; i < quantity; i++) {
+                    container.insertAdjacentHTML('beforeend', createLetterItemCard(i));
+                }
+                
+                // Reinitialize Lucide icons for new elements
+                lucide.createIcons();
+                
+                // Add copy from previous functionality
+                document.querySelectorAll('.btn-copy-previous').forEach((btn, index) => {
+                    btn.addEventListener('click', function() {
+                        if (index > 0) {
+                            const prevCard = document.querySelector(`.letter-item-card[data-index="${index - 1}"]`);
+                            const currentCard = document.querySelector(`.letter-item-card[data-index="${index}"]`);
+                            
+                            if (prevCard && currentCard) {
+                                const prevSubject = prevCard.querySelector('input[name^="subjects"]').value;
+                                const prevRecipient = prevCard.querySelector('input[name^="recipients"]').value;
+                                
+                                currentCard.querySelector('input[name^="subjects"]').value = prevSubject;
+                                currentCard.querySelector('input[name^="recipients"]').value = prevRecipient;
+                                
+                                // Visual feedback
+                                currentCard.classList.add('ring-2', 'ring-brand/50');
+                                setTimeout(() => {
+                                    currentCard.classList.remove('ring-2', 'ring-brand/50');
+                                }, 500);
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Function to update UI based on quantity and mode
+            function updateMultipleLetterUI() {
+                const quantity = parseInt(document.getElementById('quantity').value) || 1;
+                const modeSelection = document.getElementById('multiple_mode_selection');
+                const singleContent = document.getElementById('single_letter_content');
+                const multipleContent = document.getElementById('multiple_letter_content');
+                const subjectInput = document.getElementById('subject');
+                const recipientInput = document.getElementById('recipient');
+                const section3Desc = document.getElementById('section3_description');
+
+                currentQuantity = quantity;
+
+                if (quantity > 1) {
+                    // Show mode selection
+                    modeSelection.style.display = 'block';
+                    
+                    // Get selected mode
+                    const selectedMode = document.querySelector('input[name="multiple_mode"]:checked').value;
+                    currentMode = selectedMode;
+                    
+                    if (selectedMode === 'different') {
+                        // Show multiple letter content, hide single
+                        singleContent.style.display = 'none';
+                        multipleContent.style.display = 'block';
+                        
+                        // Remove required from single inputs
+                        subjectInput.removeAttribute('required');
+                        recipientInput.removeAttribute('required');
+                        
+                        // Generate letter items
+                        generateLetterItems(quantity);
+                        
+                        // Update description
+                        section3Desc.textContent = `Masukkan perihal dan tujuan untuk ${quantity} surat`;
+                    } else {
+                        // Show single letter content, hide multiple
+                        singleContent.style.display = 'block';
+                        multipleContent.style.display = 'none';
+                        
+                        // Add required back to single inputs
+                        subjectInput.setAttribute('required', 'required');
+                        recipientInput.setAttribute('required', 'required');
+                        
+                        // Update description
+                        section3Desc.textContent = `Perihal dan tujuan yang sama akan digunakan untuk ${quantity} surat`;
+                    }
+                } else {
+                    // Hide mode selection for single letter
+                    modeSelection.style.display = 'none';
+                    singleContent.style.display = 'block';
+                    multipleContent.style.display = 'none';
+                    
+                    // Add required back to single inputs
+                    subjectInput.setAttribute('required', 'required');
+                    recipientInput.setAttribute('required', 'required');
+                    
+                    // Reset description
+                    section3Desc.textContent = 'Masukkan perihal dan tujuan surat';
                 }
             }
 
@@ -432,6 +654,56 @@
                     defaultDate: "{{ old('letter_date', now()->format('Y-m-d')) }}"
                 });
 
+                // Quantity change handler
+                document.getElementById('quantity').addEventListener('input', function() {
+                    updateMultipleLetterUI();
+                });
+
+                // Mode change handler
+                document.querySelectorAll('input[name="multiple_mode"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        updateMultipleLetterUI();
+                    });
+                });
+
+                // Copy first to all button
+                document.getElementById('btn_copy_first_to_all').addEventListener('click', function() {
+                    const firstCard = document.querySelector('.letter-item-card[data-index="0"]');
+                    if (!firstCard) return;
+                    
+                    const firstSubject = firstCard.querySelector('input[name^="subjects"]').value;
+                    const firstRecipient = firstCard.querySelector('input[name^="recipients"]').value;
+                    
+                    document.querySelectorAll('.letter-item-card').forEach((card, index) => {
+                        if (index > 0) {
+                            card.querySelector('input[name^="subjects"]').value = firstSubject;
+                            card.querySelector('input[name^="recipients"]').value = firstRecipient;
+                        }
+                    });
+                    
+                    // Visual feedback
+                    this.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i> Berhasil disalin!';
+                    this.classList.remove('text-gray-600', 'bg-gray-100');
+                    this.classList.add('text-green-600', 'bg-green-100');
+                    lucide.createIcons();
+                    
+                    setTimeout(() => {
+                        this.innerHTML = '<i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin dari Surat 1 ke Semua';
+                        this.classList.remove('text-green-600', 'bg-green-100');
+                        this.classList.add('text-gray-600', 'bg-gray-100');
+                        lucide.createIcons();
+                    }, 2000);
+                });
+
+                // Clear all button
+                document.getElementById('btn_clear_all').addEventListener('click', function() {
+                    if (confirm('Apakah Anda yakin ingin mengosongkan semua isian perihal dan tujuan?')) {
+                        document.querySelectorAll('.letter-item-card input').forEach(input => {
+                            input.value = '';
+                        });
+                    }
+                });
+
                 // Add error class if validation fails
                 @if ($errors->has('letter_type_id'))
                     $('#letter_type_id').next('.select2-container').addClass('select2-error');
@@ -452,6 +724,11 @@
                 // Handle initial state (for old input after validation error)
                 @if (old('letter_type_id'))
                     toggleConditionalFields({{ old('letter_type_id') }});
+                @endif
+
+                // Initialize multiple letter UI based on old values
+                @if (old('quantity', 1) > 1)
+                    updateMultipleLetterUI();
                 @endif
             });
         </script>
