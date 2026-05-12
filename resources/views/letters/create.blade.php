@@ -24,7 +24,7 @@
         {{-- Form Section --}}
         <div class="bg-white rounded-lg shadow border border-gray-200">
             <div class="p-8">
-                <form method="POST" action="{{ route('letters.store') }}">
+                <form id="letter-form" method="POST" action="{{ route('letters.store') }}">
                     @csrf
 
                     {{-- SECTION 1: Informasi Dasar Surat --}}
@@ -495,6 +495,32 @@
         <script src="https://unpkg.com/lucide@latest"></script>
         <script>
             lucide.createIcons();
+
+            // Handle form submission - remove 'required' from hidden inputs to avoid HTML5 validation errors
+            document.getElementById('letter-form').addEventListener('submit', function(e) {
+                // Get all inputs with 'required' attribute
+                const inputs = document.querySelectorAll('input[required], select[required], textarea[required]');
+                
+                // Remove required attribute from inputs that are not visible (display: none or parent hidden)
+                inputs.forEach(input => {
+                    // Check if input or any parent is hidden
+                    let isHidden = false;
+                    let element = input;
+                    
+                    while (element && !isHidden) {
+                        if (element.offsetParent === null || window.getComputedStyle(element).display === 'none') {
+                            isHidden = true;
+                        }
+                        element = element.parentElement;
+                    }
+                    
+                    // Store original required state and remove if hidden
+                    if (isHidden && input.hasAttribute('required')) {
+                        input.dataset.originalRequired = true;
+                        input.removeAttribute('required');
+                    }
+                });
+            });
 
             // Letter types data with requires_purpose flag
             const letterTypesData = {
