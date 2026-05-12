@@ -8,6 +8,9 @@ use App\Models\ClassificationLetter;
 use App\Models\LetterType;
 use App\Models\LetterPurpose;
 use App\Models\UserLetterView;
+use App\Models\LetterSequence;
+use App\Enums\SecurityClassification;
+use App\Enums\LetterTarget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -90,12 +93,16 @@ class LetterController extends Controller
         // Data untuk dropdown
         $signatories = Signatory::active()->orderBy('name')->get();
         $classifications = ClassificationLetter::active()->orderBy('name')->get();
+        $securityClassifications = SecurityClassification::options();
+        $letterTargets = LetterTarget::options();
         $letterTypes = LetterType::active()->orderBy('name')->get();
         $letterPurposes = LetterPurpose::active()->orderBy('name')->get();
 
         return view('letters.create', compact(
             'signatories',
             'classifications',
+            'securityClassifications',
+            'letterTargets',
             'letterTypes',
             'letterPurposes'
         ));
@@ -121,6 +128,8 @@ class LetterController extends Controller
             $rules = [
                 'signatory_id' => 'required|exists:signatories,id',
                 'classification_id' => 'required|exists:classification_letters,id',
+                'security_classification' => 'required|in:B,T,R,SR',
+                'letter_target' => 'required|in:internal,external',
                 'letter_type_id' => 'required|exists:letter_types,id',
                 'letter_date' => 'required|date',
                 'quantity' => 'nullable|integer|min:1|max:50',
@@ -192,20 +201,23 @@ class LetterController extends Controller
                 // Ambil tahun dari tanggal surat
                 $year = date('Y', strtotime($validated['letter_date']));
 
-                // Ambil running number terakhir dengan locking untuk mencegah race condition
-                $lastLetter = Letter::where('signatory_id', $validated['signatory_id'])
-                    ->where('classification_id', $validated['classification_id'])
-                    ->where('year', $year)
-                    ->lockForUpdate()
-                    ->orderBy('running_number', 'desc')
-                    ->first();
-
-                // Hitung running number berikutnya
-                $startingRunningNumber = $lastLetter ? $lastLetter->running_number + 1 : 1;
+                // Gunakan LetterSequence untuk mendapatkan running number yang aman
+                // Method ini menggunakan pessimistic locking di level database
+                // untuk mencegah race condition saat concurrent requests
+                $startingRunningNumber = LetterSequence::getNextNumber(
+                    $validated['signatory_id'],
+                    $validated['classification_id'],
+                    $year
+                );
 
                 // Ambil kode penandatangan dan klasifikasi
                 $signatory = Signatory::findOrFail($validated['signatory_id']);
                 $classification = ClassificationLetter::findOrFail($validated['classification_id']);
+                $securityCode = $validated['security_classification'];
+                
+                // Ambil kode target (UN39. untuk internal, kosong untuk external)
+                $letterTarget = LetterTarget::from($validated['letter_target']);
+                $targetCode = $letterTarget->code();
 
                 // Array untuk menyimpan surat yang dibuat
                 $letters = [];
@@ -215,10 +227,14 @@ class LetterController extends Controller
                     $runningNumber = $startingRunningNumber + $i;
                     $runningNumberFormatted = str_pad($runningNumber, 3, '0', STR_PAD_LEFT);
 
-                    // Generate nomor surat dengan format: [running_3_digit]/[kode_penandatangan]/[kode_klasifikasi]/[tahun]
+                    // Generate nomor surat dengan format: [SEC]/[RUNNING]/[TARGET_CODE][SIGNATORY]/[CLASS]/[YEAR]
+                    // Internal: B/001/UN39.DEP-XYT/VAL-ZJ/2026
+                    // External: B/001/DEP-XYT/VAL-ZJ/2026
                     $letterNumber = sprintf(
-                        '%s/%s/%s/%d',
+                        '%s/%s/%s%s/%s/%d',
+                        $securityCode,
                         $runningNumberFormatted,
+                        $targetCode,
                         $signatory->code,
                         $classification->code,
                         $year
@@ -265,6 +281,30 @@ class LetterController extends Controller
                     $createdLetters[0]->letter_number,
                     $createdLetters[count($createdLetters) - 1]->letter_number
                 ));
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('Database error creating letter', [
+                'error' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'user_id' => auth()->id()
+            ]);
+
+            // Check untuk unique constraint violation pada letter_number
+            if ($e->getCode() === '23000' || str_contains($e->getMessage(), 'Duplicate entry') || str_contains($e->getMessage(), 'UNIQUE')) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['error' => 'Nomor surat sudah terpakai. Silakan coba lagi (kemungkinan race condition).']);
+            }
+
+            // Check untuk lock timeout
+            if (str_contains($e->getMessage(), 'Lock wait timeout exceeded') || $e->getCode() === '1205') {
+                return back()
+                    ->withInput()
+                    ->withErrors(['error' => 'Sistem terlalu sibuk. Silakan coba lagi dalam beberapa detik.']);
+            }
+
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Kesalahan database: ' . $e->getMessage()]);
         } catch (\Throwable $e) {
             Log::error('Error creating letter', [
                 'error' => $e->getMessage(),
@@ -330,57 +370,96 @@ class LetterController extends Controller
      * @param Letter $letter
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, Letter $letter)
-    {
-        try {
-            // Cek apakah jenis surat memerlukan keperluan
-            $letterType = $letter->letterType;
+     public function update(Request $request, Letter $letter)
+     {
+         try {
+             // Cek apakah jenis surat memerlukan keperluan
+             $letterType = $letter->letterType;
 
-            // Validasi input dasar
-            $rules = [
-                'letter_date' => 'required|date',
-                'subject' => 'required|string|max:255',
-                'recipient' => 'required|string|max:255',
-            ];
+             // Validasi input dasar
+             $rules = [
+                 'letter_date' => 'required|date',
+                 'subject' => 'required|string|max:255',
+                 'recipient' => 'required|string|max:255',
+                 'letter_target' => 'required|in:internal,external',
+             ];
 
-            // Jika jenis surat memerlukan keperluan, tambahkan validasi
-            if ($letterType->requires_purpose) {
-                $rules['letter_purpose_id'] = 'required|exists:letter_purposes,id';
-                $rules['student_name'] = 'required|string|max:255';
-            } else {
-                $rules['letter_purpose_id'] = 'nullable|exists:letter_purposes,id';
-                $rules['student_name'] = 'nullable|string|max:255';
-            }
+             // Jika jenis surat memerlukan keperluan, tambahkan validasi
+             if ($letterType->requires_purpose) {
+                 $rules['letter_purpose_id'] = 'required|exists:letter_purposes,id';
+                 $rules['student_name'] = 'required|string|max:255';
+             } else {
+                 $rules['letter_purpose_id'] = 'nullable|exists:letter_purposes,id';
+                 $rules['student_name'] = 'nullable|string|max:255';
+             }
 
-            $validated = $request->validate($rules);
+             $validated = $request->validate($rules);
 
-            // Update hanya field yang diizinkan (tidak termasuk nomor surat)
-            DB::transaction(function () use ($letter, $validated) {
-                $letter->update($validated);
-            });
+              // Update field dan regenerate nomor surat jika letter_target berubah
+              $targetChanged = false;
+              DB::transaction(function () use ($letter, $validated, &$targetChanged) {
+                  // Check if letter_target changed
+                  $targetChanged = $letter->letter_target !== $validated['letter_target'];
 
-            Log::info('Letter updated successfully', [
-                'letter_id' => $letter->id,
-                'letter_number' => $letter->letter_number,
-                'user_id' => auth()->id()
-            ]);
+                  if ($targetChanged) {
+                      // Regenerate letter number dengan target code yang baru
+                      $letterTarget = LetterTarget::from($validated['letter_target']);
+                      $targetCode = $letterTarget->code();
 
-            return redirect()
-                ->route('letters.show', $letter)
-                ->with('success', 'Surat berhasil diperbarui.');
-        } catch (\Throwable $e) {
-            Log::error('Error updating letter', [
-                'letter_id' => $letter->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'user_id' => auth()->id()
-            ]);
+                      // Parse existing nomor surat untuk extract bagian-bagiannya
+                      $parts = explode('/', $letter->letter_number);
+                      // Format: [SEC]/[RUNNING]/[SIGNATORY_OR_UN39.SIGNATORY]/[CLASS]/[YEAR]
+                      
+                      $securityCode = $parts[0];
+                      $runningNumber = $parts[1];
+                      $signatory = $letter->signatory;
+                      $classification = $letter->classification;
+                      $year = $letter->year;
 
-            return back()
-                ->withInput()
-                ->withErrors(['error' => 'Terjadi kesalahan saat memperbarui surat. Silakan coba lagi.']);
-        }
-    }
+                      // Extract clean signatory code (remove UN39. if exists)
+                      $signatoryPart = $parts[2];
+                      $cleanSignatoryCode = str_replace('UN39.', '', $signatoryPart);
+
+                      // Generate nomor surat dengan target code yang baru
+                      $newLetterNumber = sprintf(
+                          '%s/%s/%s%s/%s/%d',
+                          $securityCode,
+                          $runningNumber,
+                          $targetCode,
+                          $cleanSignatoryCode,
+                          $classification->code,
+                          $year
+                      );
+
+                      $validated['letter_number'] = $newLetterNumber;
+                  }
+
+                  $letter->update($validated);
+              });
+
+             Log::info('Letter updated successfully', [
+                 'letter_id' => $letter->id,
+                 'letter_number' => $letter->letter_number,
+                 'target_changed' => $targetChanged,
+                 'user_id' => auth()->id()
+             ]);
+
+             return redirect()
+                 ->route('letters.show', $letter)
+                 ->with('success', 'Surat berhasil diperbarui.' . ($targetChanged ? ' Nomor surat telah di-regenerate.' : ''));
+         } catch (\Throwable $e) {
+             Log::error('Error updating letter', [
+                 'letter_id' => $letter->id,
+                 'error' => $e->getMessage(),
+                 'trace' => $e->getTraceAsString(),
+                 'user_id' => auth()->id()
+             ]);
+
+             return back()
+                 ->withInput()
+                 ->withErrors(['error' => 'Terjadi kesalahan saat memperbarui surat. Silakan coba lagi.']);
+         }
+     }
 
     /**
      * Soft delete surat (set is_active = false)

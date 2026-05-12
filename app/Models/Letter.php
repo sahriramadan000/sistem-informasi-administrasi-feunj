@@ -23,6 +23,8 @@ class Letter extends Model
         'year',
         'signatory_id',
         'classification_id',
+        'security_classification',
+        'letter_target',
         'letter_type_id',
         'letter_purpose_id',
         'letter_date',

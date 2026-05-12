@@ -27,8 +27,8 @@
             </div>
             <div>
                 <h3 class="text-sm font-semibold text-amber-800 mb-1">Informasi Penting</h3>
-                <p class="text-sm text-amber-700">
-                    <strong>Nomor surat, jenis, klasifikasi, dan penandatangan</strong> tidak dapat diubah. Anda hanya dapat mengubah tanggal, perihal, tujuan, dan informasi tambahan.
+                <p class="text-sm text-amber-700 mb-2">
+                    <strong>Nomor surat, jenis, klasifikasi, dan penandatangan</strong> tidak dapat diubah. Anda dapat mengubah tanggal, perihal, tujuan, dan sasaran surat.
                 </p>
             </div>
         </div>
@@ -73,7 +73,7 @@
                         </div>
 
                         {{-- Klasifikasi --}}
-                        <div class="space-y-2">
+                         <div class="space-y-2">
                             <label class="label flex items-center gap-2">
                                 <i data-lucide="folder" class="w-4 h-4 text-gray-400"></i>
                                 Klasifikasi
@@ -82,12 +82,62 @@
                         </div>
 
                         {{-- Penandatangan --}}
-                        <div class="space-y-2">
+                         <div class="space-y-2">
                             <label class="label flex items-center gap-2">
                                 <i data-lucide="user-check" class="w-4 h-4 text-gray-400"></i>
                                 Penandatangan
                             </label>
                             <input type="text" value="{{ $letter->signatory->name }} - {{ $letter->signatory->position }}" class="input bg-gray-50 cursor-not-allowed" readonly>
+                        </div>
+
+                        {{-- Klasifikasi Keamanan (Read-Only) --}}
+                        <div class="space-y-2">
+                            <label class="label flex items-center gap-2">
+                                <i data-lucide="shield" class="w-4 h-4 text-gray-400"></i>
+                                Klasifikasi Keamanan
+                            </label>
+                            <input type="text" 
+                                   value="@php
+                                        $securityLabels = [
+                                            'B' => 'B: Biasa',
+                                            'T' => 'T: Terbatas',
+                                            'R' => 'R: Rahasia',
+                                            'SR' => 'SR: Sangat Rahasia'
+                                        ];
+                                        echo $securityLabels[$letter->security_classification] ?? '-';
+                                   @endphp"
+                                   class="input bg-gray-50 cursor-not-allowed" 
+                                   readonly>
+                        </div>
+
+                        {{-- Sasaran Surat (Editable) --}}
+                        <div class="space-y-2">
+                            <label for="letter_target" class="label flex items-center gap-2">
+                                <i data-lucide="target" class="w-4 h-4 text-gray-400"></i>
+                                Sasaran Surat <span class="text-destructive">*</span>
+                            </label>
+                            <select id="letter_target" 
+                                    name="letter_target"
+                                    class="select @error('letter_target') !border-red-500 @enderror"
+                                    required>
+                                <option value="">-- Pilih Sasaran Surat --</option>
+                                <option value="internal" {{ old('letter_target', $letter->letter_target) === 'internal' ? 'selected' : '' }}>
+                                    Internal
+                                </option>
+                                <option value="external" {{ old('letter_target', $letter->letter_target) === 'external' ? 'selected' : '' }}>
+                                    External
+                                </option>
+                            </select>
+                            @error('letter_target')
+                                <p class="text-sm text-destructive flex items-center gap-1.5">
+                                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                            <p class="text-xs text-gray-500 flex items-start gap-1.5">
+                                <i data-lucide="info" class="w-3.5 h-3.5 mt-0.5 text-blue-500"></i>
+                                <span>External akan menambahkan kode "UN39." ke nomor surat</span>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -286,10 +336,6 @@
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <i data-lucide="check" class="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"></i>
-                                        <span>Nomor surat tetap sama: <strong class="font-mono">{{ $letter->letter_number }}</strong></span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <i data-lucide="check" class="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"></i>
                                         <span>Pastikan semua data sudah benar sebelum menyimpan</span>
                                     </li>
                                 </ul>
@@ -320,6 +366,13 @@
     
     // Initialize Select2 and Flatpickr
     $(document).ready(function() {
+        // Initialize Select2 for letter target
+        $('#letter_target').select2({
+            placeholder: '-- Pilih Sasaran Surat --',
+            allowClear: false,
+            width: '100%'
+        });
+
         // Initialize Select2 for letter purpose (if exists)
         @if($letter->letterType->requires_purpose)
         $('#letter_purpose_id').select2({
@@ -341,6 +394,10 @@
         });
 
         // Add error class if validation fails
+        @if($errors->has('letter_target'))
+            $('#letter_target').next('.select2-container').addClass('select2-error');
+        @endif
+
         @if($errors->has('letter_purpose_id'))
             $('#letter_purpose_id').next('.select2-container').addClass('select2-error');
         @endif

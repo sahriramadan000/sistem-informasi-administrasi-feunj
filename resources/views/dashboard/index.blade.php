@@ -94,56 +94,7 @@
         </div>
     </div>
 
-    {{-- Inactive Letters Statistics --}}
-    @if($inactiveLetters > 0)
-    <div class="mb-8">
-        <div class="bg-red-50 border border-red-200 rounded-lg shadow-sm">
-            <div class="border-b border-red-200 px-6 py-4">
-                <h3 class="text-lg font-semibold text-red-800 flex items-center">
-                    <i data-lucide="archive-x" class="mr-2 h-5 w-5"></i>
-                    Surat yang Dinonaktifkan
-                </h3>
-            </div>
-            <div class="p-6">
-                <div class="grid gap-4 md:grid-cols-3">
-                    <div class="bg-white rounded-lg border border-red-200 p-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Total Dinonaktifkan</p>
-                                <h4 class="text-3xl font-bold text-red-600 mt-1">{{ $inactiveLetters }}</h4>
-                            </div>
-                            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100">
-                                <i data-lucide="archive" class="h-6 w-6 text-red-600"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg border border-red-200 p-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Tahun Ini</p>
-                                <h4 class="text-3xl font-bold text-red-600 mt-1">{{ $inactiveLettersThisYear }}</h4>
-                            </div>
-                            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100">
-                                <i data-lucide="calendar-x" class="h-6 w-6 text-red-600"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg border border-red-200 p-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Bulan Ini</p>
-                                <h4 class="text-3xl font-bold text-red-600 mt-1">{{ $inactiveLettersThisMonth }}</h4>
-                            </div>
-                            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100">
-                                <i data-lucide="calendar-days" class="h-6 w-6 text-red-600"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
+
 
     {{-- Quick Actions --}}
     @if (auth()->user()->isAdmin() || auth()->user()->isOperator())

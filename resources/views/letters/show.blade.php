@@ -143,6 +143,56 @@
                                 <p class="text-sm text-gray-500 font-mono mt-0.5">{{ $letter->classification->code }}</p>
                             </div>
                         </div>
+
+                        {{-- Klasifikasi Keamanan --}}
+                         <div class="flex items-start gap-4">
+                            <div
+                                class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-red-100 to-pink-100 flex items-center justify-center">
+                                <i data-lucide="shield" class="w-6 h-6 text-red-600"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Klasifikasi Keamanan</p>
+                                <p class="text-base font-semibold text-gray-900">{{ $letter->security_classification }}</p>
+                                <p class="text-sm text-gray-500 mt-0.5">
+                                    @php
+                                        $labels = [
+                                            'B' => 'Biasa',
+                                            'T' => 'Terbatas',
+                                            'R' => 'Rahasia',
+                                            'SR' => 'Sangat Rahasia'
+                                        ];
+                                    @endphp
+                                    {{ $labels[$letter->security_classification] ?? '-' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- Sasaran Surat --}}
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+                                <i data-lucide="target" class="w-6 h-6 text-indigo-600"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Sasaran Surat</p>
+                                <p class="text-base font-semibold text-gray-900">
+                                    @php
+                                        $targetLabels = [
+                                            'internal' => 'Internal',
+                                            'external' => 'External'
+                                        ];
+                                    @endphp
+                                    {{ $targetLabels[$letter->letter_target] ?? '-' }}
+                                </p>
+                                <p class="text-sm text-gray-500 mt-0.5">
+                                    @if($letter->letter_target === 'internal')
+                                        Kode UN39. tidak ditambahkan ke nomor surat
+                                    @else
+                                        Kode UN39. ditambahkan ke nomor surat
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

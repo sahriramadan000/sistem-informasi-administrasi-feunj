@@ -40,6 +40,58 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pl-0 md:pl-13">
+                            {{-- Klasifikasi Keamanan --}}
+                            <div class="space-y-2">
+                                <label for="security_classification" class="label flex items-center gap-2">
+                                    <i data-lucide="shield" class="w-4 h-4 text-gray-400"></i>
+                                    Klasifikasi Keamanan <span class="text-destructive">*</span>
+                                </label>
+                                <select id="security_classification" name="security_classification"
+                                    class="select @error('security_classification') !border-red-500 @enderror" required>
+                                    <option value="">-- Pilih Klasifikasi Keamanan --</option>
+                                    @foreach ($securityClassifications as $code => $name)
+                                        <option value="{{ $code }}"
+                                            {{ old('security_classification') == $code ? 'selected' : '' }}>
+                                            {{ $name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('security_classification')
+                                    <p class="text-sm text-destructive flex items-center gap-1.5">
+                                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
+
+                            {{-- Sasaran Surat --}}
+                            <div class="space-y-2 md:col-span-3">
+                                <label for="letter_target" class="label flex items-center gap-2">
+                                    <i data-lucide="target" class="w-4 h-4 text-gray-400"></i>
+                                    Sasaran Surat <span class="text-destructive">*</span>
+                                </label>
+                                <select id="letter_target" name="letter_target"
+                                    class="select @error('letter_target') !border-red-500 @enderror" required>
+                                    <option value="">-- Pilih Sasaran Surat --</option>
+                                    @foreach ($letterTargets as $code => $name)
+                                        <option value="{{ $code }}"
+                                            {{ old('letter_target') == $code ? 'selected' : '' }}>
+                                            {{ $name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('letter_target')
+                                    <p class="text-sm text-destructive flex items-center gap-1.5">
+                                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                                <p class="text-xs text-gray-500 flex items-start gap-1.5">
+                                    <i data-lucide="info" class="w-3.5 h-3.5 mt-0.5 text-blue-500"></i>
+                                    <span>External akan menambahkan kode "UN39." ke nomor surat</span>
+                                </p>
+                            </div>
+
                             {{-- Jenis Surat --}}
                             <div class="space-y-2">
                                 <label for="letter_type_id" class="label flex items-center gap-2">
@@ -393,8 +445,24 @@
                                         <li class="flex items-start gap-2">
                                             <i data-lucide="check"
                                                 class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0"></i>
-                                            <span>Format nomor:
-                                                <strong>[000]/[kode_penandatangan]/[kode_klasifikasi]/[tahun]</strong></span>
+                                            <span>Format nomor untuk <strong>Internal</strong>:
+                                                <strong class="font-mono">[kode_keamanan]/[000]/UN39.[kode_penandatangan]/[kode_klasifikasi]/[tahun]</strong></span>
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <i data-lucide="check"
+                                                class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0"></i>
+                                            <span>Format nomor untuk <strong>External</strong>:
+                                                <strong class="font-mono">[kode_keamanan]/[000]/[kode_penandatangan]/[kode_klasifikasi]/[tahun]</strong></span>
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <i data-lucide="check"
+                                                class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0"></i>
+                                            <span>Contoh Internal: <strong class="font-mono">B/001/UN39.DEP-XYT/VAL-ZJ/2026</strong></span>
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <i data-lucide="check"
+                                                class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0"></i>
+                                            <span>Contoh External: <strong class="font-mono">B/001/DEP-XYT/VAL-ZJ/2026</strong></span>
                                         </li>
                                         <li class="flex items-start gap-2">
                                             <i data-lucide="check"
@@ -636,6 +704,20 @@
                     width: '100%'
                 });
 
+                // Klasifikasi Keamanan
+                $('#security_classification').select2({
+                    placeholder: '-- Pilih Klasifikasi Keamanan --',
+                    allowClear: false,
+                    width: '100%'
+                });
+
+                // Sasaran Surat
+                $('#letter_target').select2({
+                    placeholder: '-- Pilih Sasaran Surat --',
+                    allowClear: false,
+                    width: '100%'
+                });
+
                 // Penandatangan
                 $('#signatory_id').select2({
                     placeholder: '-- Pilih Penandatangan --',
@@ -711,6 +793,14 @@
 
                 @if ($errors->has('classification_id'))
                     $('#classification_id').next('.select2-container').addClass('select2-error');
+                @endif
+
+                @if ($errors->has('security_classification'))
+                    $('#security_classification').next('.select2-container').addClass('select2-error');
+                @endif
+
+                @if ($errors->has('letter_target'))
+                    $('#letter_target').next('.select2-container').addClass('select2-error');
                 @endif
 
                 @if ($errors->has('signatory_id'))
