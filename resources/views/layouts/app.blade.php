@@ -12,6 +12,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
+    {{-- ICON --}}
+    <link rel="icon" type="image/png" href="{{ asset('logo-unj.png') }}">
+
     {{-- jQuery (Required for Select2) --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
@@ -357,10 +360,10 @@
                     {{-- Sidebar Header --}}
                     <div class="flex h-16 items-center justify-between px-6 border-b border-gray-200 flex-shrink-0">
                         <div class="flex items-center space-x-2">
-                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand">
-                                <i data-lucide="building" class="h-5 w-5 text-white"></i>
+                            <div class="flex h-10 w-10 items-center justify-center">
+                                <img src="{{ asset('logo-unj.png') }}" alt="Logo UNJ" class="h-10 w-10 object-contain">
                             </div>
-                            <span class="text-lg font-semibold text-gray-900">SIA FEB UNJ</span>
+                            <span class="text-lg font-semibold text-gray-900">SIADMIN FEB</span>
                         </div>
                     </div>
 

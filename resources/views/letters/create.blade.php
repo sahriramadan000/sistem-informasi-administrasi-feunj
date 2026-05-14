@@ -65,7 +65,7 @@
                             </div>
 
                             {{-- Sasaran Surat --}}
-                            <div class="space-y-2 md:col-span-3">
+                            <div class="space-y-2">
                                 <label for="letter_target" class="label flex items-center gap-2">
                                     <i data-lucide="target" class="w-4 h-4 text-gray-400"></i>
                                     Sasaran Surat <span class="text-destructive">*</span>
@@ -419,57 +419,6 @@
                                             {{ $message }}
                                         </p>
                                     @enderror
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Info Box --}}
-                    <div class="mb-8">
-                        <div class="bg-gradient-to-r from-orange-50 to-yellow-50 border-l-4 border-brand rounded-r-lg p-5">
-                            <div class="flex gap-4">
-                                <div class="flex-shrink-0">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
-                                        <i data-lucide="info" class="w-5 h-5 text-brand"></i>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h6 class="font-semibold text-gray-900 mb-2">Informasi Penting</h6>
-                                    <ul class="text-sm text-gray-700 space-y-1">
-                                        <li class="flex items-start gap-2">
-                                            <i data-lucide="check"
-                                                class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0"></i>
-                                            <span>Nomor surat akan di-generate otomatis setelah formulir disimpan</span>
-                                        </li>
-                                        <li class="flex items-start gap-2">
-                                            <i data-lucide="check"
-                                                class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0"></i>
-                                            <span>Format nomor untuk <strong>Internal</strong>:
-                                                <strong class="font-mono">[kode_keamanan]/[000]/UN39.[kode_penandatangan]/[kode_klasifikasi]/[tahun]</strong></span>
-                                        </li>
-                                        <li class="flex items-start gap-2">
-                                            <i data-lucide="check"
-                                                class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0"></i>
-                                            <span>Format nomor untuk <strong>External</strong>:
-                                                <strong class="font-mono">[kode_keamanan]/[000]/[kode_penandatangan]/[kode_klasifikasi]/[tahun]</strong></span>
-                                        </li>
-                                        <li class="flex items-start gap-2">
-                                            <i data-lucide="check"
-                                                class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0"></i>
-                                            <span>Contoh Internal: <strong class="font-mono">B/001/UN39.DEP-XYT/VAL-ZJ/2026</strong></span>
-                                        </li>
-                                        <li class="flex items-start gap-2">
-                                            <i data-lucide="check"
-                                                class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0"></i>
-                                            <span>Contoh External: <strong class="font-mono">B/001/DEP-XYT/VAL-ZJ/2026</strong></span>
-                                        </li>
-                                        <li class="flex items-start gap-2">
-                                            <i data-lucide="check"
-                                                class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0"></i>
-                                            <span>Pastikan semua data sudah benar sebelum menyimpan</span>
-                                        </li>
-                                    </ul>
                                 </div>
                             </div>
                         </div>

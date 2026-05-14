@@ -43,7 +43,7 @@ class SignatoryController extends Controller
             });
         }
 
-        $signatories = $query->orderBy('name')->paginate(10);
+        $signatories = $query->orderBy('code')->paginate(10);
         
         return view('master.signatory.index', compact('signatories'));
     }
@@ -69,12 +69,15 @@ class SignatoryController extends Controller
         try {
             // Validasi input
             $validated = $request->validate([
-                'code' => 'required|string|max:50|unique:signatories,code',
+                'code' => 'required|string|max:50',
                 'name' => 'required|string|max:150',
                 'position' => 'required|string|max:150',
                 'nip' => 'nullable|string|max:50',
                 'is_active' => 'boolean',
             ]);
+
+            // Set is_active explicitly since unchecked checkboxes send no data
+            $validated['is_active'] = $request->has('is_active');
 
             // Simpan data menggunakan transaction
             DB::transaction(function () use ($validated) {
@@ -126,12 +129,15 @@ class SignatoryController extends Controller
         try {
             // Validasi input
             $validated = $request->validate([
-                'code' => 'required|string|max:50|unique:signatories,code,' . $signatory->id,
+                'code' => 'required|string|max:50',
                 'name' => 'required|string|max:150',
                 'position' => 'required|string|max:150',
                 'nip' => 'nullable|string|max:50',
                 'is_active' => 'boolean',
             ]);
+
+            // Set is_active explicitly since unchecked checkboxes send no data
+            $validated['is_active'] = $request->has('is_active');
 
             // Update data menggunakan transaction
             DB::transaction(function () use ($signatory, $validated) {

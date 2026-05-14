@@ -40,10 +40,22 @@ class LetterController extends Controller
      */
     public function index(Request $request)
     {
-        // Query dasar dengan relasi - hanya surat aktif
-        $query = Letter::with(['signatory', 'classification', 'letterType', 'creator', 'viewedByUsers'])->active();
+        // Query dasar dengan relasi - hanya surat aktif dan status final
+        $query = Letter::with(['signatory', 'classification', 'letterType', 'creator', 'viewedByUsers'])
+            ->where('status', 'final')
+            ->active();
 
         // Filter berdasarkan parameter request
+        if ($request->filled('date_range')) {
+            $dates = explode(' to ', $request->date_range);
+            if (count($dates) == 2) {
+                $query->whereBetween('letter_date', [$dates[0], $dates[1]]);
+            } elseif (count($dates) == 1) {
+                $query->whereDate('letter_date', $dates[0]);
+            }
+        }
+
+
         if ($request->filled('year')) {
             $query->year($request->year);
         }
@@ -64,8 +76,10 @@ class LetterController extends Controller
             $query->search($request->search);
         }
 
-        // Pagination dengan mempertahankan query string
-        $letters = $query->orderBy('created_at', 'desc')->paginate(10);
+        // Pagination dengan mempertahankan query string, diurutkan berdasarkan running_number terbesar
+        $letters = $query->orderBy('year', 'desc')
+                         ->orderBy('running_number', 'desc')
+                         ->paginate(10);
 
         // TIDAK mark surat sebagai viewed di halaman index
         // Surat hanya di-mark viewed ketika user klik detail (di method show)

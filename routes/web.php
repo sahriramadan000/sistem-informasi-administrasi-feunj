@@ -9,6 +9,7 @@ use App\Http\Controllers\Master\LetterTypeController;
 use App\Http\Controllers\Master\SignatoryController;
 use App\Http\Controllers\Master\LetterPurposeController;
 use App\Http\Controllers\Master\UserController;
+use App\Http\Controllers\LetterImportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +47,8 @@ Route::prefix('master')->name('master.')->group(function () {
 });
 
 // Letter Routes (Middleware di Controller)
+Route::get('letters/import/template', [LetterImportController::class, 'template'])->name('letters.import.template')->middleware(['auth', 'role:admin,operator']);
+Route::post('letters/import', [LetterImportController::class, 'import'])->name('letters.import')->middleware(['auth', 'role:admin,operator']);
 Route::resource('letters', LetterController::class);
 
 // Debug route untuk testing badge
