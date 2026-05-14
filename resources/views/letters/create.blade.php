@@ -498,6 +498,42 @@
 
             // Handle form submission - remove 'required' from hidden inputs to avoid HTML5 validation errors
             document.getElementById('letter-form').addEventListener('submit', function(e) {
+                // DEBUG: Capture quantity value at exact moment before submission
+                const quantityInput = document.getElementById('quantity');
+                const quantityValue = quantityInput.value;
+                
+                // Create a hidden input to send the DEBUG value
+                const debugInput = document.createElement('input');
+                debugInput.type = 'hidden';
+                debugInput.name = 'DEBUG_quantity_at_submit';
+                debugInput.value = quantityValue;
+                this.appendChild(debugInput);
+                
+                console.log('[DEBUG] ===== FINAL FORM SUBMISSION =====');
+                console.log('[DEBUG] Quantity input element:', quantityInput);
+                console.log('[DEBUG] Quantity .value (at submit time):', quantityValue);
+                console.log('[DEBUG] Quantity .value type:', typeof quantityValue);
+                console.log('[DEBUG] Quantity .value length:', quantityValue.length);
+                console.log('[DEBUG] parseInt(quantity):', parseInt(quantityValue));
+                console.log('[DEBUG] Number(quantity):', Number(quantityValue));
+                
+                // Check all quantity inputs in form (in case there are multiple)
+                const allQuantityInputs = this.querySelectorAll('input[name="quantity"]');
+                console.log('[DEBUG] Total quantity inputs in form:', allQuantityInputs.length);
+                allQuantityInputs.forEach((input, idx) => {
+                    console.log(`[DEBUG] Quantity input #${idx}:`, input.value);
+                });
+                
+                // Check if value changed since user input
+                const formData = new FormData(this);
+                const formDataQuantity = formData.get('quantity');
+                console.log('[DEBUG] FormData.get("quantity"):', formDataQuantity);
+                console.log('[DEBUG] FormData.get("quantity") type:', typeof formDataQuantity);
+                
+                // Compare
+                console.log('[DEBUG] quantityValue === formDataQuantity:', quantityValue === formDataQuantity);
+                console.log('[DEBUG] Are they different?:', quantityValue !== formDataQuantity);
+                
                 // Get all inputs with 'required' attribute
                 const inputs = document.querySelectorAll('input[required], select[required], textarea[required]');
                 
@@ -609,12 +645,15 @@
 
             // Function to generate letter items based on quantity
             function generateLetterItems(quantity) {
+                console.log('[DEBUG] generateLetterItems called with quantity:', quantity);
                 const container = document.getElementById('letter_items_container');
                 container.innerHTML = '';
                 
                 for (let i = 0; i < quantity; i++) {
                     container.insertAdjacentHTML('beforeend', createLetterItemCard(i));
                 }
+                
+                console.log('[DEBUG] Generated letter items count:', container.querySelectorAll('.letter-item-card').length);
                 
                 // Reinitialize Lucide icons for new elements
                 lucide.createIcons();
@@ -764,7 +803,13 @@
 
                 // Quantity change handler
                 document.getElementById('quantity').addEventListener('input', function() {
+                    console.log('[DEBUG] Quantity input changed to:', this.value);
                     updateMultipleLetterUI();
+                });
+                
+                // Add change event too
+                document.getElementById('quantity').addEventListener('change', function() {
+                    console.log('[DEBUG] Quantity change event fired, value:', this.value);
                 });
 
                 // Mode change handler
