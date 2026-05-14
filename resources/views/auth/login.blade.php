@@ -9,6 +9,9 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    {{-- ICON --}}
+    <link rel="icon" type="image/png" href="{{ asset('logo-unj.png') }}">
+    
     {{-- Lucide Icons --}}
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
