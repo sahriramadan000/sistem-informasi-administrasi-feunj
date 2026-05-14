@@ -126,10 +126,12 @@ class LetterController extends Controller
              
              // DEBUG: Log quantity from form submission
              $debugQuantityAtSubmit = $request->input('DEBUG_quantity_at_submit');
-             Log::info('DEBUG: Quantity tracking', [
+             $debugModeAtSubmit = $request->input('DEBUG_mode_at_submit');
+             Log::info('DEBUG: Form submission values', [
+                 'DEBUG_quantity_at_submit' => $debugQuantityAtSubmit,
+                 'DEBUG_mode_at_submit' => $debugModeAtSubmit,
                  'quantity_from_request' => $quantity,
-                 'DEBUG_quantity_at_submit_from_form' => $debugQuantityAtSubmit,
-                 'match' => $quantity === $debugQuantityAtSubmit ? 'SAME' : 'DIFFERENT!',
+                 'mode_from_request' => $multipleMode,
              ]);
 
             // Validasi input dasar

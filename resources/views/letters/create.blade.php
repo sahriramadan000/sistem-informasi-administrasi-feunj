@@ -501,6 +501,14 @@
                 // DEBUG: Capture quantity value at exact moment before submission
                 const quantityInput = document.getElementById('quantity');
                 const quantityValue = quantityInput.value;
+                const multipleMode = document.querySelector('input[name="multiple_mode"]:checked');
+                const selectedMode = multipleMode ? multipleMode.value : 'none';
+                
+                console.log('[DEBUG SUBMIT] Form submission triggered');
+                console.log('[DEBUG SUBMIT] Quantity input .value:', quantityValue);
+                console.log('[DEBUG SUBMIT] Selected mode:', selectedMode);
+                console.log('[DEBUG SUBMIT] currentQuantity (global):', currentQuantity);
+                console.log('[DEBUG SUBMIT] currentMode (global):', currentMode);
                 
                 // Create a hidden input to send the DEBUG value
                 const debugInput = document.createElement('input');
@@ -509,30 +517,11 @@
                 debugInput.value = quantityValue;
                 this.appendChild(debugInput);
                 
-                console.log('[DEBUG] ===== FINAL FORM SUBMISSION =====');
-                console.log('[DEBUG] Quantity input element:', quantityInput);
-                console.log('[DEBUG] Quantity .value (at submit time):', quantityValue);
-                console.log('[DEBUG] Quantity .value type:', typeof quantityValue);
-                console.log('[DEBUG] Quantity .value length:', quantityValue.length);
-                console.log('[DEBUG] parseInt(quantity):', parseInt(quantityValue));
-                console.log('[DEBUG] Number(quantity):', Number(quantityValue));
-                
-                // Check all quantity inputs in form (in case there are multiple)
-                const allQuantityInputs = this.querySelectorAll('input[name="quantity"]');
-                console.log('[DEBUG] Total quantity inputs in form:', allQuantityInputs.length);
-                allQuantityInputs.forEach((input, idx) => {
-                    console.log(`[DEBUG] Quantity input #${idx}:`, input.value);
-                });
-                
-                // Check if value changed since user input
-                const formData = new FormData(this);
-                const formDataQuantity = formData.get('quantity');
-                console.log('[DEBUG] FormData.get("quantity"):', formDataQuantity);
-                console.log('[DEBUG] FormData.get("quantity") type:', typeof formDataQuantity);
-                
-                // Compare
-                console.log('[DEBUG] quantityValue === formDataQuantity:', quantityValue === formDataQuantity);
-                console.log('[DEBUG] Are they different?:', quantityValue !== formDataQuantity);
+                const debugModeInput = document.createElement('input');
+                debugModeInput.type = 'hidden';
+                debugModeInput.name = 'DEBUG_mode_at_submit';
+                debugModeInput.value = selectedMode;
+                this.appendChild(debugModeInput);
                 
                 // Get all inputs with 'required' attribute
                 const inputs = document.querySelectorAll('input[required], select[required], textarea[required]');
@@ -802,20 +791,35 @@
                 });
 
                 // Quantity change handler
-                document.getElementById('quantity').addEventListener('input', function() {
-                    console.log('[DEBUG] Quantity input changed to:', this.value);
+                const quantityInput = document.getElementById('quantity');
+                
+                quantityInput.addEventListener('input', function(e) {
+                    console.log('[DEBUG QUANTITY] Input event - value changed to:', this.value);
+                    console.log('[DEBUG QUANTITY] Event type:', e.type);
                     updateMultipleLetterUI();
                 });
                 
-                // Add change event too
-                document.getElementById('quantity').addEventListener('change', function() {
-                    console.log('[DEBUG] Quantity change event fired, value:', this.value);
+                quantityInput.addEventListener('change', function(e) {
+                    console.log('[DEBUG QUANTITY] Change event - value is:', this.value);
+                    console.log('[DEBUG QUANTITY] Event type:', e.type);
+                });
+                
+                quantityInput.addEventListener('blur', function(e) {
+                    console.log('[DEBUG QUANTITY] Blur event - final value:', this.value);
+                });
+                
+                quantityInput.addEventListener('focus', function(e) {
+                    console.log('[DEBUG QUANTITY] Focus event - current value:', this.value);
                 });
 
                 // Mode change handler
                 document.querySelectorAll('input[name="multiple_mode"]').forEach(radio => {
                     radio.addEventListener('change', function() {
+                        console.log('[DEBUG MODE] Mode changed to:', this.value);
+                        const quantityInput = document.getElementById('quantity');
+                        console.log('[DEBUG MODE] Quantity at mode change:', quantityInput.value);
                         updateMultipleLetterUI();
+                        console.log('[DEBUG MODE] After updateMultipleLetterUI, quantity:', quantityInput.value);
                     });
                 });
 
