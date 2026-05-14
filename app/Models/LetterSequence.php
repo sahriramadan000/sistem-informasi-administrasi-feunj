@@ -90,6 +90,69 @@ class LetterSequence extends Model
     }
 
     /**
+     * Buat multiple surat dengan sequence yang aman dari race condition
+     *
+     * Semua operasi dalam 1 transaction dengan pessimistic lock
+     * untuk mencegah race condition sepenuhnya. Lock dipertahankan
+     * dari ambil nomor urut sampai selesai create semua Letter.
+     *
+     * @param int $letterTypeId ID jenis surat
+     * @param int $year Tahun surat
+     * @param array $lettersData Array of letter data to create
+     * @return \Illuminate\Support\Collection Created letters
+     * @throws \Exception Jika terjadi database error atau constraint violation
+     */
+    public static function createLettersWithSequence(
+        int $letterTypeId,
+        int $year,
+        array $lettersData
+    ): \Illuminate\Support\Collection
+    {
+        return DB::transaction(function () use ($letterTypeId, $year, $lettersData) {
+            // 1. LOCK LetterSequence row untuk letter_type ini
+            // Lock ini akan dipertahankan sampai transaction selesai
+            $sequence = self::where('letter_type_id', $letterTypeId)
+                ->where('year', $year)
+                ->lockForUpdate()
+                ->first();
+
+            // 2. Jika tidak ada sequence, buat baru
+            if (!$sequence) {
+                $sequence = self::create([
+                    'letter_type_id' => $letterTypeId,
+                    'year' => $year,
+                    'next_number' => count($lettersData) + 1,
+                ]);
+                $startingNumber = 1;
+            } else {
+                // Ambil nomor awal
+                $startingNumber = $sequence->next_number;
+                // Update untuk request berikutnya
+                $sequence->update([
+                    'next_number' => $startingNumber + count($lettersData),
+                ]);
+            }
+
+            // 3. Buat semua Letter dalam loop (masih dalam lock!)
+            // Setiap Letter::create() akan trigger model booted() untuk generate letter_number
+            $createdLetters = collect();
+            foreach ($lettersData as $index => $data) {
+                $runningNumber = $startingNumber + $index;
+                $data['running_number'] = $runningNumber;
+
+                // Letter::create() dijalankan dalam pessimistic lock
+                // Menjamin atomicity complete
+                $letter = Letter::create($data);
+                $createdLetters->push($letter);
+            }
+
+            // 4. Lock release hanya setelah semua Letter::create() berhasil
+            // Jika ada error di tengah loop, seluruh transaction akan rollback
+            return $createdLetters;
+        });
+    }
+
+    /**
      * Reset sequence untuk letter type tertentu di tahun tertentu
      * Gunakan hanya untuk testing atau reset manual
      */

@@ -111,28 +111,22 @@ class LetterController extends Controller
     /**
      * Menyimpan surat baru dan generate nomor surat
      *
+     * Menggunakan LetterSequence::createLettersWithSequence() untuk atomic operation
+     * yang mencegah race condition sepenuhnya. Nomor surat akan selalu berurutan
+     * tanpa duplikasi bahkan dalam concurrent requests.
+     *
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
         try {
-             // Cek apakah jenis surat memerlukan keperluan
-             $letterType = LetterType::findOrFail($request->letter_type_id);
+            // Cek apakah jenis surat memerlukan keperluan
+            $letterType = LetterType::findOrFail($request->letter_type_id);
 
-             // Ambil jumlah surat dan mode
-             $quantity = $request->input('quantity', 1);
-             $multipleMode = $request->input('multiple_mode', 'same');
-             
-             // DEBUG: Log quantity from form submission
-             $debugQuantityAtSubmit = $request->input('DEBUG_quantity_at_submit');
-             $debugModeAtSubmit = $request->input('DEBUG_mode_at_submit');
-             Log::info('DEBUG: Form submission values', [
-                 'DEBUG_quantity_at_submit' => $debugQuantityAtSubmit,
-                 'DEBUG_mode_at_submit' => $debugModeAtSubmit,
-                 'quantity_from_request' => $quantity,
-                 'mode_from_request' => $multipleMode,
-             ]);
+            // Ambil jumlah surat dan mode
+            $quantity = $request->input('quantity', 1);
+            $multipleMode = $request->input('multiple_mode', 'same');
 
             // Validasi input dasar
             $rules = [
@@ -182,13 +176,6 @@ class LetterController extends Controller
 
             $validated = $request->validate($rules, $messages);
 
-            // DEBUG: Log quantity input
-            Log::info('DEBUG: Quantity input', [
-                'quantity' => $quantity,
-                'multipleMode' => $multipleMode,
-                'user_id' => auth()->id()
-            ]);
-
             // Hapus quantity dan multiple_mode dari validated data
             unset($validated['quantity']);
             unset($validated['multiple_mode']);
@@ -213,125 +200,35 @@ class LetterController extends Controller
                 unset($validated['recipient']);
             }
 
-            // DEBUG: Log arrays prepared
-            Log::info('DEBUG: Arrays prepared', [
-                'subjectsArray_count' => count($subjectsArray),
-                'recipientsArray_count' => count($recipientsArray),
-                'expected_quantity' => $quantity,
-                'subjectsArray_first_3' => array_slice($subjectsArray, 0, 3),
-                'recipientsArray_first_3' => array_slice($recipientsArray, 0, 3),
-            ]);
+            // Ambil tahun dari tanggal surat
+            $year = date('Y', strtotime($validated['letter_date']));
 
-            // Generate nomor surat menggunakan transaction untuk mencegah race condition
-            $createdLetters = DB::transaction(function () use ($validated, $quantity, $subjectsArray, $recipientsArray) {
-                // Ambil tahun dari tanggal surat
-                $year = date('Y', strtotime($validated['letter_date']));
-
-                // Gunakan LetterSequence untuk mendapatkan running number yang aman
-                // Method ini menggunakan pessimistic locking di level database
-                // untuk mencegah race condition saat concurrent requests
-                // Nomor urut dikelola per (letter_type, tahun) - independent dari signatory/classification
-                // Pass $quantity agar sequence di-update sebesar jumlah surat yang dibuat
-                $startingRunningNumber = LetterSequence::getNextNumber(
-                    $validated['letter_type_id'],
-                    $year,
-                    $quantity
-                );
-
-                // Ambil kode penandatangan dan klasifikasi
-                $signatory = Signatory::findOrFail($validated['signatory_id']);
-                $classification = ClassificationLetter::findOrFail($validated['classification_id']);
-                $securityCode = $validated['security_classification'];
-                
-                // Ambil kode target (UN39. untuk internal, kosong untuk external)
-                $letterTarget = LetterTarget::from($validated['letter_target']);
-                $targetCode = $letterTarget->code();
-
-                // Array untuk menyimpan surat yang dibuat
-                $letters = [];
-
-                // DEBUG: Log before loop starts
-                Log::info('DEBUG: Starting letter creation loop', [
-                    'quantity' => $quantity,
-                    'startingRunningNumber' => $startingRunningNumber,
-                    'subjectsArray_count' => count($subjectsArray),
-                    'recipientsArray_count' => count($recipientsArray),
+            // Siapkan array letter data untuk createLettersWithSequence()
+            $lettersData = [];
+            for ($i = 0; $i < $quantity; $i++) {
+                $letterData = array_merge($validated, [
+                    'subject' => $subjectsArray[$i],
+                    'recipient' => $recipientsArray[$i],
+                    'year' => $year,
+                    'status' => 'final',
+                    'is_active' => true,
+                    'created_by' => auth()->id(),
+                    // running_number & letter_number akan di-generate di createLettersWithSequence()
                 ]);
+                $lettersData[] = $letterData;
+            }
 
-                // Loop untuk membuat surat sejumlah quantity
-                for ($i = 0; $i < $quantity; $i++) {
-                    $runningNumber = $startingRunningNumber + $i;
-                    $runningNumberFormatted = str_pad($runningNumber, 3, '0', STR_PAD_LEFT);
-
-                    // Generate nomor surat dengan format: [SEC]/[RUNNING]/[TARGET_CODE][SIGNATORY]/[CLASS]/[YEAR]
-                    // Internal: B/001/UN39.DEP-XYT/VAL-ZJ/2026
-                    // External: B/001/DEP-XYT/VAL-ZJ/2026
-                    $letterNumber = sprintf(
-                        '%s/%s/%s%s/%s/%d',
-                        $securityCode,
-                        $runningNumberFormatted,
-                        $targetCode,
-                        $signatory->code,
-                        $classification->code,
-                        $year
-                    );
-
-                    // DEBUG: Log before create
-                    Log::info('DEBUG: About to create letter', [
-                        'iteration' => $i,
-                        'runningNumber' => $runningNumber,
-                        'letterNumber' => $letterNumber,
-                        'subject' => isset($subjectsArray[$i]) ? $subjectsArray[$i] : 'NOT_SET',
-                        'recipient' => isset($recipientsArray[$i]) ? $recipientsArray[$i] : 'NOT_SET',
-                    ]);
-
-                    // Siapkan data surat dengan subject dan recipient yang sesuai
-                    $letterData = array_merge($validated, [
-                        'letter_number' => $letterNumber,
-                        'running_number' => $runningNumber,
-                        'year' => $year,
-                        'subject' => $subjectsArray[$i],
-                        'recipient' => $recipientsArray[$i],
-                        'status' => 'final',
-                        'is_active' => true,
-                        'created_by' => auth()->id(),
-                    ]);
-
-                    try {
-                        // Simpan surat
-                        $createdLetter = Letter::create($letterData);
-                        $letters[] = $createdLetter;
-                        
-                        // DEBUG: Log after successful create
-                        Log::info('DEBUG: Letter created successfully', [
-                            'iteration' => $i,
-                            'letter_id' => $createdLetter->id,
-                            'letter_number' => $createdLetter->letter_number,
-                        ]);
-                    } catch (\Exception $innerE) {
-                        // DEBUG: Log if create fails
-                        Log::error('DEBUG: Letter creation failed in loop', [
-                            'iteration' => $i,
-                            'error' => $innerE->getMessage(),
-                            'letterNumber' => $letterNumber,
-                        ]);
-                        throw $innerE;  // Re-throw untuk rollback transaction
-                    }
-                }
-
-                // DEBUG: Log after loop completes
-                Log::info('DEBUG: Loop completed', [
-                    'total_created' => count($letters),
-                    'expected_quantity' => $quantity,
-                    'match' => count($letters) === $quantity ? 'YES' : 'NO',
-                ]);
-
-                return $letters;
-            });
+            // PERBAIKAN: Gunakan method baru createLettersWithSequence()
+            // yang mencegah race condition dengan atomic transaction + pessimistic lock
+            $createdLetters = LetterSequence::createLettersWithSequence(
+                $validated['letter_type_id'],
+                $year,
+                $lettersData
+            );
 
             Log::info('Letters created successfully', [
                 'quantity' => count($createdLetters),
-                'letter_numbers' => array_map(fn($l) => $l->letter_number, $createdLetters),
+                'letter_numbers' => $createdLetters->pluck('letter_number')->toArray(),
                 'user_id' => auth()->id()
             ]);
 
@@ -358,11 +255,11 @@ class LetterController extends Controller
                 'user_id' => auth()->id()
             ]);
 
-            // Check untuk unique constraint violation pada letter_number
+            // Check untuk unique constraint violation pada letter_number atau running_number
             if ($e->getCode() === '23000' || str_contains($e->getMessage(), 'Duplicate entry') || str_contains($e->getMessage(), 'UNIQUE')) {
                 return back()
                     ->withInput()
-                    ->withErrors(['error' => 'Nomor surat sudah terpakai. Silakan coba lagi (kemungkinan race condition).']);
+                    ->withErrors(['error' => 'Nomor surat sudah ada. Silakan coba lagi.']);
             }
 
             // Check untuk lock timeout

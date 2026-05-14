@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Enums\LetterTarget;
 
 /**
  * Model Letter untuk data surat dan nomor surat
@@ -121,7 +122,43 @@ class Letter extends Model
     }
 
     /**
-     * Scope untuk filter berdasarkan tahun
+     * Boot model - auto-generate letter_number saat creating
+     * 
+     * Jika running_number sudah ada, generate letter_number dengan format:
+     * [SEC]/[RUNNING]/[TARGET_CODE][SIGNATORY]/[CLASS]/[YEAR]
+     * Contoh: B/001/UN39.DEP-XYT/VAL-ZJ/2026
+     */
+    protected static function booted()
+    {
+        static::creating(function (self $model) {
+            // Jika letter_number belum ada tapi running_number sudah ada, generate letter_number
+            if (!$model->letter_number && $model->running_number) {
+                // Ambil relasi yang diperlukan
+                $signatory = $model->signatory ?? Signatory::find($model->signatory_id);
+                $classification = $model->classification ?? ClassificationLetter::find($model->classification_id);
+                
+                if (!$signatory || !$classification) {
+                    throw new \Exception('Signatory atau Classification tidak ditemukan');
+                }
+
+                $letterTarget = LetterTarget::from($model->letter_target);
+                $runningNumberFormatted = str_pad($model->running_number, 3, '0', STR_PAD_LEFT);
+
+                $model->letter_number = sprintf(
+                    '%s/%s/%s%s/%s/%d',
+                    $model->security_classification,
+                    $runningNumberFormatted,
+                    $letterTarget->code(),
+                    $signatory->code,
+                    $classification->code,
+                    $model->year
+                );
+            }
+        });
+    }
+
+     /**
+      * Scope untuk filter berdasarkan tahun
      */
     public function scopeYear($query, $year)
     {
