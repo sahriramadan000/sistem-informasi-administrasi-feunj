@@ -287,6 +287,27 @@ class LettersImport implements ToModel, WithHeadingRow
         }
 
         // ============================================
+        // 3.5 VALIDASI DUPLIKAT NOMOR SURAT
+        // ============================================
+        // Nomor surat boleh sama ASALKAN letter_type berbeda
+        // Cek duplikat berdasarkan: letter_number + letter_type_id + year
+        $existingLetter = Letter::where('letter_number', $letterNumber)
+            ->where('letter_type_id', $letterType->id)
+            ->where('year', $year)
+            ->where('is_active', true)
+            ->first();
+        
+        if ($existingLetter) {
+            $this->collectError(
+                'nomor_surat',
+                "Nomor surat '{$letterNumber}' sudah ada untuk jenis surat '{$letterType->name}' tahun {$year}",
+                $letterNumber,
+                "Gunakan nomor berbeda atau pilih jenis surat lain. Nomor yang sama hanya diperbolehkan jika jenis surat berbeda."
+            );
+            return null;
+        }
+
+        // ============================================
         // 4. VALIDASI ENUM VALUES (OPTIONAL - CAN BE NULL)
         // ============================================
         // sasaran_surat - optional, boleh null/kosong

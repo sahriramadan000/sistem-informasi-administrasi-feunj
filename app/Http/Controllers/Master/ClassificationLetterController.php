@@ -48,7 +48,13 @@ class ClassificationLetterController extends Controller
                 });
             }
 
-            $classifications = $query->orderBy('name')->paginate(10);
+            $perPage = $request->input('per_page', 10);
+            $allowedPerPage = [10, 25, 50, 100];
+            if (!in_array($perPage, $allowedPerPage)) {
+                $perPage = 10;
+            }
+            
+            $classifications = $query->orderBy('name')->paginate($perPage);
             
             return view('master.classification.index', compact('classifications'));
         } catch (\Throwable $e) {

@@ -15,6 +15,7 @@ use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 /**
  * Controller untuk manajemen penerbitan nomor surat
@@ -199,6 +200,31 @@ class LetterController extends Controller
                 'subject.required' => 'Perihal surat wajib diisi.',
                 'recipient.required' => 'Tujuan surat wajib diisi.',
             ];
+
+            // Validasi duplikat nomor surat berdasarkan letter_type
+            // Nomor surat boleh sama ASALKAN letter_type berbeda
+            $year = date('Y', strtotime($request->letter_date));
+            $existingLetter = Letter::where('letter_type_id', $request->letter_type_id)
+                ->where('year', $year)
+                ->where('is_active', true)
+                ->where('status', 'final')
+                ->count();
+            
+            // Cek apakah running_number berikutnya akan duplikat
+            $nextRunningNumber = $existingLetter + 1;
+            $duplicateCheck = Letter::where('letter_type_id', $request->letter_type_id)
+                ->where('year', $year)
+                ->where('running_number', $nextRunningNumber)
+                ->where('is_active', true)
+                ->first();
+            
+            if ($duplicateCheck) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'error' => "Nomor surat dengan running number {$nextRunningNumber} sudah ada untuk jenis surat '{$letterType->name}' tahun {$year}. Silakan hubungi administrator."
+                    ]);
+            }
 
             $validated = $request->validate($rules, $messages);
 

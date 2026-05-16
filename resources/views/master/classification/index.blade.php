@@ -66,6 +66,28 @@
 
     {{-- Table Section --}}
     <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+        {{-- Per Page Selector --}}
+        <div class="border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <label for="per_page" class="text-sm text-gray-600">Tampilkan:</label>
+                <form method="GET" action="{{ route('master.classification-letters.index') }}" class="inline-block">
+                    @if (request('search'))
+                        <input type="hidden" name="search" value="{{ request('search') }}">
+                    @endif
+                    <select name="per_page" id="per_page" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-0" onchange="this.form.submit()">
+                        <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ request('per_page', 10) == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page', 10) == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page', 10) == 100 ? 'selected' : '' }}>100</option>
+                    </select>
+                </form>
+                <span class="text-sm text-gray-600">data per halaman</span>
+            </div>
+            <span class="text-sm text-gray-500">
+                Total: <span class="font-semibold">{{ $classifications->total() }}</span> data
+            </span>
+        </div>
+
         <div class="px-6 py-4 border-b border-gray-200">
             <div class="flex items-center justify-between">
                 <h3 class="text-base font-semibold text-gray-900">Daftar Klasifikasi</h3>
@@ -107,8 +129,10 @@
                             <td class="px-6 py-4">
                                 <div class="text-sm font-medium text-gray-900">{{ $classification->name }}</div>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-500 hidden lg:table-cell">
-                                {{ Str::limit($classification->description, 60) ?? '-' }}
+                            <td class="px-6 py-4 text-sm text-gray-500 hidden lg:table-cell max-w-md">
+                                <div class="break-words whitespace-normal">
+                                    {{ $classification->description ?? '-' }}
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold {{ $classification->is_active ? 'bg-success-lighter text-green-800' : 'bg-gray-100 text-gray-800' }}">
