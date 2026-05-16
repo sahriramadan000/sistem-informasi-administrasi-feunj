@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Master;
 use App\Http\Controllers\Controller;
 use App\Models\ClassificationLetter;
 use App\Services\ErrorTrackingService;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -93,6 +94,15 @@ class ClassificationLetterController extends Controller
                 'user_id' => auth()->id()
             ]);
 
+            // Log to audit trail
+            $classification = ClassificationLetter::where('code', $validated['code'])->first();
+            if ($classification) {
+                AuditLogService::log('create', 'ClassificationLetter', $classification->id, [
+                    'code' => $validated['code'],
+                    'name' => $validated['name'],
+                ]);
+            }
+
             return redirect()
                 ->route('master.classification-letters.index')
                 ->with('success', 'Klasifikasi surat berhasil ditambahkan.');
@@ -148,6 +158,13 @@ class ClassificationLetterController extends Controller
                 'user_id' => auth()->id()
             ]);
 
+            // Log to audit trail
+            AuditLogService::log('update', 'ClassificationLetter', $classificationLetter->id, [
+                'code' => $validated['code'],
+                'name' => $validated['name'],
+                'changes' => array_keys($validated),
+            ]);
+
             return redirect()
                 ->route('master.classification-letters.index')
                 ->with('success', 'Klasifikasi surat berhasil diperbarui.');
@@ -188,6 +205,12 @@ class ClassificationLetterController extends Controller
                 'id' => $classificationLetter->id,
                 'code' => $classificationLetter->code,
                 'user_id' => auth()->id()
+            ]);
+
+            // Log to audit trail
+            AuditLogService::log('delete', 'ClassificationLetter', $classificationLetter->id, [
+                'code' => $classificationLetter->code,
+                'name' => $classificationLetter->name,
             ]);
 
             return redirect()

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
 use App\Models\LetterPurpose;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -86,6 +87,15 @@ class LetterPurposeController extends Controller
                 'user_id' => auth()->id()
             ]);
 
+            // Log to audit trail
+            $letterPurpose = LetterPurpose::where('name', $validated['name'])->first();
+            if ($letterPurpose) {
+                AuditLogService::log('create', 'LetterPurpose', $letterPurpose->id, [
+                    'name' => $validated['name'],
+                    'description' => $validated['description'] ?? null,
+                ]);
+            }
+
             return redirect()
                 ->route('master.letter-purposes.index')
                 ->with('success', 'Keperluan surat berhasil ditambahkan.');
@@ -141,6 +151,12 @@ class LetterPurposeController extends Controller
                 'user_id' => auth()->id()
             ]);
 
+            // Log to audit trail
+            AuditLogService::log('update', 'LetterPurpose', $letterPurpose->id, [
+                'name' => $validated['name'],
+                'changes' => array_keys($validated),
+            ]);
+
             return redirect()
                 ->route('master.letter-purposes.index')
                 ->with('success', 'Keperluan surat berhasil diperbarui.');
@@ -182,6 +198,11 @@ class LetterPurposeController extends Controller
                 'id' => $letterPurpose->id,
                 'name' => $letterPurpose->name,
                 'user_id' => auth()->id()
+            ]);
+
+            // Log to audit trail
+            AuditLogService::log('delete', 'LetterPurpose', $letterPurpose->id, [
+                'name' => $letterPurpose->name,
             ]);
 
             return redirect()

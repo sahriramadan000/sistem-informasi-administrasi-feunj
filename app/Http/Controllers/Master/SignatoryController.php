@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
 use App\Models\Signatory;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -94,6 +95,16 @@ class SignatoryController extends Controller
                 'user_id' => auth()->id()
             ]);
 
+            // Log to audit trail
+            $signatory = Signatory::where('code', $validated['code'])->first();
+            if ($signatory) {
+                AuditLogService::log('create', 'Signatory', $signatory->id, [
+                    'code' => $validated['code'],
+                    'name' => $validated['name'],
+                    'position' => $validated['position'],
+                ]);
+            }
+
             return redirect()
                 ->route('master.signatories.index')
                 ->with('success', 'Penandatangan berhasil ditambahkan.');
@@ -154,6 +165,13 @@ class SignatoryController extends Controller
                 'user_id' => auth()->id()
             ]);
 
+            // Log to audit trail
+            AuditLogService::log('update', 'Signatory', $signatory->id, [
+                'code' => $validated['code'],
+                'name' => $validated['name'],
+                'changes' => array_keys($validated),
+            ]);
+
             return redirect()
                 ->route('master.signatories.index')
                 ->with('success', 'Penandatangan berhasil diperbarui.');
@@ -195,6 +213,12 @@ class SignatoryController extends Controller
                 'id' => $signatory->id,
                 'code' => $signatory->code,
                 'user_id' => auth()->id()
+            ]);
+
+            // Log to audit trail
+            AuditLogService::log('delete', 'Signatory', $signatory->id, [
+                'code' => $signatory->code,
+                'name' => $signatory->name,
             ]);
 
             return redirect()

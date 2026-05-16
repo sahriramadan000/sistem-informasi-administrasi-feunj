@@ -11,6 +11,7 @@ use App\Models\UserLetterView;
 use App\Models\LetterSequence;
 use App\Enums\SecurityClassification;
 use App\Enums\LetterTarget;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -257,6 +258,15 @@ class LetterController extends Controller
                 'user_id' => auth()->id()
             ]);
 
+            // Log to audit trail
+            foreach ($createdLetters as $letter) {
+                AuditLogService::log('create', 'Letter', $letter->id, [
+                    'letter_number' => $letter->letter_number,
+                    'subject' => $letter->subject,
+                    'recipient' => $letter->recipient,
+                ]);
+            }
+
             // Jika hanya 1 surat, redirect ke detail surat tersebut
             if (count($createdLetters) == 1) {
                 return redirect()
@@ -430,11 +440,18 @@ class LetterController extends Controller
               });
 
              Log::info('Letter updated successfully', [
-                 'letter_id' => $letter->id,
-                 'letter_number' => $letter->letter_number,
-                 'target_changed' => $targetChanged,
-                 'user_id' => auth()->id()
-             ]);
+                  'letter_id' => $letter->id,
+                  'letter_number' => $letter->letter_number,
+                  'target_changed' => $targetChanged,
+                  'user_id' => auth()->id()
+              ]);
+
+              // Log to audit trail
+              AuditLogService::log('update', 'Letter', $letter->id, [
+                  'letter_number' => $letter->letter_number,
+                  'subject' => $letter->subject,
+                  'changes' => array_keys($validated),
+              ]);
 
              return redirect()
                  ->route('letters.show', $letter)
@@ -471,6 +488,12 @@ class LetterController extends Controller
                 'letter_id' => $letter->id,
                 'letter_number' => $letter->letter_number,
                 'user_id' => auth()->id()
+            ]);
+
+            // Log to audit trail
+            AuditLogService::log('delete', 'Letter', $letter->id, [
+                'letter_number' => $letter->letter_number,
+                'subject' => $letter->subject,
             ]);
 
             return redirect()
