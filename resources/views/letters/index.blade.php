@@ -316,16 +316,132 @@
                             file:bg-brand-50 file:text-brand
                             hover:file:bg-brand-100">
                     </div>
-                    <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-                        <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 btn-primary text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 sm:col-start-2 sm:text-sm">
-                            Import Data
-                        </button>
-                        <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand sm:mt-0 sm:col-start-1 sm:text-sm">
-                            Batal
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-@endsection
+                     <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                         <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 btn-primary text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 sm:col-start-2 sm:text-sm">
+                             Import Data
+                         </button>
+                         <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand sm:mt-0 sm:col-start-1 sm:text-sm">
+                             Batal
+                         </button>
+                     </div>
+                 </form>
+             </div>
+         </div>
+     </div>
+
+     {{-- ERROR MODAL - IMPORT ERRORS DETAIL --}}
+     @if (session('import_errors') && count(session('import_errors')) > 0)
+         <div id="errorModal" class="fixed inset-0 z-50 overflow-y-auto">
+             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                 <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" 
+                      onclick="document.getElementById('errorModal').classList.add('hidden')"></div>
+
+                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                 <div class="relative z-10 inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+                     {{-- Header --}}
+                     <div>
+                         <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                             <i data-lucide="alert-circle" class="h-6 w-6 text-red-600"></i>
+                         </div>
+                         <div class="mt-3 text-center sm:mt-5">
+                             <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                 Import Gagal
+                             </h3>
+                             <div class="mt-2 text-sm text-gray-500">
+                                 <p>Ada <span class="font-semibold text-red-600">{{ count(session('import_errors')) }} baris</span> yang memiliki error. Perbaiki masalah di bawah dan coba lagi.</p>
+                             </div>
+                         </div>
+                     </div>
+
+                     {{-- Error List --}}
+                     <div class="mt-6 max-h-96 overflow-y-auto">
+                         <div class="space-y-3">
+                             @foreach (session('import_errors') as $error)
+                                 <div class="p-3 border border-red-200 bg-red-50 rounded-lg">
+                                     {{-- Row Number + Field --}}
+                                     <div class="flex items-start">
+                                         <div class="flex-1">
+                                             <div class="flex items-center gap-2">
+                                                 <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                                                     Baris {{ $error['row'] }}
+                                                 </span>
+                                                 <span class="text-sm font-semibold text-gray-900">
+                                                     {{ $error['field'] }}
+                                                 </span>
+                                             </div>
+
+                                             {{-- Error Message --}}
+                                             <div class="mt-1 text-sm text-red-700">
+                                                 <i data-lucide="x" class="inline h-4 w-4 mr-1"></i>
+                                                 {{ $error['message'] }}
+                                             </div>
+
+                                             {{-- Value yang diinput (jika ada) --}}
+                                             @if ($error['value'])
+                                                 <div class="mt-1.5 text-sm">
+                                                     <span class="text-gray-600">Anda masukkan:</span>
+                                                     <code class="inline bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-800">
+                                                         {{ $error['value'] }}
+                                                     </code>
+                                                 </div>
+                                             @endif
+
+                                             {{-- Suggestions --}}
+                                             @if ($error['suggestions'])
+                                                 <div class="mt-2 text-sm">
+                                                     <span class="text-green-700 font-medium">Solusi:</span>
+                                                     <span class="text-gray-700">{{ $error['suggestions'] }}</span>
+                                                 </div>
+                                             @endif
+                                         </div>
+                                     </div>
+                                 </div>
+                             @endforeach
+                         </div>
+                     </div>
+
+                     {{-- Tips --}}
+                     <div class="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                         <div class="flex items-start">
+                             <i data-lucide="info" class="h-5 w-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5"></i>
+                             <div class="text-sm text-blue-700">
+                                 <p class="font-medium">Tips:</p>
+                                 <ul class="mt-1 ml-4 space-y-1 text-xs">
+                                     <li>• Download template untuk referensi format kolom yang benar</li>
+                                     <li>• Pastikan semua field yang wajib diisi sudah terisi</li>
+                                     <li>• Periksa kembali format tanggal dan kode master data</li>
+                                     <li>• Gunakan nilai yang tersedia di sistem (lihat "Solusi" untuk detail)</li>
+                                 </ul>
+                             </div>
+                         </div>
+                     </div>
+
+                     {{-- Footer Buttons --}}
+                     <div class="mt-6 sm:mt-8 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                         <a href="{{ route('letters.import.template') }}" 
+                            class="w-full inline-flex justify-center items-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand transition-colors">
+                             <i data-lucide="download" class="h-4 w-4 mr-2"></i>
+                             Download Template
+                         </a>
+                         <button type="button" 
+                                 onclick="document.getElementById('errorModal').classList.add('hidden')"
+                                 class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 btn-primary text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors">
+                             Tutup
+                         </button>
+                     </div>
+                 </div>
+             </div>
+         </div>
+
+         {{-- Auto-show error modal on page load --}}
+         <script>
+             document.addEventListener('DOMContentLoaded', function() {
+                 var errorModal = document.getElementById('errorModal');
+                 if (errorModal) {
+                     errorModal.classList.remove('hidden');
+                 }
+             });
+         </script>
+     @endif
+ @endsection
