@@ -203,7 +203,14 @@
                                         @php
                                             $parts = explode('/', $letter->letter_number);
                                         @endphp
-                                        @if(count($parts) > 1)
+                                        @if(count($parts) > 1 && $letter->security_classification)
+                                            <div>
+                                                {{ $parts[0] }}/{{ $parts[1] }}/<span class="bg-yellow-100 text-yellow-800 font-bold px-1 rounded">{{ $parts[2] }}</span>
+                                                @if(count($parts) > 3)
+                                                    /{{ implode('/', array_slice($parts, 3)) }}
+                                                @endif
+                                            </div>
+                                        @elseif(count($parts) > 1)
                                             <div>
                                                 {{ $parts[0] }}/<span class="bg-yellow-100 text-yellow-800 font-bold px-1 rounded">{{ $parts[1] }}</span>/{{ implode('/', array_slice($parts, 2)) }}
                                             </div>
