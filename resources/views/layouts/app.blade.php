@@ -658,7 +658,7 @@
                         </div>
                     @endif
 
-                    @if ($errors->any())
+                    @if (is_object($errors) && $errors->any())
                         <div class="mx-4 mt-4 sm:mx-6 lg:mx-8 sm:mt-6 lg:mt-8">
                             <div class="rounded-lg bg-red-50 p-4 border border-red-200">
                                 <div class="flex">
