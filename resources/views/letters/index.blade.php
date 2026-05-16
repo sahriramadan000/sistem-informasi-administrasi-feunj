@@ -136,6 +136,42 @@
             </div>
         </div>
 
+        {{-- Per Page Selector --}}
+        <div class="border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <label for="per_page" class="text-sm text-gray-600">Tampilkan:</label>
+                <form method="GET" action="{{ route('letters.index') }}" class="inline-block">
+                    {{-- Preserve all current query parameters --}}
+                    @if (request('letter_type_id'))
+                        <input type="hidden" name="letter_type_id" value="{{ request('letter_type_id') }}">
+                    @endif
+                    @if (request('date_range'))
+                        <input type="hidden" name="date_range" value="{{ request('date_range') }}">
+                    @endif
+                    @if (request('classification_id'))
+                        <input type="hidden" name="classification_id" value="{{ request('classification_id') }}">
+                    @endif
+                    @if (request('signatory_id'))
+                        <input type="hidden" name="signatory_id" value="{{ request('signatory_id') }}">
+                    @endif
+                    @if (request('search'))
+                        <input type="hidden" name="search" value="{{ request('search') }}">
+                    @endif
+
+                    <select name="per_page" id="per_page" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-0" onchange="this.form.submit()">
+                        <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ request('per_page', 10) == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page', 10) == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page', 10) == 100 ? 'selected' : '' }}>100</option>
+                    </select>
+                </form>
+                <span class="text-sm text-gray-600">data per halaman</span>
+            </div>
+            <span class="text-sm text-gray-500">
+                Total: <span class="font-semibold">{{ $letters->total() }}</span> data
+            </span>
+        </div>
+
         {{-- Table --}}
         <div class="overflow-x-auto">
             @if ($letters->count() > 0)

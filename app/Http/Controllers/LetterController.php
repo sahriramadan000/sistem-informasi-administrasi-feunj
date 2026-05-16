@@ -77,9 +77,16 @@ class LetterController extends Controller
         }
 
         // Pagination dengan mempertahankan query string, diurutkan berdasarkan running_number terbesar
+        $perPage = $request->input('per_page', 10);
+        // Validasi per_page untuk keamanan
+        $allowedPerPage = [10, 25, 50, 100];
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 10;
+        }
+        
         $letters = $query->orderBy('year', 'desc')
                          ->orderBy('running_number', 'desc')
-                         ->paginate(10);
+                         ->paginate($perPage);
 
         // TIDAK mark surat sebagai viewed di halaman index
         // Surat hanya di-mark viewed ketika user klik detail (di method show)
