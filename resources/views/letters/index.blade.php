@@ -274,7 +274,7 @@
 
                 {{-- Pagination --}}
                 <div class="px-6 py-4 border-t border-gray-100">
-                    {{ $letters->links() }}
+                    {{ $letters->appends(request()->query())->links() }}
                 </div>
             @else
                 <div class="text-center py-12">
