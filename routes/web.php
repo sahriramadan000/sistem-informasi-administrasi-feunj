@@ -11,6 +11,7 @@ use App\Http\Controllers\Master\LetterPurposeController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\LetterImportController;
 use App\Http\Controllers\Admin\ErrorLogController;
+use App\Http\Controllers\Admin\ActivityLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,6 +58,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('error-logs', [ErrorLogController::class, 'index'])->name('error-logs.index');
     Route::get('error-logs/{errorId}', [ErrorLogController::class, 'show'])->name('error-logs.show');
     Route::get('error-logs-statistics', [ErrorLogController::class, 'statistics'])->name('error-logs.statistics');
+    
+    Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
+    Route::get('activity-logs/{id}', [ActivityLogController::class, 'show'])->name('activity-logs.show');
 });
 
 // Debug route untuk testing badge

@@ -427,6 +427,23 @@
                                     </a>
                                 </div>
                             </div>
+
+                            {{-- System Monitoring Section (Admin Only) --}}
+                            <div class="pt-4">
+                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System Monitoring</h3>
+                                <div class="mt-2 space-y-1">
+                                    <a href="{{ route('admin.error-logs.index') }}" 
+                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.error-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="alert-triangle" class="mr-3 h-5 w-5"></i>
+                                        Error Logs
+                                    </a>
+                                    <a href="{{ route('admin.activity-logs.index') }}" 
+                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.activity-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="activity" class="mr-3 h-5 w-5"></i>
+                                        Activity Logs
+                                    </a>
+                                </div>
+                            </div>
                         @endif
                     </nav>
 
@@ -538,6 +555,23 @@
                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.users.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
                                         <i data-lucide="users" class="mr-3 h-5 w-5"></i>
                                         Pengguna
+                                    </a>
+                                </div>
+                            </div>
+
+                            {{-- System Monitoring Section (Admin Only) --}}
+                            <div class="pt-4">
+                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System Monitoring</h3>
+                                <div class="mt-2 space-y-1">
+                                    <a href="{{ route('admin.error-logs.index') }}" 
+                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.error-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="alert-triangle" class="mr-3 h-5 w-5"></i>
+                                        Error Logs
+                                    </a>
+                                    <a href="{{ route('admin.activity-logs.index') }}" 
+                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.activity-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="activity" class="mr-3 h-5 w-5"></i>
+                                        Activity Logs
                                     </a>
                                 </div>
                             </div>
