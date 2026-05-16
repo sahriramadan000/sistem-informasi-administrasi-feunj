@@ -385,7 +385,7 @@
 
      {{-- ERROR MODAL - IMPORT ERRORS DETAIL --}}
      @if (session('import_errors') && count(session('import_errors')) > 0)
-         <div id="errorModal" class="fixed inset-0 z-50 overflow-y-auto">
+         <div id="errorModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
              <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" 
                       onclick="document.getElementById('errorModal').classList.add('hidden')"></div>
