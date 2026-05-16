@@ -608,50 +608,19 @@
                     {{-- Flash Messages --}}
                     @if (session('success'))
                         <div class="mx-4 mt-4 sm:mx-6 lg:mx-8 sm:mt-6 lg:mt-8">
-                            <div class="rounded-lg bg-green-50 p-4 border border-green-200">
-                                <div class="flex">
-                                    <div class="flex-shrink-0">
-                                        <i data-lucide="check-circle" class="h-5 w-5 text-green-400"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <p class="text-sm font-medium text-green-800">{{ session('success') }}</p>
-                                    </div>
-                                    <div class="ml-auto pl-3">
-                                        <div class="-mx-1.5 -my-1.5">
-                                            <button type="button" onclick="this.closest('.rounded-lg').remove()" class="inline-flex rounded-md p-1.5 text-green-500 hover:bg-success-lighter focus:outline-none">
-                                                <i data-lucide="x" class="h-5 w-5"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <x-alert type="success" message="{{ session('success') }}" />
                         </div>
                     @endif
 
                     @if (session('error'))
                         <div class="mx-4 mt-4 sm:mx-6 lg:mx-8 sm:mt-6 lg:mt-8">
-                            <div class="rounded-lg bg-red-50 p-4 border border-red-200">
-                                <div class="flex">
-                                    <div class="flex-shrink-0">
-                                        <i data-lucide="alert-circle" class="h-5 w-5 text-red-400"></i>
-                                    </div>
-                                    <div class="ml-3 flex-1">
-                                        <p class="text-sm font-medium text-red-800">{{ session('error') }}</p>
-                                        @if (session('last_error_id'))
-                                            <p class="text-xs text-red-700 mt-2 font-mono bg-red-100 px-2 py-1 rounded inline-block">
-                                                Error ID: {{ session('last_error_id') }}
-                                            </p>
-                                        @endif
-                                    </div>
-                                    <div class="ml-auto pl-3">
-                                        <div class="-mx-1.5 -my-1.5">
-                                            <button type="button" onclick="this.closest('.rounded-lg').remove()" class="inline-flex rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none">
-                                                <i data-lucide="x" class="h-5 w-5"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <x-alert type="error" message="{{ session('error') }}" :errorId="session('last_error_id')" />
+                        </div>
+                    @endif
+
+                    @if (session('warning'))
+                        <div class="mx-4 mt-4 sm:mx-6 lg:mx-8 sm:mt-6 lg:mt-8">
+                            <x-alert type="warning" message="{{ session('warning') }}" />
                         </div>
                     @endif
 

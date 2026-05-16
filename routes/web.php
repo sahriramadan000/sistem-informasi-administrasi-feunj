@@ -10,6 +10,7 @@ use App\Http\Controllers\Master\SignatoryController;
 use App\Http\Controllers\Master\LetterPurposeController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\LetterImportController;
+use App\Http\Controllers\Admin\ErrorLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,6 +51,13 @@ Route::prefix('master')->name('master.')->group(function () {
 Route::get('letters/import/template', [LetterImportController::class, 'template'])->name('letters.import.template')->middleware(['auth', 'role:admin,operator']);
 Route::post('letters/import', [LetterImportController::class, 'import'])->name('letters.import')->middleware(['auth', 'role:admin,operator']);
 Route::resource('letters', LetterController::class);
+
+// Admin Routes
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('error-logs', [ErrorLogController::class, 'index'])->name('error-logs.index');
+    Route::get('error-logs/{errorId}', [ErrorLogController::class, 'show'])->name('error-logs.show');
+    Route::get('error-logs-statistics', [ErrorLogController::class, 'statistics'])->name('error-logs.statistics');
+});
 
 // Debug route untuk testing badge
 Route::get('/debug-badge', function () {
