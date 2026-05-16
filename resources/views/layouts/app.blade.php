@@ -635,8 +635,13 @@
                                     <div class="flex-shrink-0">
                                         <i data-lucide="alert-circle" class="h-5 w-5 text-red-400"></i>
                                     </div>
-                                    <div class="ml-3">
+                                    <div class="ml-3 flex-1">
                                         <p class="text-sm font-medium text-red-800">{{ session('error') }}</p>
+                                        @if (session('last_error_id'))
+                                            <p class="text-xs text-red-700 mt-2 font-mono bg-red-100 px-2 py-1 rounded inline-block">
+                                                Error ID: {{ session('last_error_id') }}
+                                            </p>
+                                        @endif
                                     </div>
                                     <div class="ml-auto pl-3">
                                         <div class="-mx-1.5 -my-1.5">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\LetterTemplateExport;
 use App\Imports\LettersImport;
+use App\Services\ErrorTrackingService;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Exception;
@@ -123,14 +124,14 @@ class LetterImportController extends Controller
                 ->with('error', 'Import gagal! Ada ' . count($maatwebsiteErrors) . ' error validasi. Perbaiki dan coba lagi.');
                 
         } catch (Exception $e) {
-            Log::error('Error importing letters', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'user_id' => auth()->id(),
+            // Log error using ErrorTrackingService
+            $errorId = ErrorTrackingService::logError($e, 'LetterImportController.import', [
+                'file_name' => $request->file('file_excel')?->getClientOriginalName(),
+                'file_size' => $request->file('file_excel')?->getSize(),
             ]);
             
             return redirect()->route('letters.index')
-                ->with('error', 'Terjadi error saat import: ' . $e->getMessage());
+                ->with('error', "Terjadi error saat import. Error ID: {$errorId}");
         }
     }
 }
