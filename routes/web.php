@@ -12,6 +12,7 @@ use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\LetterImportController;
 use App\Http\Controllers\Admin\ErrorLogController;
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -52,6 +53,13 @@ Route::prefix('master')->name('master.')->group(function () {
 Route::get('letters/import/template', [LetterImportController::class, 'template'])->name('letters.import.template')->middleware(['auth', 'role:admin,operator']);
 Route::post('letters/import', [LetterImportController::class, 'import'])->name('letters.import')->middleware(['auth', 'role:admin,operator']);
 Route::resource('letters', LetterController::class);
+
+// Profile Routes (All authenticated users)
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
+});
 
 // Admin Routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {

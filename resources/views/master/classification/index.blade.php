@@ -13,7 +13,7 @@
             <p class="mt-1 text-sm text-gray-500">Kelola klasifikasi surat untuk penomoran otomatis</p>
         </div>
         <div class="flex items-center gap-2">
-            {{-- Download Template Button --}}
+            <!-- {{-- Download Template Button --}}
             <button onclick="document.getElementById('download-modal').classList.remove('hidden')" 
                     class="inline-flex items-center rounded-lg btn-success focus:ring-offset-2 transition-colors">
                 <i data-lucide="download" class="mr-2 h-5 w-5"></i>
@@ -25,7 +25,7 @@
                     class="inline-flex items-center rounded-lg btn-info focus:ring-offset-2 transition-colors">
                 <i data-lucide="upload" class="mr-2 h-5 w-5"></i>
                 Import Excel
-            </button>
+            </button> -->
             
             {{-- Add Button --}}
             <a href="{{ route('master.classification-letters.create') }}" 

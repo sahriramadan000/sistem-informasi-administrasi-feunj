@@ -14,6 +14,7 @@
         </div>
         @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
             <div class="flex items-center gap-2">
+                @if (auth()->user()->isAdmin())
                 <a href="{{ route('letters.import.template') }}"
                     class="inline-flex items-center rounded-lg bg-white border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 transition-colors">
                     <i data-lucide="download" class="mr-2 h-4 w-4 text-gray-500"></i>
@@ -24,6 +25,7 @@
                     <i data-lucide="upload" class="mr-2 h-4 w-4 text-gray-500"></i>
                     Import Excel
                 </button>
+                @endif
                 <a href="{{ route('letters.create') }}"
                     class="inline-flex items-center rounded-lg btn-success focus:ring-offset-2 transition-colors ml-2">
                     <i data-lucide="plus-circle" class="mr-2 h-5 w-5"></i>

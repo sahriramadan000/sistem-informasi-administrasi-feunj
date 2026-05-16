@@ -468,6 +468,24 @@
                                         <p class="text-xs font-medium text-gray-500">Akun</p>
                                         <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->email }}</p>
                                     </div>
+                                    
+                                    {{-- Edit Profile --}}
+                                    <a href="{{ route('profile.edit') }}" class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                                        <i data-lucide="user" class="mr-2 h-4 w-4"></i>
+                                        Edit Profile
+                                    </a>
+                                    
+                                    {{-- Change Password --}}
+                                    <button type="button" 
+                                            onclick="document.getElementById('change-password-modal').classList.remove('hidden')" 
+                                            class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                                        <i data-lucide="lock" class="mr-2 h-4 w-4"></i>
+                                        Change Password
+                                    </button>
+                                    
+                                    <div class="border-t border-gray-100 my-1"></div>
+                                    
+                                    {{-- Logout --}}
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <button type="submit" class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 transition-colors">
@@ -599,6 +617,24 @@
                                         <p class="text-xs font-medium text-gray-500">Akun</p>
                                         <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->email }}</p>
                                     </div>
+                                    
+                                    {{-- Edit Profile --}}
+                                    <a href="{{ route('profile.edit') }}" class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                                        <i data-lucide="user" class="mr-2 h-4 w-4"></i>
+                                        Edit Profile
+                                    </a>
+                                    
+                                    {{-- Change Password --}}
+                                    <button type="button" 
+                                            onclick="document.getElementById('change-password-modal').classList.remove('hidden')" 
+                                            class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                                        <i data-lucide="lock" class="mr-2 h-4 w-4"></i>
+                                        Change Password
+                                    </button>
+                                    
+                                    <div class="border-t border-gray-100 my-1"></div>
+                                    
+                                    {{-- Logout --}}
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <button type="submit" class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 transition-colors">
@@ -820,6 +856,117 @@
     </script>
 
     @stack('scripts')
+
+    {{-- Change Password Modal --}}
+    <div id="change-password-modal" class="hidden fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" 
+                 onclick="document.getElementById('change-password-modal').classList.add('hidden')"></div>
+
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md">
+                <form method="POST" action="{{ route('password.update') }}">
+                    @csrf
+                    @method('PUT')
+                    
+                    {{-- Modal Header --}}
+                    <div class="bg-gradient-to-r from-gray-700 to-gray-900 px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white bg-opacity-20">
+                                <i data-lucide="lock" class="h-5 w-5 text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-white" id="modal-title">Change Password</h3>
+                                <p class="text-sm text-white text-opacity-80">Perbarui password akun Anda</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Modal Body --}}
+                    <div class="px-6 py-4 space-y-4">
+                        {{-- Current Password --}}
+                        <div>
+                            <label for="modal_current_password" class="block text-sm font-medium text-gray-700 mb-2">
+                                Password Saat Ini <span class="text-red-500">*</span>
+                            </label>
+                            <input type="password" 
+                                   name="current_password" 
+                                   id="modal_current_password" 
+                                   required
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent">
+                            @error('current_password')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- New Password --}}
+                        <div>
+                            <label for="modal_new_password" class="block text-sm font-medium text-gray-700 mb-2">
+                                Password Baru <span class="text-red-500">*</span>
+                            </label>
+                            <input type="password" 
+                                   name="new_password" 
+                                   id="modal_new_password" 
+                                   required
+                                   minlength="6"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent">
+                            @error('new_password')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Confirm Password --}}
+                        <div>
+                            <label for="modal_new_password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
+                                Konfirmasi Password Baru <span class="text-red-500">*</span>
+                            </label>
+                            <input type="password" 
+                                   name="new_password_confirmation" 
+                                   id="modal_new_password_confirmation" 
+                                   required
+                                   minlength="6"
+                                   class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent">
+                        </div>
+
+                        {{-- Info Box --}}
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <div class="flex items-start gap-2">
+                                <i data-lucide="info" class="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5"></i>
+                                <p class="text-xs text-blue-800">
+                                    Password baru minimal 6 karakter dan tidak boleh sama dengan password saat ini.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Modal Footer --}}
+                    <div class="bg-gray-50 px-6 py-3 flex justify-end gap-3">
+                        <button type="button" 
+                                onclick="document.getElementById('change-password-modal').classList.add('hidden')"
+                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center gap-2">
+                            <i data-lucide="shield-check" class="h-4 w-4"></i>
+                            Ubah Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Auto-show change password modal if there are password errors --}}
+    @if ($errors->has('current_password') || $errors->has('new_password'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var modal = document.getElementById('change-password-modal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                }
+            });
+        </script>
+    @endif
 </body>
 
 </html>
