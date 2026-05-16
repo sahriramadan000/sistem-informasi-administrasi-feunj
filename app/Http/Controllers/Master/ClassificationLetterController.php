@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClassificationLetter;
+use App\Services\ErrorTrackingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -33,21 +34,25 @@ class ClassificationLetterController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ClassificationLetter::query();
+        try {
+            $query = ClassificationLetter::query();
 
-        // Search berdasarkan nama klasifikasi atau deskripsi
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%");
-            });
+            // Search berdasarkan nama klasifikasi atau deskripsi
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%")
+                      ->orWhere('code', 'like', "%{$search}%");
+                });
+            }
+
+            $classifications = $query->orderBy('name')->paginate(10);
+            
+            return view('master.classification.index', compact('classifications'));
+        } catch (\Throwable $e) {
+            return $this->handleError($e, 'ClassificationLetterController.index', 'Gagal memuat daftar klasifikasi surat.');
         }
-
-        $classifications = $query->orderBy('name')->paginate(10);
-        
-        return view('master.classification.index', compact('classifications'));
     }
 
     /**
@@ -217,13 +222,10 @@ class ClassificationLetterController extends Controller
 
             return Excel::download(new ClassificationLetterTemplateExport, $fileName);
         } catch (\Throwable $e) {
-            Log::error('Error downloading template', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
+            $errorId = ErrorTrackingService::logError($e, 'ClassificationLetterController.downloadTemplate');
+            
             return back()
-                ->withErrors(['error' => 'Terjadi kesalahan saat mengunduh template: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Gagal mengunduh template. Error ID: ' . $errorId]);
         }
     }
 
@@ -271,13 +273,10 @@ class ClassificationLetterController extends Controller
                 ->withErrors($e->errors())
                 ->withInput();
         } catch (\Throwable $e) {
-            Log::error('Error importing Excel', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
+            $errorId = ErrorTrackingService::logError($e, 'ClassificationLetterController.import');
+            
             return back()
-                ->withErrors(['error' => 'Terjadi kesalahan saat mengimport file: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Gagal mengimport file. Error ID: ' . $errorId]);
         }
     }
 }

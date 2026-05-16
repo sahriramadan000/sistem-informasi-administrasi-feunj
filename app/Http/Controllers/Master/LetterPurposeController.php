@@ -30,20 +30,24 @@ class LetterPurposeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = LetterPurpose::query();
+        try {
+            $query = LetterPurpose::query();
 
-        // Search berdasarkan nama atau deskripsi
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            });
+            // Search berdasarkan nama atau deskripsi
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            $letterPurposes = $query->orderBy('name')->paginate(10);
+            
+            return view('master.letter-purposes.index', compact('letterPurposes'));
+        } catch (\Throwable $e) {
+            return $this->handleError($e, 'LetterPurposeController.index', 'Gagal memuat daftar keperluan surat.');
         }
-
-        $letterPurposes = $query->orderBy('name')->paginate(10);
-        
-        return view('master.letter-purposes.index', compact('letterPurposes'));
     }
 
     /**

@@ -32,21 +32,25 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::query();
+        try {
+            $query = User::query();
 
-        // Search berdasarkan nama, username, atau email
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('username', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
+            // Search berdasarkan nama, username, atau email
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('username', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                });
+            }
+
+            $users = $query->orderBy('name')->paginate(10);
+            
+            return view('master.users.index', compact('users'));
+        } catch (\Throwable $e) {
+            return $this->handleError($e, 'UserController.index', 'Gagal memuat daftar pengguna.');
         }
-
-        $users = $query->orderBy('name')->paginate(10);
-        
-        return view('master.users.index', compact('users'));
     }
 
     /**

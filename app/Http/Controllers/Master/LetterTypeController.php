@@ -30,21 +30,25 @@ class LetterTypeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = LetterType::query();
+        try {
+            $query = LetterType::query();
 
-        // Search berdasarkan nama atau deskripsi
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%");
-            });
+            // Search berdasarkan nama atau deskripsi
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%")
+                      ->orWhere('code', 'like', "%{$search}%");
+                });
+            }
+
+            $letterTypes = $query->orderBy('name')->paginate(10);
+            
+            return view('master.letter_type.index', compact('letterTypes'));
+        } catch (\Throwable $e) {
+            return $this->handleError($e, 'LetterTypeController.index', 'Gagal memuat daftar jenis surat.');
         }
-
-        $letterTypes = $query->orderBy('name')->paginate(10);
-        
-        return view('master.letter_type.index', compact('letterTypes'));
     }
 
     /**

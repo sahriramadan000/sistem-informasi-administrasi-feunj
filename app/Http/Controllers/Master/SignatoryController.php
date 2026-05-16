@@ -30,22 +30,26 @@ class SignatoryController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Signatory::query();
+        try {
+            $query = Signatory::query();
 
-        // Search berdasarkan nama, jabatan, atau NIP
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('position', 'like', "%{$search}%")
-                  ->orWhere('nip', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%");
-            });
+            // Search berdasarkan nama, jabatan, atau NIP
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('position', 'like', "%{$search}%")
+                      ->orWhere('nip', 'like', "%{$search}%")
+                      ->orWhere('code', 'like', "%{$search}%");
+                });
+            }
+
+            $signatories = $query->orderBy('code')->paginate(10);
+            
+            return view('master.signatory.index', compact('signatories'));
+        } catch (\Throwable $e) {
+            return $this->handleError($e, 'SignatoryController.index', 'Gagal memuat daftar penandatangan.');
         }
-
-        $signatories = $query->orderBy('code')->paginate(10);
-        
-        return view('master.signatory.index', compact('signatories'));
     }
 
     /**

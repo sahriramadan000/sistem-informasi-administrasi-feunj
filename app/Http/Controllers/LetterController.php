@@ -40,68 +40,72 @@ class LetterController extends Controller
      */
     public function index(Request $request)
     {
-        // Query dasar dengan relasi - hanya surat aktif dan status final
-        $query = Letter::with(['signatory', 'classification', 'letterType', 'creator', 'viewedByUsers'])
-            ->where('status', 'final')
-            ->active();
+        try {
+            // Query dasar dengan relasi - hanya surat aktif dan status final
+            $query = Letter::with(['signatory', 'classification', 'letterType', 'creator', 'viewedByUsers'])
+                ->where('status', 'final')
+                ->active();
 
-        // Filter berdasarkan parameter request
-        if ($request->filled('date_range')) {
-            $dates = explode(' to ', $request->date_range);
-            if (count($dates) == 2) {
-                $query->whereBetween('letter_date', [$dates[0], $dates[1]]);
-            } elseif (count($dates) == 1) {
-                $query->whereDate('letter_date', $dates[0]);
+            // Filter berdasarkan parameter request
+            if ($request->filled('date_range')) {
+                $dates = explode(' to ', $request->date_range);
+                if (count($dates) == 2) {
+                    $query->whereBetween('letter_date', [$dates[0], $dates[1]]);
+                } elseif (count($dates) == 1) {
+                    $query->whereDate('letter_date', $dates[0]);
+                }
             }
+
+
+            if ($request->filled('year')) {
+                $query->year($request->year);
+            }
+
+            if ($request->filled('signatory_id')) {
+                $query->signatory($request->signatory_id);
+            }
+
+            if ($request->filled('classification_id')) {
+                $query->classification($request->classification_id);
+            }
+
+            if ($request->filled('letter_type_id')) {
+                $query->letterType($request->letter_type_id);
+            }
+
+            if ($request->filled('search')) {
+                $query->search($request->search);
+            }
+
+            // Pagination dengan mempertahankan query string, diurutkan berdasarkan running_number terbesar
+            $perPage = $request->input('per_page', 10);
+            // Validasi per_page untuk keamanan
+            $allowedPerPage = [10, 25, 50, 100];
+            if (!in_array($perPage, $allowedPerPage)) {
+                $perPage = 10;
+            }
+            
+            $letters = $query->orderBy('year', 'desc')
+                             ->orderBy('running_number', 'desc')
+                             ->paginate($perPage);
+
+            // TIDAK mark surat sebagai viewed di halaman index
+            // Surat hanya di-mark viewed ketika user klik detail (di method show)
+
+            // Data untuk dropdown filter
+            $signatories = Signatory::active()->orderBy('name')->get();
+            $classifications = ClassificationLetter::active()->orderBy('name')->get();
+            $letterTypes = LetterType::active()->orderBy('name')->get();
+
+            return view('letters.index', compact(
+                'letters',
+                'signatories',
+                'classifications',
+                'letterTypes'
+            ));
+        } catch (\Throwable $e) {
+            return $this->handleError($e, 'LetterController.index', 'Gagal memuat daftar surat.');
         }
-
-
-        if ($request->filled('year')) {
-            $query->year($request->year);
-        }
-
-        if ($request->filled('signatory_id')) {
-            $query->signatory($request->signatory_id);
-        }
-
-        if ($request->filled('classification_id')) {
-            $query->classification($request->classification_id);
-        }
-
-        if ($request->filled('letter_type_id')) {
-            $query->letterType($request->letter_type_id);
-        }
-
-        if ($request->filled('search')) {
-            $query->search($request->search);
-        }
-
-        // Pagination dengan mempertahankan query string, diurutkan berdasarkan running_number terbesar
-        $perPage = $request->input('per_page', 10);
-        // Validasi per_page untuk keamanan
-        $allowedPerPage = [10, 25, 50, 100];
-        if (!in_array($perPage, $allowedPerPage)) {
-            $perPage = 10;
-        }
-        
-        $letters = $query->orderBy('year', 'desc')
-                         ->orderBy('running_number', 'desc')
-                         ->paginate($perPage);
-
-        // TIDAK mark surat sebagai viewed di halaman index
-        // Surat hanya di-mark viewed ketika user klik detail (di method show)
-
-        // Data untuk dropdown filter
-        $signatories = Signatory::active()->orderBy('name')->get();
-        $classifications = ClassificationLetter::active()->orderBy('name')->get();
-        $letterTypes = LetterType::active()->orderBy('name')->get();
-
-        return view('letters.index', compact(
-            'letters',
-            'signatories',
-            'classifications',
-            'letterTypes'
-        ));
     }
 
     /**
