@@ -385,104 +385,107 @@
 
      {{-- ERROR MODAL - IMPORT ERRORS DETAIL --}}
      @if (session('import_errors') && count(session('import_errors')) > 0)
-         <div id="errorModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
-             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+         <div id="errorModal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+             <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
                  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" 
                       onclick="document.getElementById('errorModal').classList.add('hidden')"></div>
 
-                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-                 <div class="relative z-10 inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+                 <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
                      {{-- Header --}}
-                     <div>
-                         <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                             <i data-lucide="alert-circle" class="h-6 w-6 text-red-600"></i>
-                         </div>
-                         <div class="mt-3 text-center sm:mt-5">
-                             <h3 class="text-lg leading-6 font-medium text-gray-900">
-                                 Import Gagal
-                             </h3>
-                             <div class="mt-2 text-sm text-gray-500">
-                                 <p>Ada <span class="font-semibold text-red-600">{{ count(session('import_errors')) }} baris</span> yang memiliki error. Perbaiki masalah di bawah dan coba lagi.</p>
+                     <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                         <div class="sm:flex sm:items-start">
+                             <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                                 <i data-lucide="alert-circle" class="h-6 w-6 text-red-600"></i>
+                             </div>
+                             <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                                 <h3 class="text-lg font-semibold leading-6 text-gray-900" id="modal-title">
+                                     Import Gagal
+                                 </h3>
+                                 <div class="mt-2">
+                                     <p class="text-sm text-gray-600">
+                                         Ada <span class="font-semibold text-red-600">{{ count(session('import_errors')) }} baris</span> yang memiliki error. Perbaiki masalah di bawah dan coba lagi.
+                                     </p>
+                                 </div>
                              </div>
                          </div>
                      </div>
 
                      {{-- Error List --}}
-                     <div class="mt-6 max-h-96 overflow-y-auto">
-                         <div class="space-y-3">
+                     <div class="px-4 pb-4 sm:px-6">
+                         <div class="max-h-96 overflow-y-auto space-y-3">
                              @foreach (session('import_errors') as $error)
-                                 <div class="p-3 border border-red-200 bg-red-50 rounded-lg">
-                                     {{-- Row Number + Field --}}
-                                     <div class="flex items-start">
-                                         <div class="flex-1">
-                                             <div class="flex items-center gap-2">
-                                                 <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
-                                                     Baris {{ $error['row'] }}
-                                                 </span>
-                                                 <span class="text-sm font-semibold text-gray-900">
-                                                     {{ $error['field'] }}
-                                                 </span>
-                                             </div>
-
-                                             {{-- Error Message --}}
-                                             <div class="mt-1 text-sm text-red-700">
-                                                 <i data-lucide="x" class="inline h-4 w-4 mr-1"></i>
-                                                 {{ $error['message'] }}
-                                             </div>
-
-                                             {{-- Value yang diinput (jika ada) --}}
-                                             @if ($error['value'])
-                                                 <div class="mt-1.5 text-sm">
-                                                     <span class="text-gray-600">Anda masukkan:</span>
-                                                     <code class="inline bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-800">
-                                                         {{ $error['value'] }}
-                                                     </code>
-                                                 </div>
-                                             @endif
-
-                                             {{-- Suggestions --}}
-                                             @if ($error['suggestions'])
-                                                 <div class="mt-2 text-sm">
-                                                     <span class="text-green-700 font-medium">Solusi:</span>
-                                                     <span class="text-gray-700">{{ $error['suggestions'] }}</span>
-                                                 </div>
-                                             @endif
-                                         </div>
+                                 <div class="p-4 border-2 border-red-200 bg-red-50 rounded-lg">
+                                     <div class="flex items-center gap-2 mb-2">
+                                         <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-800">
+                                             Baris {{ $error['row'] }}
+                                         </span>
+                                         <span class="text-base font-bold text-gray-900">
+                                             {{ $error['field'] }}
+                                         </span>
                                      </div>
+
+                                     <div class="flex items-start gap-2 mb-2">
+                                         <i data-lucide="x-circle" class="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0"></i>
+                                         <p class="text-sm font-medium text-red-700">
+                                             {{ $error['message'] }}
+                                         </p>
+                                     </div>
+
+                                     @if ($error['value'])
+                                         <div class="ml-6 mb-2">
+                                             <span class="text-xs text-gray-600">Anda masukkan:</span>
+                                             <code class="block mt-1 bg-white px-3 py-2 rounded border border-red-200 text-sm font-mono text-gray-800">
+                                                 {{ $error['value'] }}
+                                             </code>
+                                         </div>
+                                     @endif
+
+                                     @if ($error['suggestions'])
+                                         <div class="ml-6 mt-3 p-3 bg-green-50 border border-green-200 rounded">
+                                             <div class="flex items-start gap-2">
+                                                 <i data-lucide="lightbulb" class="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0"></i>
+                                                 <div>
+                                                     <p class="text-xs font-semibold text-green-800 mb-1">Solusi:</p>
+                                                     <p class="text-xs text-green-700">{{ $error['suggestions'] }}</p>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                     @endif
                                  </div>
                              @endforeach
                          </div>
                      </div>
 
                      {{-- Tips --}}
-                     <div class="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                         <div class="flex items-start">
-                             <i data-lucide="info" class="h-5 w-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5"></i>
-                             <div class="text-sm text-blue-700">
-                                 <p class="font-medium">Tips:</p>
-                                 <ul class="mt-1 ml-4 space-y-1 text-xs">
-                                     <li>• Download template untuk referensi format kolom yang benar</li>
-                                     <li>• Pastikan semua field yang wajib diisi sudah terisi</li>
-                                     <li>• Periksa kembali format tanggal dan kode master data</li>
-                                     <li>• Gunakan nilai yang tersedia di sistem (lihat "Solusi" untuk detail)</li>
-                                 </ul>
+                     <div class="px-4 pb-4 sm:px-6">
+                         <div class="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                             <div class="flex items-start gap-3">
+                                 <i data-lucide="info" class="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5"></i>
+                                 <div class="text-sm text-blue-800">
+                                     <p class="font-semibold mb-2">Tips:</p>
+                                     <ul class="space-y-1 text-xs">
+                                         <li>• Download template untuk referensi format kolom yang benar</li>
+                                         <li>• Pastikan semua field yang wajib diisi sudah terisi</li>
+                                         <li>• Periksa kembali format tanggal dan kode master data</li>
+                                         <li>• Gunakan nilai yang tersedia di sistem (lihat "Solusi" untuk detail)</li>
+                                     </ul>
+                                 </div>
                              </div>
                          </div>
                      </div>
 
                      {{-- Footer Buttons --}}
-                     <div class="mt-6 sm:mt-8 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                     <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+                         <button type="button" 
+                                 onclick="document.getElementById('errorModal').classList.add('hidden')"
+                                 class="inline-flex w-full justify-center rounded-md bg-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 sm:ml-3 sm:w-auto">
+                             Tutup
+                         </button>
                          <a href="{{ route('letters.import.template') }}" 
-                            class="w-full inline-flex justify-center items-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand transition-colors">
+                            class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
                              <i data-lucide="download" class="h-4 w-4 mr-2"></i>
                              Download Template
                          </a>
-                         <button type="button" 
-                                 onclick="document.getElementById('errorModal').classList.add('hidden')"
-                                 class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 btn-primary text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors">
-                             Tutup
-                         </button>
                      </div>
                  </div>
              </div>
