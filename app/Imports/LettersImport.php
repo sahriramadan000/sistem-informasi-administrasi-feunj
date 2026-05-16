@@ -118,13 +118,38 @@ class LettersImport implements ToModel, WithHeadingRow
         // ============================================
         // 1. VALIDASI REQUIRED FIELDS
         // ============================================
-        
+        // WAJIB DIISI:
+        // - nomor_surat
+        // - tanggal_surat
+        // - kode_penandatangan
+        // - kode_klasifikasi_surat
+        // - kode_jenis_surat
+        // - perihal
+        // - tujuan
+        // - status
+        //
+        // BOLEH NULL/KOSONG:
+        // - sasaran_surat
+        // - klasifikasi_keamanan
+        // - nama_keperluan
+        // - nama_mahasiswa
+        $letterNumber = $row['nomor_surat'] ?? null;
+        if (empty($letterNumber)) {
+            $this->collectError(
+                'nomor_surat',
+                'Kolom wajib diisi',
+                '(kosong)',
+                'Masukkan nomor surat. Contoh: B/001/UN39.DEP-XYT/VAL-ZJ/2026'
+            );
+            return null;
+        }
+
         // Check tanggal_surat
         if (empty($row['tanggal_surat'])) {
             $this->collectError(
                 'tanggal_surat',
                 'Kolom wajib diisi',
-                $row['tanggal_surat'] ?? '(kosong)',
+                '(kosong)',
                 'Gunakan format: YYYY-MM-DD atau DD/MM/YYYY'
             );
             return null;
@@ -135,7 +160,7 @@ class LettersImport implements ToModel, WithHeadingRow
             $this->collectError(
                 'kode_penandatangan',
                 'Kolom wajib diisi',
-                $row['kode_penandatangan'] ?? '(kosong)',
+                '(kosong)',
                 'Gunakan ID penandatangan (angka). Contoh: 1, 2, 3'
             );
             return null;
@@ -146,7 +171,7 @@ class LettersImport implements ToModel, WithHeadingRow
             $this->collectError(
                 'kode_klasifikasi_surat',
                 'Kolom wajib diisi',
-                $row['kode_klasifikasi_surat'] ?? '(kosong)',
+                '(kosong)',
                 'Contoh kode: AK, BK, CK, DK'
             );
             return null;
@@ -157,8 +182,41 @@ class LettersImport implements ToModel, WithHeadingRow
             $this->collectError(
                 'kode_jenis_surat',
                 'Kolom wajib diisi',
-                $row['kode_jenis_surat'] ?? '(kosong)',
+                '(kosong)',
                 'Valid: ST, SK, SP, SR, SU'
+            );
+            return null;
+        }
+
+        // Check perihal (wajib)
+        if (empty($row['perihal'])) {
+            $this->collectError(
+                'perihal',
+                'Kolom wajib diisi',
+                '(kosong)',
+                'Masukkan perihal/subjek surat'
+            );
+            return null;
+        }
+
+        // Check tujuan (wajib)
+        if (empty($row['tujuan'])) {
+            $this->collectError(
+                'tujuan',
+                'Kolom wajib diisi',
+                '(kosong)',
+                'Masukkan tujuan/penerima surat'
+            );
+            return null;
+        }
+
+        // Check status (wajib)
+        if (empty($row['status'])) {
+            $this->collectError(
+                'status',
+                'Kolom wajib diisi',
+                '(kosong)',
+                'Valid: draft, final'
             );
             return null;
         }
@@ -229,32 +287,40 @@ class LettersImport implements ToModel, WithHeadingRow
         }
 
         // ============================================
-        // 4. VALIDASI ENUM VALUES
+        // 4. VALIDASI ENUM VALUES (OPTIONAL - CAN BE NULL)
         // ============================================
-        
-        $target = strtolower(trim($row['sasaran_surat'] ?? 'internal'));
-        if (!in_array($target, ['internal', 'external'])) {
-            $this->collectError(
-                'sasaran_surat',
-                "Nilai '{$target}' tidak valid",
-                $row['sasaran_surat'] ?? 'internal',
-                'Valid: internal, external'
-            );
-            return null;
+        // sasaran_surat - optional, boleh null/kosong
+        $target = null;
+        if (!empty($row['sasaran_surat'])) {
+            $target = strtolower(trim($row['sasaran_surat']));
+            if (!in_array($target, ['internal', 'external'])) {
+                $this->collectError(
+                    'sasaran_surat',
+                    "Nilai '{$target}' tidak valid",
+                    $row['sasaran_surat'],
+                    'Valid: internal, external (atau kosongkan jika tidak perlu)'
+                );
+                return null;
+            }
         }
 
-        $security = strtoupper(trim($row['klasifikasi_keamanan'] ?? 'B'));
-        if (!in_array($security, ['B', 'T', 'R', 'SR'])) {
-            $this->collectError(
-                'klasifikasi_keamanan',
-                "Nilai '{$security}' tidak valid",
-                $row['klasifikasi_keamanan'] ?? 'B',
-                'Valid: B (Biasa), T (Terbatas), R (Rahasia), SR (Sangat Rahasia)'
-            );
-            return null;
+        // klasifikasi_keamanan - optional, boleh null/kosong
+        $security = null;
+        if (!empty($row['klasifikasi_keamanan'])) {
+            $security = strtoupper(trim($row['klasifikasi_keamanan']));
+            if (!in_array($security, ['B', 'T', 'R', 'SR'])) {
+                $this->collectError(
+                    'klasifikasi_keamanan',
+                    "Nilai '{$security}' tidak valid",
+                    $row['klasifikasi_keamanan'],
+                    'Valid: B (Biasa), T (Terbatas), R (Rahasia), SR (Sangat Rahasia) (atau kosongkan jika tidak perlu)'
+                );
+                return null;
+            }
         }
 
-        $status = strtolower(trim($row['status'] ?? 'final'));
+        // status - wajib diisi, harus valid
+        $status = strtolower(trim($row['status']));
         if (!in_array($status, ['draft', 'final'])) {
             $this->collectError(
                 'status',
@@ -266,8 +332,11 @@ class LettersImport implements ToModel, WithHeadingRow
         }
 
         // ============================================
-        // 5. OPTIONAL: LOOKUP PURPOSE
+        // 5. OPTIONAL: LOOKUP PURPOSE & HANDLE OPTIONAL FIELDS
         // ============================================
+        // Optional fields yang bisa null jika tidak diisi:
+        // - nama_keperluan (akan di-lookup ke LetterPurpose jika ada)
+        // - nama_mahasiswa (bisa kosong)
         
         $purposeId = null;
         if (!empty($row['nama_keperluan'])) {
@@ -281,9 +350,20 @@ class LettersImport implements ToModel, WithHeadingRow
         // ============================================
         // 6. PERSIAPKAN DATA UNTUK BUFFER
         // ============================================
+        // Fields yang sudah ter-validate:
+        // - nomor_surat (wajib)
+        // - tanggal_surat (wajib)
+        // - kode_penandatangan (wajib)
+        // - kode_klasifikasi_surat (wajib)
+        // - kode_jenis_surat (wajib)
+        // - perihal (wajib)
+        // - tujuan (wajib)
+        // - status (wajib)
+        // - sasaran_surat (optional/nullable)
+        // - klasifikasi_keamanan (optional/nullable)
+        // - nama_keperluan (optional/nullable)
+        // - nama_mahasiswa (optional/nullable)
         
-        $letterNumber = $row['nomor_surat'] ?? null;
-
         $letterData = [
             'letter_number' => $letterNumber,
             'year' => $year,
@@ -294,8 +374,8 @@ class LettersImport implements ToModel, WithHeadingRow
             'letter_type_id' => $letterType->id,
             'letter_purpose_id' => $purposeId,
             'letter_date' => $date,
-            'subject' => $row['perihal'] ?? null,
-            'recipient' => $row['tujuan'] ?? null,
+            'subject' => $row['perihal'],
+            'recipient' => $row['tujuan'],
             'student_name' => $row['nama_mahasiswa'] ?? null,
             'status' => $status,
             'is_active' => true,

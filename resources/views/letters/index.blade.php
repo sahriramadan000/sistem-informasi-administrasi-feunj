@@ -189,28 +189,40 @@
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                                     @php
                                         $targetValue = $letter->letter_target;
-                                        $targetLabel = \App\Enums\LetterTarget::from($targetValue)->label();
-                                        $targetColor = $targetValue === 'internal' ? 'bg-blue-100 text-blue-800 ring-blue-600/20' : 'bg-purple-100 text-purple-800 ring-purple-600/20';
                                     @endphp
-                                    <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium {{ $targetColor }} ring-1 ring-inset">
-                                        {{ $targetLabel }}
-                                    </span>
+                                    @if ($targetValue)
+                                        @php
+                                            $targetLabel = \App\Enums\LetterTarget::from($targetValue)->label();
+                                            $targetColor = $targetValue === 'internal' ? 'bg-blue-100 text-blue-800 ring-blue-600/20' : 'bg-purple-100 text-purple-800 ring-purple-600/20';
+                                        @endphp
+                                        <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium {{ $targetColor }} ring-1 ring-inset">
+                                            {{ $targetLabel }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400">-</span>
+                                    @endif
                                 </td>
                                 <td class="px-3 py-4 text-sm text-gray-900">
                                     @php
                                         $securityValue = $letter->security_classification;
-                                        $securityLabel = \App\Enums\SecurityClassification::from($securityValue)->label();
-                                        $securityColor = match($securityValue) {
-                                            'B' => 'bg-green-100 text-green-800 ring-green-600/20',
-                                            'T' => 'bg-yellow-100 text-yellow-800 ring-yellow-600/20',
-                                            'R' => 'bg-orange-100 text-orange-800 ring-orange-600/20',
-                                            'SR' => 'bg-red-100 text-red-800 ring-red-600/20',
-                                            default => 'bg-gray-100 text-gray-800 ring-gray-600/20'
-                                        };
                                     @endphp
-                                    <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium {{ $securityColor }} ring-1 ring-inset">
-                                        {{ $securityLabel }}
-                                    </span>
+                                    @if ($securityValue)
+                                        @php
+                                            $securityLabel = \App\Enums\SecurityClassification::from($securityValue)->label();
+                                            $securityColor = match($securityValue) {
+                                                'B' => 'bg-green-100 text-green-800 ring-green-600/20',
+                                                'T' => 'bg-yellow-100 text-yellow-800 ring-yellow-600/20',
+                                                'R' => 'bg-orange-100 text-orange-800 ring-orange-600/20',
+                                                'SR' => 'bg-red-100 text-red-800 ring-red-600/20',
+                                                default => 'bg-gray-100 text-gray-800 ring-gray-600/20'
+                                            };
+                                        @endphp
+                                        <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium {{ $securityColor }} ring-1 ring-inset">
+                                            {{ $securityLabel }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400">-</span>
+                                    @endif
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm">
                                     <a href="{{ route('letters.show', $letter) }}"
