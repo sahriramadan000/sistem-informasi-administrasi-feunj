@@ -13,12 +13,16 @@ use App\Enums\SecurityClassification;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Validation\Rule;
 
-class LettersImport implements ToModel, WithHeadingRow, WithValidation
+/**
+ * Import class untuk membaca data surat dari Excel
+ * 
+ * Validation dilakukan di method model() per baris
+ * Bukan di WithValidation interface (agar custom error handling bekerja)
+ */
+class LettersImport implements ToModel, WithHeadingRow
 {
     /**
      * Store untuk mengelompokkan data per (letter_type_id, year)
@@ -378,15 +382,5 @@ class LettersImport implements ToModel, WithHeadingRow, WithValidation
             $total += count($group['letters']);
         }
         return $total;
-    }
-
-    public function rules(): array
-    {
-        return [
-            'tanggal_surat' => 'required',
-            'kode_penandatangan' => 'required',
-            'kode_klasifikasi_surat' => 'required',
-            'kode_jenis_surat' => 'required',
-        ];
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class LetterImportController extends Controller
 {
@@ -95,6 +96,31 @@ class LetterImportController extends Controller
 
             return redirect()->route('letters.index')
                 ->with('success', "Berhasil mengimport {$totalLetters} surat! Data telah ditambahkan ke sistem.");
+                
+        } catch (ValidationException $e) {
+            // Catch validation exception dari Maatwebsite Excel
+            // Convert ke format error modal kami
+            $maatwebsiteErrors = [];
+            
+            foreach ($e->failures() as $failure) {
+                $maatwebsiteErrors[] = [
+                    'row' => $failure->row(),
+                    'field' => $failure->attribute(),
+                    'message' => implode(', ', $failure->errors()),
+                    'value' => $failure->value(),
+                    'suggestions' => 'Periksa format data di Excel. Lihat template untuk referensi.',
+                ];
+            }
+            
+            Log::warning('Maatwebsite validation error', [
+                'total_errors' => count($maatwebsiteErrors),
+                'errors' => $maatwebsiteErrors,
+                'user_id' => auth()->id(),
+            ]);
+            
+            return redirect()->route('letters.index')
+                ->with('import_errors', $maatwebsiteErrors)
+                ->with('error', 'Import gagal! Ada ' . count($maatwebsiteErrors) . ' error validasi. Perbaiki dan coba lagi.');
                 
         } catch (Exception $e) {
             Log::error('Error importing letters', [
