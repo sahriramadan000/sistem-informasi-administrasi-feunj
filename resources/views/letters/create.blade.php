@@ -596,6 +596,11 @@
                 // Reinitialize Lucide icons for new elements
                 lucide.createIcons();
                 
+                // Ensure all inputs in the container have 'required' attribute for proper validation
+                document.querySelectorAll('#letter_items_container input').forEach(input => {
+                    input.setAttribute('required', 'required');
+                });
+                
                 // Add copy from previous functionality
                 document.querySelectorAll('.btn-copy-previous').forEach((btn, index) => {
                     btn.addEventListener('click', function() {
@@ -656,6 +661,12 @@
                         // Update description
                         section3Desc.textContent = `Masukkan perihal dan tujuan untuk ${quantity} surat`;
                     } else {
+                        // CRITICAL FIX: Remove required from all dynamic inputs BEFORE hiding the container
+                        // This prevents HTML5 validation from seeing hidden required fields when form is submitted
+                        document.querySelectorAll('#letter_items_container input').forEach(input => {
+                            input.removeAttribute('required');
+                        });
+                        
                         // Show single letter content, hide multiple
                         singleContent.style.display = 'block';
                         multipleContent.style.display = 'none';
@@ -672,6 +683,11 @@
                     modeSelection.style.display = 'none';
                     singleContent.style.display = 'block';
                     multipleContent.style.display = 'none';
+                    
+                    // Remove required from any remaining dynamic inputs (safety check)
+                    document.querySelectorAll('#letter_items_container input').forEach(input => {
+                        input.removeAttribute('required');
+                    });
                     
                     // Add required back to single inputs
                     subjectInput.setAttribute('required', 'required');
@@ -760,6 +776,13 @@
                 quantityInput.addEventListener('focus', function(e) {
                     console.log('[DEBUG QUANTITY] Focus event - current value:', this.value);
                 });
+
+                // Disable mouse wheel scroll on quantity input to prevent accidental changes
+                // This prevents the value from changing when user scrolls the page
+                quantityInput.addEventListener('wheel', function(e) {
+                    e.preventDefault();
+                    console.log('[DEBUG WHEEL] Scroll attempted on quantity field - prevented');
+                }, { passive: false });
 
                 // Mode change handler
                 document.querySelectorAll('input[name="multiple_mode"]').forEach(radio => {
