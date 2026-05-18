@@ -26,13 +26,15 @@
                 <i data-lucide="upload" class="mr-2 h-5 w-5"></i>
                 Import Excel
             </button> -->
-            
-            {{-- Add Button --}}
-            <a href="{{ route('master.classification-letters.create') }}" 
-               class="inline-flex items-center rounded-lg btn-success focus:ring-offset-2 transition-colors">
-                <i data-lucide="plus-circle" class="mr-2 h-5 w-5"></i>
-                Tambah Klasifikasi
-            </a>
+
+            @if (auth()->user()->isAdmin())
+                {{-- Add Button --}}
+                <a href="{{ route('master.classification-letters.create') }}" 
+                class="inline-flex items-center rounded-lg btn-success focus:ring-offset-2 transition-colors">
+                    <i data-lucide="plus-circle" class="mr-2 h-5 w-5"></i>
+                    Tambah Klasifikasi
+                </a>
+            @endif
         </div>
     </div>
 
@@ -114,7 +116,9 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Klasifikasi</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Deskripsi</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            @if (auth()->user()->isAdmin())
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -139,6 +143,8 @@
                                     {{ $classification->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
+                            
+                            @if (auth()->user()->isAdmin())
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex items-center space-x-2">
                                     <a href="{{ route('master.classification-letters.edit', $classification) }}" 
@@ -162,6 +168,7 @@
                                     @endif
                                 </div>
                             </td>
+                            @endif
                         </tr>
                         @endforeach
                     </tbody>
@@ -176,6 +183,7 @@
                     <i data-lucide="tags" class="mx-auto h-12 w-12 text-gray-400"></i>
                     <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada data klasifikasi</h3>
                     <p class="mt-1 text-sm text-gray-500">Belum ada klasifikasi surat yang terdaftar.</p>
+                    @if (auth()->user()->isAdmin())
                     <div class="mt-6">
                         <a href="{{ route('master.classification-letters.create') }}" 
                            class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
@@ -183,6 +191,7 @@
                             Tambah Klasifikasi
                         </a>
                     </div>
+                    @endif
                 </div>
             @endif
         </div>

@@ -12,11 +12,13 @@
             </h2>
             <p class="mt-1 text-sm text-gray-500">Kelola keperluan surat untuk mahasiswa</p>
         </div>
+        @if (auth()->user()->isAdmin())
         <a href="{{ route('master.letter-purposes.create') }}" 
            class="inline-flex items-center rounded-lg btn-success focus:ring-offset-2 transition-colors">
             <i data-lucide="plus-circle" class="mr-2 h-5 w-5"></i>
             Tambah Keperluan
         </a>
+        @endif
     </div>
 
     {{-- Search Section --}}
@@ -74,7 +76,9 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Keperluan</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Deskripsi</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            @if (auth()->user()->isAdmin())
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -94,6 +98,7 @@
                                     {{ $purpose->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
+                            @if (auth()->user()->isAdmin())
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex items-center space-x-2">
                                     <a href="{{ route('master.letter-purposes.edit', $purpose) }}" 
@@ -117,6 +122,7 @@
                                     @endif
                                 </div>
                             </td>
+                            @endif
                         </tr>
                         @endforeach
                     </tbody>
@@ -131,6 +137,7 @@
                     <i data-lucide="file-text" class="mx-auto h-12 w-12 text-gray-400"></i>
                     <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada data keperluan</h3>
                     <p class="mt-1 text-sm text-gray-500">Belum ada keperluan surat yang terdaftar.</p>
+                    @if (auth()->user()->isAdmin())
                     <div class="mt-6">
                         <a href="{{ route('master.letter-purposes.create') }}" 
                            class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
@@ -138,6 +145,7 @@
                             Tambah Keperluan
                         </a>
                     </div>
+                    @endif
                 </div>
             @endif
         </div>

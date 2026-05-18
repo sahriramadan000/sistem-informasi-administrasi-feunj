@@ -24,7 +24,20 @@ class ClassificationLetterController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('role:admin');
+        
+       // Hanya admin yang bisa akses semua method kecuali index
+        $this->middleware('role:admin')->only([
+            'create',
+            'store',
+            'edit',
+            'update',
+            'destroy',
+            'downloadTemplate',
+            'import'
+        ]);
+
+        // index bisa diakses admin ATAU operator
+        $this->middleware('role:admin,operator')->only(['index']);
     }
 
     /**

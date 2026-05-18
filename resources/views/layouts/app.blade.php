@@ -346,6 +346,23 @@
             background: #E64500 !important;
             border-color: #E64500 !important;
         }
+
+        /* User Menu Name Truncate */
+        .user-name-display {
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Perihal Column - Limited width with wrapping */
+        .perihal-display {
+            max-width: 400px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            line-height: 1.4;
+        }
     </style>
 
     @stack('styles')
@@ -395,8 +412,8 @@
                             </div>
                         </div>
 
-                        {{-- Master Data Section (Admin Only) --}}
-                        @if (auth()->user()->isAdmin())
+                        {{-- Master Data Section (Admin & Operator) --}}
+                        @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
                             <div class="pt-4">
                                 <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master Data</h3>
                                 <div class="mt-2 space-y-1">
@@ -420,30 +437,34 @@
                                         <i data-lucide="user-check" class="mr-3 h-5 w-5"></i>
                                         Penandatangan
                                     </a>
-                                    <a href="{{ route('master.users.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.users.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="users" class="mr-3 h-5 w-5"></i>
-                                        Pengguna
-                                    </a>
+                                    @if (auth()->user()->isAdmin())
+                                        <a href="{{ route('master.users.index') }}" 
+                                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.users.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="users" class="mr-3 h-5 w-5"></i>
+                                            Pengguna
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
 
                             {{-- System Monitoring Section (Admin Only) --}}
-                            <div class="pt-4">
-                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System Monitoring</h3>
-                                <div class="mt-2 space-y-1">
-                                    <a href="{{ route('admin.error-logs.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.error-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="alert-triangle" class="mr-3 h-5 w-5"></i>
-                                        Error Logs
-                                    </a>
-                                    <a href="{{ route('admin.activity-logs.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.activity-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="activity" class="mr-3 h-5 w-5"></i>
-                                        Activity Logs
-                                    </a>
+                            @if (auth()->user()->isAdmin())
+                                <div class="pt-4">
+                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System Monitoring</h3>
+                                    <div class="mt-2 space-y-1">
+                                        <a href="{{ route('admin.error-logs.index') }}" 
+                                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.error-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="alert-triangle" class="mr-3 h-5 w-5"></i>
+                                            Error Logs
+                                        </a>
+                                        <a href="{{ route('admin.activity-logs.index') }}" 
+                                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.activity-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="activity" class="mr-3 h-5 w-5"></i>
+                                            Activity Logs
+                                        </a>
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                         @endif
                     </nav>
 
@@ -455,7 +476,7 @@
                                     <span class="text-xs font-semibold text-white">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</span>
                                 </div>
                                 <div class="ml-3 flex-1 text-left">
-                                    <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->name }}</p>
+                                    <p class="text-sm font-medium text-gray-900 user-name-display">{{ Auth::user()->name }}</p>
                                     <p class="text-xs text-gray-500 capitalize">{{ Auth::user()->role }}</p>
                                 </div>
                                 <i data-lucide="chevron-up" class="h-4 w-4 text-gray-400 transition-transform duration-200" id="user-menu-icon"></i>
@@ -537,7 +558,7 @@
                             </div>
                         </div>
 
-                        @if (auth()->user()->isAdmin())
+                        @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
                             <div class="pt-4">
                                 <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master Data</h3>
                                 <div class="mt-2 space-y-1">
@@ -561,30 +582,34 @@
                                         <i data-lucide="user-check" class="mr-3 h-5 w-5"></i>
                                         Penandatangan
                                     </a>
-                                    <a href="{{ route('master.users.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.users.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="users" class="mr-3 h-5 w-5"></i>
-                                        Pengguna
-                                    </a>
+                                    @if (auth()->user()->isAdmin())
+                                        <a href="{{ route('master.users.index') }}" 
+                                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.users.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="users" class="mr-3 h-5 w-5"></i>
+                                            Pengguna
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
 
                             {{-- System Monitoring Section (Admin Only) --}}
-                            <div class="pt-4">
-                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System Monitoring</h3>
-                                <div class="mt-2 space-y-1">
-                                    <a href="{{ route('admin.error-logs.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.error-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="alert-triangle" class="mr-3 h-5 w-5"></i>
-                                        Error Logs
-                                    </a>
-                                    <a href="{{ route('admin.activity-logs.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.activity-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="activity" class="mr-3 h-5 w-5"></i>
-                                        Activity Logs
-                                    </a>
+                            @if (auth()->user()->isAdmin())
+                                <div class="pt-4">
+                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System Monitoring</h3>
+                                    <div class="mt-2 space-y-1">
+                                        <a href="{{ route('admin.error-logs.index') }}" 
+                                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.error-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="alert-triangle" class="mr-3 h-5 w-5"></i>
+                                            Error Logs
+                                        </a>
+                                        <a href="{{ route('admin.activity-logs.index') }}" 
+                                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.activity-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="activity" class="mr-3 h-5 w-5"></i>
+                                            Activity Logs
+                                        </a>
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                         @endif
                     </nav>
 
@@ -596,7 +621,7 @@
                                     <span class="text-xs font-semibold">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</span>
                                 </div>
                                 <div class="ml-3 flex-1 text-left">
-                                    <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->name }}</p>
+                                    <p class="text-sm font-medium text-gray-900 user-name-display">{{ Auth::user()->name }}</p>
                                     <p class="text-xs text-gray-500 capitalize">{{ Auth::user()->role }}</p>
                                 </div>
                                 <i data-lucide="chevron-up" class="h-4 w-4 text-gray-400 transition-transform duration-200" id="mobile-user-menu-icon"></i>

@@ -67,7 +67,7 @@
                 <div class="flex items-center">
                     <i data-lucide="sliders-horizontal" class="mr-2 h-5 w-5 text-brand"></i>
                     <h3 class="text-base font-semibold text-gray-900">Filter Data</h3>
-                    @if (request()->hasAny(['date_range', 'classification_id', 'signatory_id', 'search']))
+                    @if (request()->hasAny(['date_range', 'signatory_id', 'created_by', 'search']))
                         <span class="ml-3 inline-flex items-center rounded-full bg-brand-lighter px-2.5 py-0.5 text-xs font-medium text-brand-dark">
                             <i data-lucide="filter" class="mr-1 h-3 w-3"></i>
                             Aktif
@@ -86,25 +86,12 @@
                             <input type="hidden" name="letter_type_id" value="{{ request('letter_type_id') }}">
                         @endif
 
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 items-end">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 items-end">
                             {{-- Date Range Filter --}}
                             <div class="space-y-2">
                                 <label for="date_range" class="label">Tanggal Surat</label>
                                 <input type="text" id="date_range" name="date_range" value="{{ request('date_range') }}"
                                     class="input w-full" placeholder="Pilih rentang tanggal...">
-                            </div>
-
-                            {{-- Classification Filter --}}
-                            <div class="space-y-2">
-                                <label for="classification_id" class="label">Klasifikasi</label>
-                                <select id="classification_id" name="classification_id" class="select">
-                                    <option value="">Semua Klasifikasi</option>
-                                    @foreach ($classifications as $classification)
-                                        <option value="{{ $classification->id }}" {{ request('classification_id') == $classification->id ? 'selected' : '' }}>
-                                            {{ $classification->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
                             </div>
 
                             {{-- Signatory Filter --}}
@@ -120,8 +107,28 @@
                                 </select>
                             </div>
 
+                            {{-- Search Perihal Filter --}}
+                            <div class="space-y-2">
+                                <label for="search" class="label">Cari Perihal</label>
+                                <input type="text" id="search" name="search" value="{{ request('search') }}"
+                                    class="input w-full" placeholder="Ketik perihal surat...">
+                            </div>
+
+                            {{-- Created By Filter --}}
+                            <div class="space-y-2">
+                                <label for="created_by" class="label">Dibuat Oleh</label>
+                                <select id="created_by" name="created_by" class="select">
+                                    <option value="">Semua Pengguna</option>
+                                    @foreach ($users as $user)
+                                        <option value="{{ $user->id }}" {{ request('created_by') == $user->id ? 'selected' : '' }}>
+                                            {{ $user->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
                             {{-- Action Buttons --}}
-                            <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-3 col-span-full sm:col-span-2">
                                 <button type="submit" class="btn-primary flex-1 justify-center">
                                     <i data-lucide="filter" class="mr-2 h-4 w-4"></i>
                                     Filter
@@ -150,11 +157,11 @@
                     @if (request('date_range'))
                         <input type="hidden" name="date_range" value="{{ request('date_range') }}">
                     @endif
-                    @if (request('classification_id'))
-                        <input type="hidden" name="classification_id" value="{{ request('classification_id') }}">
-                    @endif
                     @if (request('signatory_id'))
                         <input type="hidden" name="signatory_id" value="{{ request('signatory_id') }}">
+                    @endif
+                    @if (request('created_by'))
+                        <input type="hidden" name="created_by" value="{{ request('created_by') }}">
                     @endif
                     @if (request('search'))
                         <input type="hidden" name="search" value="{{ request('search') }}">
@@ -184,12 +191,13 @@
                             <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Nomor Surat</th>
                             <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Tanggal</th>
                             <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 hidden lg:table-cell">Jenis</th>
-                            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 hidden xl:table-cell">Klasifikasi</th>
                             <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 hidden lg:table-cell">Penandatangan</th>
-                             <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Sasaran Surat</th>
-                             <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Keamanan</th>
-                             <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Dibuat Oleh</th>
-                             <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Aksi</th>
+                            @if (request('letter_type_id') == 2)
+                                <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Nama Siswa</th>
+                            @endif
+                            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Perihal</th>
+                            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Dibuat Oleh</th>
+                            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -226,49 +234,16 @@
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
                                     {{ $letter->letterType->name }}
                                 </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 hidden xl:table-cell">
-                                    {{ $letter->classification->name }}
-                                </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
-                                    <span class="font-semibold text-blue-800">{{ $letter->signatory->position }}</span> - {{ $letter->signatory->name }}
+                                    <span class="font-semibold text-blue-800">{{ $letter->signatory->position }}</span>
                                 </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    @php
-                                        $targetValue = $letter->letter_target;
-                                    @endphp
-                                    @if ($targetValue)
-                                        @php
-                                            $targetLabel = \App\Enums\LetterTarget::from($targetValue)->label();
-                                            $targetColor = $targetValue === 'internal' ? 'bg-blue-100 text-blue-800 ring-blue-600/20' : 'bg-purple-100 text-purple-800 ring-purple-600/20';
-                                        @endphp
-                                        <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium {{ $targetColor }} ring-1 ring-inset">
-                                            {{ $targetLabel }}
-                                        </span>
-                                    @else
-                                        <span class="text-gray-400">-</span>
-                                    @endif
-                                </td>
+                                @if (request('letter_type_id') == 2)
+                                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ $letter->student_name ?? '-' }}
+                                    </td>
+                                @endif
                                 <td class="px-3 py-4 text-sm text-gray-900">
-                                    @php
-                                        $securityValue = $letter->security_classification;
-                                    @endphp
-                                    @if ($securityValue)
-                                        @php
-                                            $securityLabel = \App\Enums\SecurityClassification::from($securityValue)->label();
-                                            $securityColor = match($securityValue) {
-                                                'B' => 'bg-green-100 text-green-800 ring-green-600/20',
-                                                'T' => 'bg-yellow-100 text-yellow-800 ring-yellow-600/20',
-                                                'R' => 'bg-orange-100 text-orange-800 ring-orange-600/20',
-                                                'SR' => 'bg-red-100 text-red-800 ring-red-600/20',
-                                                default => 'bg-gray-100 text-gray-800 ring-gray-600/20'
-                                            };
-                                        @endphp
-                                        <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium {{ $securityColor }} ring-1 ring-inset">
-                                            {{ $securityLabel }}
-                                        </span>
-                                    @else
-                                        <span class="text-gray-400">-</span>
-                                    @endif
+                                    <div class="perihal-display">{{ $letter->subject }}</div>
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -322,7 +297,7 @@
 
             // Auto-buka filter jika ada filter aktif
             document.addEventListener('DOMContentLoaded', function () {
-                @if(request()->hasAny(['date_range', 'classification_id', 'signatory_id', 'search']))
+                @if(request()->hasAny(['date_range', 'signatory_id', 'created_by', 'search']))
                     const content = document.getElementById('filter-content');
                     const icon = document.getElementById('filter-icon');
                     content.classList.remove('hidden');
@@ -339,8 +314,8 @@
                 });
 
                 $('#letter_type_id').select2({ placeholder: 'Semua Jenis', allowClear: true, width: '100%' });
-                $('#classification_id').select2({ placeholder: 'Semua Klasifikasi', allowClear: true, width: '100%' });
                 $('#signatory_id').select2({ placeholder: 'Semua Penandatangan', allowClear: true, width: '100%' });
+                $('#created_by').select2({ placeholder: 'Semua Pengguna', allowClear: true, width: '100%' });
 
                 lucide.createIcons();
             });

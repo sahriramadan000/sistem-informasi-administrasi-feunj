@@ -108,7 +108,6 @@
                 </div>
                 <div class="p-6">
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        @if (auth()->user()->isAdmin())
                         <a href="{{ route('master.classification-letters.index') }}"
                             class="flex flex-col items-center justify-center rounded-lg border-2 border-gray-200 p-6 text-center transition-all hover:border-brand hover:bg-orange-50">
                             <i data-lucide="tags" class="mb-3 h-8 w-8 text-brand"></i>
@@ -124,12 +123,11 @@
                             <i data-lucide="user-check" class="mb-3 h-8 w-8 text-warning"></i>
                             <span class="font-medium text-gray-900">Penandatangan</span>
                         </a>
-                    @endif
-                    <a href="{{ route('letters.create') }}"
-                        class="flex flex-col items-center justify-center rounded-lg border-2 border-brand bg-brand p-6 text-center transition-all hover:bg-brand-600">
-                        <i data-lucide="plus-circle" class="mb-3 h-8 w-8 text-white"></i>
-                        <span class="font-medium text-white">Buat Surat</span>
-                    </a>
+                        <a href="{{ route('letters.create') }}"
+                            class="flex flex-col items-center justify-center rounded-lg border-2 border-brand bg-brand p-6 text-center transition-all hover:bg-brand-600">
+                            <i data-lucide="plus-circle" class="mb-3 h-8 w-8 text-white"></i>
+                            <span class="font-medium text-white">Buat Surat</span>
+                        </a>
                     </div>
                 </div>
             </div>

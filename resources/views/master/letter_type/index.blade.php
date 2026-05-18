@@ -12,11 +12,13 @@
             </h2>
             <p class="mt-1 text-sm text-gray-500">Kelola jenis-jenis surat yang tersedia</p>
         </div>
+        @if (auth()->user()->isAdmin())
         <a href="{{ route('master.letter-types.create') }}" 
            class="inline-flex items-center rounded-lg btn-success focus:ring-offset-2 transition-colors">
             <i data-lucide="plus-circle" class="mr-2 h-5 w-5"></i>
             Tambah Jenis Surat
         </a>
+        @endif
     </div>
 
     {{-- Search Section --}}
@@ -74,9 +76,13 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Jenis Surat</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Deskripsi</th>
+                            @if (auth()->user()->isAdmin())
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keperluan Surat</th>
+                            @endif
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            @if (auth()->user()->isAdmin())
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -98,6 +104,7 @@
                             <td class="px-6 py-4 text-sm text-gray-500 hidden lg:table-cell">
                                 {{ Str::limit($letterType->description, 60) ?? '-' }}
                             </td>
+                            @if (auth()->user()->isAdmin())
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" 
@@ -108,11 +115,13 @@
                                     <span class="ms-3 text-sm font-medium text-gray-700">{{ $letterType->requires_purpose ? 'Ya' : 'Tidak' }}</span>
                                 </label>
                             </td>
+                            @endif
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold {{ $letterType->is_active ? 'bg-success-lighter text-green-800' : 'bg-gray-100 text-gray-800' }}">
                                     {{ $letterType->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
                             </td>
+                            @if (auth()->user()->isAdmin())
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex items-center space-x-2">
                                     <a href="{{ route('master.letter-types.edit', $letterType) }}" 
@@ -136,6 +145,7 @@
                                     @endif
                                 </div>
                             </td>
+                            @endif
                         </tr>
                         @endforeach
                     </tbody>
@@ -150,6 +160,7 @@
                     <i data-lucide="file-text" class="mx-auto h-12 w-12 text-gray-400"></i>
                     <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada data jenis surat</h3>
                     <p class="mt-1 text-sm text-gray-500">Belum ada jenis surat yang terdaftar dalam sistem.</p>
+                    @if (auth()->user()->isAdmin())
                     <div class="mt-6">
                         <a href="{{ route('master.letter-types.create') }}" 
                            class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
@@ -157,6 +168,7 @@
                             Tambah Jenis Surat
                         </a>
                     </div>
+                    @endif
                 </div>
             @endif
         </div>

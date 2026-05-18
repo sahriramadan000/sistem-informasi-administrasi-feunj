@@ -9,6 +9,7 @@ use App\Models\LetterType;
 use App\Models\LetterPurpose;
 use App\Models\UserLetterView;
 use App\Models\LetterSequence;
+use App\Models\User;
 use App\Enums\SecurityClassification;
 use App\Enums\LetterTarget;
 use App\Services\AuditLogService;
@@ -79,6 +80,10 @@ class LetterController extends Controller
                 $query->search($request->search);
             }
 
+            if ($request->filled('created_by')) {
+                $query->where('created_by', $request->created_by);
+            }
+
             // Pagination dengan mempertahankan query string, diurutkan berdasarkan running_number terbesar
             $perPage = $request->input('per_page', 10);
             // Validasi per_page untuk keamanan
@@ -98,12 +103,15 @@ class LetterController extends Controller
             $signatories = Signatory::active()->orderBy('name')->get();
             $classifications = ClassificationLetter::active()->orderBy('name')->get();
             $letterTypes = LetterType::active()->orderBy('name')->get();
+            // Ambil semua users kecuali username 'admin'
+            $users = User::where('username', '!=', 'admin')->orderBy('name')->get();
 
             return view('letters.index', compact(
                 'letters',
                 'signatories',
                 'classifications',
-                'letterTypes'
+                'letterTypes',
+                'users'
             ));
         } catch (\Throwable $e) {
             return $this->handleError($e, 'LetterController.index', 'Gagal memuat daftar surat.');

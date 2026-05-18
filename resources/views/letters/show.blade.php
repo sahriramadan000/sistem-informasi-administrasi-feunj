@@ -267,7 +267,7 @@
         {{-- SECTION 2: Sidebar Info --}}
         <div class="space-y-6">
             {{-- Quick Actions Card --}}
-            @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
+            @if (auth()->user()->isAdmin() || (auth()->user()->isOperator() && $letter->created_by === auth()->id()))
                 <div
                     class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border border-orange-200 shadow-sm overflow-hidden">
                     <div class="p-6">

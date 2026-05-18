@@ -20,7 +20,16 @@ class LetterPurposeController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('role:admin');
+        $this->middleware('role:admin,operator');
+        
+        // Middleware khusus untuk method yang hanya admin yang bisa akses
+        $this->middleware('role:admin')->only([
+            'create',
+            'store',
+            'edit',
+            'update',
+            'destroy'
+        ]);
     }
 
     /**
