@@ -54,7 +54,7 @@ class LoginController extends Controller
                     'ip' => $request->ip()
                 ]);
 
-                return redirect()->intended(route('dashboard'));
+                return redirect()->intended(route('switcher'));
             }
 
             return back()

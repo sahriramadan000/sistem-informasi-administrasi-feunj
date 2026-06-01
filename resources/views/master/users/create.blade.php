@@ -169,6 +169,41 @@
                         </div>
                     </div>
 
+                    {{-- Akses Modul --}}
+                    <div>
+                        <label class="label mb-2">Akses Modul <span class="text-destructive">*</span></label>
+                        <div class="space-y-3">
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input type="checkbox" 
+                                           id="can_access_letters" 
+                                           name="can_access_letters" 
+                                           value="1" 
+                                           {{ old('can_access_letters', true) ? 'checked' : '' }}
+                                           class="w-4 h-4 text-brand border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
+                                </div>
+                                <div class="ml-3">
+                                    <label for="can_access_letters" class="font-medium text-gray-700">Modul Persuratan</label>
+                                    <p class="text-sm text-muted-foreground">Berikan akses untuk fitur penomoran dan arsip surat</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input type="checkbox" 
+                                           id="can_access_legalizations" 
+                                           name="can_access_legalizations" 
+                                           value="1" 
+                                           {{ old('can_access_legalizations', false) ? 'checked' : '' }}
+                                           class="w-4 h-4 text-brand border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
+                                </div>
+                                <div class="ml-3">
+                                    <label for="can_access_legalizations" class="font-medium text-gray-700">Modul Legalisir</label>
+                                    <p class="text-sm text-muted-foreground">Berikan akses untuk fitur penomoran legalisir</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Informasi Tambahan --}}
                     <div>
                         <div class="bg-orange-50 border border-blue-200 rounded-lg p-4">

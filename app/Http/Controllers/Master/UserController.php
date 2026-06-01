@@ -46,7 +46,7 @@ class UserController extends Controller
                 });
             }
 
-            $users = $query->orderBy('name')->paginate(10);
+            $users = $query->orderBy('name')->paginate($request->get('per_page', 10));
             
             return view('master.users.index', compact('users'));
         } catch (\Throwable $e) {
@@ -72,19 +72,23 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            // Validasi input
-            $validated = $request->validate([
-                'name' => 'required|string|max:100',
-                'email' => 'required|email|max:150|unique:users,email',
-                'username' => 'required|string|max:50|unique:users,username',
-                'password' => 'required|string|min:6|confirmed',
-                'role' => ['required', Rule::in(['admin', 'operator', 'viewer'])],
-                'is_active' => 'boolean',
-            ]);
+        // Validasi input
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:150|unique:users,email',
+            'username' => 'required|string|max:50|unique:users,username',
+            'password' => 'required|string|min:6|confirmed',
+            'role' => ['required', Rule::in(['admin', 'operator', 'viewer'])],
+            'is_active' => 'boolean',
+            'can_access_letters' => 'boolean',
+            'can_access_legalizations' => 'boolean',
+        ]);
 
+        try {
             // Handle checkbox values
             $validated['is_active'] = $request->has('is_active');
+            $validated['can_access_letters'] = $request->has('can_access_letters');
+            $validated['can_access_legalizations'] = $request->has('can_access_legalizations');
             $validated['password'] = Hash::make($validated['password']);
 
             // Simpan data menggunakan transaction
@@ -114,14 +118,7 @@ class UserController extends Controller
                 ->with('success', 'Pengguna berhasil ditambahkan.');
 
         } catch (\Throwable $e) {
-            Log::error('Error creating user', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return back()
-                ->withInput()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.']);
+            return $this->handleError($e, 'UserController.store', 'Terjadi kesalahan saat menyimpan data pengguna. Silakan coba lagi.');
         }
     }
 
@@ -156,19 +153,23 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        try {
-            // Validasi input
-            $validated = $request->validate([
-                'name' => 'required|string|max:100',
-                'email' => ['required', 'email', 'max:150', Rule::unique('users')->ignore($user->id)],
-                'username' => ['required', 'string', 'max:50', Rule::unique('users')->ignore($user->id)],
-                'password' => 'nullable|string|min:6|confirmed',
-                'role' => ['required', Rule::in(['admin', 'operator', 'viewer'])],
-                'is_active' => 'boolean',
-            ]);
+        // Validasi input
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => ['required', 'email', 'max:150', Rule::unique('users')->ignore($user->id)],
+            'username' => ['required', 'string', 'max:50', Rule::unique('users')->ignore($user->id)],
+            'password' => 'nullable|string|min:6|confirmed',
+            'role' => ['required', Rule::in(['admin', 'operator', 'viewer'])],
+            'is_active' => 'boolean',
+            'can_access_letters' => 'boolean',
+            'can_access_legalizations' => 'boolean',
+        ]);
 
+        try {
             // Handle checkbox values
             $validated['is_active'] = $request->has('is_active');
+            $validated['can_access_letters'] = $request->has('can_access_letters');
+            $validated['can_access_legalizations'] = $request->has('can_access_legalizations');
             
             // Hanya update password jika diisi
             if (!empty($validated['password'])) {
@@ -200,15 +201,7 @@ class UserController extends Controller
                 ->with('success', 'Pengguna berhasil diperbarui.');
 
         } catch (\Throwable $e) {
-            Log::error('Error updating user', [
-                'id' => $user->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return back()
-                ->withInput()
-                ->withErrors(['error' => 'Terjadi kesalahan saat memperbarui data. Silakan coba lagi.']);
+            return $this->handleError($e, 'UserController.update', 'Terjadi kesalahan saat memperbarui data pengguna. Silakan coba lagi.');
         }
     }
 
@@ -255,14 +248,7 @@ class UserController extends Controller
                 ->with('success', 'Pengguna berhasil dinonaktifkan.');
 
         } catch (\Throwable $e) {
-            Log::error('Error deactivating user', [
-                'id' => $user->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return back()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menonaktifkan data. Silakan coba lagi.']);
+            return $this->handleError($e, 'UserController.destroy', 'Terjadi kesalahan saat menonaktifkan data pengguna. Silakan coba lagi.');
         }
     }
 }

@@ -142,13 +142,20 @@ class Letter extends Model
                 }
 
                 $letterTarget = LetterTarget::from($model->letter_target);
+                $targetCode = $letterTarget->code();
+                
+                // Mencegah double UN39 jika kode penandatangan sudah memiliki awalan UN39
+                if (str_contains($signatory->code, 'UN39')) {
+                    $targetCode = '';
+                }
+
                 $runningNumberFormatted = str_pad($model->running_number, 3, '0', STR_PAD_LEFT);
 
                 $model->letter_number = sprintf(
                     '%s/%s/%s%s/%s/%d',
                     $model->security_classification,
                     $runningNumberFormatted,
-                    $letterTarget->code(),
+                    $targetCode,
                     $signatory->code,
                     $classification->code,
                     $model->year

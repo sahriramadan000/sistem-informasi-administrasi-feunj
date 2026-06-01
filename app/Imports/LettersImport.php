@@ -13,6 +13,7 @@ use App\Enums\SecurityClassification;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Carbon\Carbon;
 use Exception;
 
@@ -22,7 +23,7 @@ use Exception;
  * Validation dilakukan di method model() per baris
  * Bukan di WithValidation interface (agar custom error handling bekerja)
  */
-class LettersImport implements ToModel, WithHeadingRow
+class LettersImport implements ToModel, WithHeadingRow, SkipsEmptyRows
 {
     /**
      * Store untuk mengelompokkan data per (letter_type_id, year)
@@ -110,8 +111,16 @@ class LettersImport implements ToModel, WithHeadingRow
         // Increment row counter (mulai dari 2 karena 1 adalah header)
         self::$currentRow++;
 
-        // Skip empty rows
-        if (!array_filter($row)) {
+        // Skip empty rows (ignore nulls, empty strings, and whitespace)
+        $hasData = false;
+        foreach ($row as $cell) {
+            if ($cell !== null && trim((string)$cell) !== '') {
+                $hasData = true;
+                break;
+            }
+        }
+
+        if (!$hasData) {
             return null;
         }
 

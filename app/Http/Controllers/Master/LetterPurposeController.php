@@ -52,7 +52,7 @@ class LetterPurposeController extends Controller
                 });
             }
 
-            $letterPurposes = $query->orderBy('name')->paginate(10);
+            $letterPurposes = $query->orderBy('name')->paginate($request->get('per_page', 10));
             
             return view('master.letter-purposes.index', compact('letterPurposes'));
         } catch (\Throwable $e) {
@@ -78,14 +78,14 @@ class LetterPurposeController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            // Validasi input
-            $validated = $request->validate([
-                'name' => 'required|string|max:255|unique:letter_purposes,name',
-                'description' => 'nullable|string',
-                'is_active' => 'boolean',
-            ]);
+        // Validasi input
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:letter_purposes,name',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
+        ]);
 
+        try {
             // Simpan data menggunakan transaction
             DB::transaction(function () use ($validated) {
                 LetterPurpose::create($validated);
@@ -110,14 +110,7 @@ class LetterPurposeController extends Controller
                 ->with('success', 'Keperluan surat berhasil ditambahkan.');
 
         } catch (\Throwable $e) {
-            Log::error('Error creating letter purpose', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return back()
-                ->withInput()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.']);
+            return $this->handleError($e, 'LetterPurposeController.store', 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
         }
     }
 
@@ -141,14 +134,14 @@ class LetterPurposeController extends Controller
      */
     public function update(Request $request, LetterPurpose $letterPurpose)
     {
-        try {
-            // Validasi input
-            $validated = $request->validate([
-                'name' => 'required|string|max:255|unique:letter_purposes,name,' . $letterPurpose->id,
-                'description' => 'nullable|string',
-                'is_active' => 'boolean',
-            ]);
+        // Validasi input
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:letter_purposes,name,' . $letterPurpose->id,
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
+        ]);
 
+        try {
             // Update data menggunakan transaction
             DB::transaction(function () use ($letterPurpose, $validated) {
                 $letterPurpose->update($validated);
@@ -171,15 +164,7 @@ class LetterPurposeController extends Controller
                 ->with('success', 'Keperluan surat berhasil diperbarui.');
 
         } catch (\Throwable $e) {
-            Log::error('Error updating letter purpose', [
-                'id' => $letterPurpose->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return back()
-                ->withInput()
-                ->withErrors(['error' => 'Terjadi kesalahan saat memperbarui data. Silakan coba lagi.']);
+            return $this->handleError($e, 'LetterPurposeController.update', 'Terjadi kesalahan saat memperbarui data. Silakan coba lagi.');
         }
     }
 

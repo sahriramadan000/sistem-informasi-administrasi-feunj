@@ -54,7 +54,7 @@ class LetterTypeController extends Controller
                 });
             }
 
-            $letterTypes = $query->orderBy('name')->paginate(10);
+            $letterTypes = $query->orderBy('name')->paginate($request->get('per_page', 10));
             
             return view('master.letter_type.index', compact('letterTypes'));
         } catch (\Throwable $e) {
@@ -80,16 +80,16 @@ class LetterTypeController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            // Validasi input
-            $validated = $request->validate([
-                'code' => 'nullable|string|max:50|unique:letter_types,code',
-                'name' => 'required|string|max:150',
-                'description' => 'nullable|string',
-                'is_active' => 'boolean',
-                'requires_purpose' => 'boolean',
-            ]);
+        // Validasi input
+        $validated = $request->validate([
+            'code' => 'nullable|string|max:50|unique:letter_types,code',
+            'name' => 'required|string|max:150',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
+            'requires_purpose' => 'boolean',
+        ]);
 
+        try {
             // Handle checkbox values (jika tidak dicentang, set false)
             $validated['is_active'] = $request->has('is_active');
             $validated['requires_purpose'] = $request->has('requires_purpose');
@@ -119,14 +119,7 @@ class LetterTypeController extends Controller
                 ->with('success', 'Jenis surat berhasil ditambahkan.');
 
         } catch (\Throwable $e) {
-            Log::error('Error creating letter type', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return back()
-                ->withInput()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.']);
+            return $this->handleError($e, 'LetterTypeController.store', 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
         }
     }
 
@@ -150,16 +143,16 @@ class LetterTypeController extends Controller
      */
     public function update(Request $request, LetterType $letterType)
     {
-        try {
-            // Validasi input
-            $validated = $request->validate([
-                'code' => 'nullable|string|max:50|unique:letter_types,code,' . $letterType->id,
-                'name' => 'required|string|max:150',
-                'description' => 'nullable|string',
-                'is_active' => 'boolean',
-                'requires_purpose' => 'boolean',
-            ]);
+        // Validasi input
+        $validated = $request->validate([
+            'code' => 'nullable|string|max:50|unique:letter_types,code,' . $letterType->id,
+            'name' => 'required|string|max:150',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
+            'requires_purpose' => 'boolean',
+        ]);
 
+        try {
             // Handle checkbox values (jika tidak dicentang, set false)
             $validated['is_active'] = $request->has('is_active');
             $validated['requires_purpose'] = $request->has('requires_purpose');
@@ -187,15 +180,7 @@ class LetterTypeController extends Controller
                 ->with('success', 'Jenis surat berhasil diperbarui.');
 
         } catch (\Throwable $e) {
-            Log::error('Error updating letter type', [
-                'id' => $letterType->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return back()
-                ->withInput()
-                ->withErrors(['error' => 'Terjadi kesalahan saat memperbarui data. Silakan coba lagi.']);
+            return $this->handleError($e, 'LetterTypeController.update', 'Terjadi kesalahan saat memperbarui data. Silakan coba lagi.');
         }
     }
 
@@ -236,14 +221,7 @@ class LetterTypeController extends Controller
                 ->with('success', 'Jenis surat berhasil dinonaktifkan.');
 
         } catch (\Throwable $e) {
-            Log::error('Error deactivating letter type', [
-                'id' => $letterType->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return back()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menonaktifkan data. Silakan coba lagi.']);
+            return $this->handleError($e, 'LetterTypeController.destroy', 'Terjadi kesalahan saat menonaktifkan data. Silakan coba lagi.');
         }
     }
 
@@ -260,7 +238,7 @@ class LetterTypeController extends Controller
             $validated = $request->validate([
                 'requires_purpose' => 'required|boolean',
             ]);
-
+            
             DB::transaction(function () use ($letterType, $validated) {
                 $letterType->update([
                     'requires_purpose' => $validated['requires_purpose']
@@ -279,6 +257,8 @@ class LetterTypeController extends Controller
                 'message' => 'Status keperluan surat berhasil diperbarui.'
             ]);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Throwable $e) {
             Log::error('Error toggling requires_purpose', [
                 'id' => $letterType->id,

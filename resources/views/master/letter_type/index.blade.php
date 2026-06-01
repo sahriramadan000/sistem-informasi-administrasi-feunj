@@ -53,18 +53,31 @@
     <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
         <div class="px-6 py-4 border-b border-gray-200">
             <div class="flex items-center justify-between">
-                <h3 class="text-base font-semibold text-gray-900">Daftar Jenis Surat</h3>
-                @if ($letterTypes->count() > 0)
-                    <span class="text-sm text-gray-500">
-                        {{ $letterTypes->total() }} jenis surat ditemukan
-                        @if(request('search'))
-                            <span class="ml-2 inline-flex items-center rounded-full bg-brand-lighter px-2.5 py-0.5 text-xs font-medium text-brand-dark">
-                                <i data-lucide="search" class="mr-1 h-3 w-3"></i>
-                                Pencarian: "{{ request('search') }}"
-                            </span>
+                <div class="flex items-center gap-3">
+                    <h3 class="text-base font-semibold text-gray-900">Daftar Jenis Surat</h3>
+                    @if(request('search'))
+                        <span class="inline-flex items-center rounded-full bg-brand-lighter px-2.5 py-0.5 text-xs font-medium text-brand-dark">
+                            <i data-lucide="search" class="mr-1 h-3 w-3"></i>
+                            Pencarian: "{{ request('search') }}"
+                        </span>
+                    @endif
+                </div>
+
+                {{-- Per Page Selector --}}
+                <div class="flex items-center gap-2">
+                    <label for="per_page" class="text-sm text-gray-600">Tampilkan:</label>
+                    <form method="GET" action="{{ route('master.letter-types.index') }}" class="inline-block m-0">
+                        @if (request('search'))
+                            <input type="hidden" name="search" value="{{ request('search') }}">
                         @endif
-                    </span>
-                @endif
+                        <select name="per_page" id="per_page" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-0" onchange="this.form.submit()">
+                            <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ request('per_page', 10) == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ request('per_page', 10) == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ request('per_page', 10) == 100 ? 'selected' : '' }}>100</option>
+                        </select>
+                    </form>
+                </div>
             </div>
         </div>
         <div class="overflow-x-auto">

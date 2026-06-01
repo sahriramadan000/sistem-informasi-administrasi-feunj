@@ -51,11 +51,12 @@ class LetterController extends Controller
 
             // Filter berdasarkan parameter request
             if ($request->filled('date_range')) {
-                $dates = explode(' to ', $request->date_range);
+                $separator = strpos($request->date_range, ' to ') !== false ? ' to ' : ' - ';
+                $dates = explode($separator, $request->date_range);
                 if (count($dates) == 2) {
-                    $query->whereBetween('letter_date', [$dates[0], $dates[1]]);
+                    $query->whereBetween('letter_date', [trim($dates[0]), trim($dates[1])]);
                 } elseif (count($dates) == 1) {
-                    $query->whereDate('letter_date', $dates[0]);
+                    $query->whereDate('letter_date', trim($dates[0]));
                 }
             }
 
@@ -91,10 +92,10 @@ class LetterController extends Controller
             if (!in_array($perPage, $allowedPerPage)) {
                 $perPage = 10;
             }
-            
+
             $letters = $query->orderBy('year', 'desc')
-                             ->orderBy('running_number', 'desc')
-                             ->paginate($perPage);
+                ->orderBy('letter_date', 'desc')
+                ->paginate($perPage);
 
             // TIDAK mark surat sebagai viewed di halaman index
             // Surat hanya di-mark viewed ketika user klik detail (di method show)
@@ -212,20 +213,20 @@ class LetterController extends Controller
             // Validasi duplikat nomor surat berdasarkan letter_type
             // Nomor surat boleh sama ASALKAN letter_type berbeda
             $year = date('Y', strtotime($request->letter_date));
-            $existingLetter = Letter::where('letter_type_id', $request->letter_type_id)
+            $maxRunningNumber = Letter::where('letter_type_id', $request->letter_type_id)
                 ->where('year', $year)
                 ->where('is_active', true)
                 ->where('status', 'final')
-                ->count();
-            
-            // Cek apakah running_number berikutnya akan duplikat
-            $nextRunningNumber = $existingLetter + 1;
+                ->max('running_number') ?? 0;  // null-safe, kalau belum ada = 0
+
+            // Running number berikutnya
+            $nextRunningNumber = $maxRunningNumber + 1;
             $duplicateCheck = Letter::where('letter_type_id', $request->letter_type_id)
                 ->where('year', $year)
                 ->where('running_number', $nextRunningNumber)
                 ->where('is_active', true)
                 ->first();
-            
+
             if ($duplicateCheck) {
                 return back()
                     ->withInput()
@@ -317,6 +318,8 @@ class LetterController extends Controller
                     $createdLetters[0]->letter_number,
                     $createdLetters[count($createdLetters) - 1]->letter_number
                 ));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Illuminate\Database\QueryException $e) {
             Log::error('Database error creating letter', [
                 'error' => $e->getMessage(),
@@ -389,13 +392,15 @@ class LetterController extends Controller
         $classifications = ClassificationLetter::active()->orderBy('name')->get();
         $letterTypes = LetterType::active()->orderBy('name')->get();
         $letterPurposes = LetterPurpose::active()->orderBy('name')->get();
+        $securityClassifications = SecurityClassification::options();
 
         return view('letters.edit', compact(
             'letter',
             'signatories',
             'classifications',
             'letterTypes',
-            'letterPurposes'
+            'letterPurposes',
+            'securityClassifications'
         ));
     }
 
@@ -406,103 +411,109 @@ class LetterController extends Controller
      * @param Letter $letter
      * @return \Illuminate\Http\RedirectResponse
      */
-     public function update(Request $request, Letter $letter)
-     {
-         try {
-             // Cek apakah jenis surat memerlukan keperluan
-             $letterType = $letter->letterType;
+    public function update(Request $request, Letter $letter)
+    {
+        try {
+            // Cek apakah jenis surat memerlukan keperluan
+            $letterType = $letter->letterType;
 
-             // Validasi input dasar
-             $rules = [
-                 'letter_date' => 'required|date',
-                 'subject' => 'required|string|max:255',
-                 'recipient' => 'required|string|max:255',
-                 'letter_target' => 'required|in:internal,external',
-             ];
+            // Validasi input dasar
+            $rules = [
+                'letter_date' => 'required|date',
+                'subject' => 'required|string|max:255',
+                'recipient' => 'required|string|max:255',
+                'letter_target' => 'required|in:internal,external',
+                'classification_id' => 'required|exists:classification_letters,id',
+                'signatory_id' => 'required|exists:signatories,id',
+                'security_classification' => 'required|in:B,T,R,SR',
+            ];
 
-             // Jika jenis surat memerlukan keperluan, tambahkan validasi
-             if ($letterType->requires_purpose) {
-                 $rules['letter_purpose_id'] = 'required|exists:letter_purposes,id';
-                 $rules['student_name'] = 'required|string|max:255';
-             } else {
-                 $rules['letter_purpose_id'] = 'nullable|exists:letter_purposes,id';
-                 $rules['student_name'] = 'nullable|string|max:255';
-             }
+            // Jika jenis surat memerlukan keperluan, tambahkan validasi
+            if ($letterType->requires_purpose) {
+                $rules['letter_purpose_id'] = 'required|exists:letter_purposes,id';
+                $rules['student_name'] = 'required|string|max:255';
+            } else {
+                $rules['letter_purpose_id'] = 'nullable|exists:letter_purposes,id';
+                $rules['student_name'] = 'nullable|string|max:255';
+            }
 
-             $validated = $request->validate($rules);
+            $validated = $request->validate($rules);
 
-              // Update field dan regenerate nomor surat jika letter_target berubah
-              $targetChanged = false;
-              DB::transaction(function () use ($letter, $validated, &$targetChanged) {
-                  // Check if letter_target changed
-                  $targetChanged = $letter->letter_target !== $validated['letter_target'];
+            // Update field dan regenerate nomor surat jika ada komponen nomor surat yang berubah
+            $numberComponentChanged = false;
+            DB::transaction(function () use ($letter, $validated, &$numberComponentChanged) {
+                // Check if components changed
+                $numberComponentChanged = (
+                    $letter->letter_target !== $validated['letter_target'] ||
+                    $letter->classification_id != $validated['classification_id'] ||
+                    $letter->signatory_id != $validated['signatory_id'] ||
+                    $letter->security_classification !== $validated['security_classification']
+                );
 
-                  if ($targetChanged) {
-                      // Regenerate letter number dengan target code yang baru
-                      $letterTarget = LetterTarget::from($validated['letter_target']);
-                      $targetCode = $letterTarget->code();
+                if ($numberComponentChanged) {
+                    // Regenerate letter number
+                    $letterTarget = LetterTarget::from($validated['letter_target']);
+                    $targetCode = $letterTarget->code();
+                    
+                    $signatory = \App\Models\Signatory::find($validated['signatory_id']);
+                    $classification = \App\Models\ClassificationLetter::find($validated['classification_id']);
+                    
+                    // Mencegah double UN39 jika kode penandatangan sudah memiliki awalan UN39
+                    if (str_contains($signatory->code, 'UN39')) {
+                        $targetCode = '';
+                    }
+                    
+                    $runningNumberFormatted = str_pad($letter->running_number, 3, '0', STR_PAD_LEFT);
 
-                      // Parse existing nomor surat untuk extract bagian-bagiannya
-                      $parts = explode('/', $letter->letter_number);
-                      // Format: [SEC]/[RUNNING]/[SIGNATORY_OR_UN39.SIGNATORY]/[CLASS]/[YEAR]
-                      
-                      $securityCode = $parts[0];
-                      $runningNumber = $parts[1];
-                      $signatory = $letter->signatory;
-                      $classification = $letter->classification;
-                      $year = $letter->year;
+                    // Generate nomor surat baru
+                    $newLetterNumber = sprintf(
+                        '%s/%s/%s%s/%s/%d',
+                        $validated['security_classification'],
+                        $runningNumberFormatted,
+                        $targetCode,
+                        $signatory->code,
+                        $classification->code,
+                        $letter->year
+                    );
 
-                      // Extract clean signatory code (remove UN39. if exists)
-                      $signatoryPart = $parts[2];
-                      $cleanSignatoryCode = str_replace('UN39.', '', $signatoryPart);
+                    $validated['letter_number'] = $newLetterNumber;
+                }
 
-                      // Generate nomor surat dengan target code yang baru
-                      $newLetterNumber = sprintf(
-                          '%s/%s/%s%s/%s/%d',
-                          $securityCode,
-                          $runningNumber,
-                          $targetCode,
-                          $cleanSignatoryCode,
-                          $classification->code,
-                          $year
-                      );
+                $letter->update($validated);
+            });
 
-                      $validated['letter_number'] = $newLetterNumber;
-                  }
+            Log::info('Letter updated successfully', [
+                'letter_id' => $letter->id,
+                'letter_number' => $letter->letter_number,
+                'number_changed' => $numberComponentChanged,
+                'user_id' => auth()->id()
+            ]);
 
-                  $letter->update($validated);
-              });
+            // Log to audit trail
+            AuditLogService::log('update', 'Letter', $letter->id, [
+                'letter_number' => $letter->letter_number,
+                'subject' => $letter->subject,
+                'changes' => array_keys($validated),
+            ]);
 
-             Log::info('Letter updated successfully', [
-                  'letter_id' => $letter->id,
-                  'letter_number' => $letter->letter_number,
-                  'target_changed' => $targetChanged,
-                  'user_id' => auth()->id()
-              ]);
+            return redirect()
+                ->route('letters.show', $letter)
+                ->with('success', 'Surat berhasil diperbarui.' . ($numberComponentChanged ? ' Nomor surat telah di-regenerate.' : ''));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            Log::error('Error updating letter', [
+                'letter_id' => $letter->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => auth()->id()
+            ]);
 
-              // Log to audit trail
-              AuditLogService::log('update', 'Letter', $letter->id, [
-                  'letter_number' => $letter->letter_number,
-                  'subject' => $letter->subject,
-                  'changes' => array_keys($validated),
-              ]);
-
-             return redirect()
-                 ->route('letters.show', $letter)
-                 ->with('success', 'Surat berhasil diperbarui.' . ($targetChanged ? ' Nomor surat telah di-regenerate.' : ''));
-         } catch (\Throwable $e) {
-             Log::error('Error updating letter', [
-                 'letter_id' => $letter->id,
-                 'error' => $e->getMessage(),
-                 'trace' => $e->getTraceAsString(),
-                 'user_id' => auth()->id()
-             ]);
-
-             return back()
-                 ->withInput()
-                 ->withErrors(['error' => 'Terjadi kesalahan saat memperbarui surat. Silakan coba lagi.']);
-         }
-     }
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Terjadi kesalahan saat memperbarui surat. Silakan coba lagi.']);
+        }
+    }
 
     /**
      * Soft delete surat (set is_active = false)

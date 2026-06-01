@@ -10,23 +10,24 @@
     {{-- Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     {{-- ICON --}}
     <link rel="icon" type="image/png" href="{{ asset('logo-unj.png') }}">
 
     {{-- jQuery (Required for Select2) --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    
+
     {{-- Select2 CSS --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    
+
     {{-- Flatpickr CSS (Datepicker) --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    
+
     {{-- Lucide Icons (Modern alternative to Bootstrap Icons) --}}
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     {{-- Vite Assets --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -374,93 +375,170 @@
             {{-- Sidebar --}}
             <aside id="sidebar" class="hidden lg:flex lg:flex-shrink-0 lg:w-64">
                 <div class="flex flex-col w-64 border-r border-gray-200 bg-white fixed h-full">
-                    {{-- Sidebar Header --}}
+                    {{-- Sidebar Header (With Switcher Link) --}}
                     <div class="flex h-16 items-center justify-between px-6 border-b border-gray-200 flex-shrink-0">
                         <div class="flex items-center space-x-2">
-                            <div class="flex h-10 w-10 items-center justify-center">
-                                <img src="{{ asset('logo-unj.png') }}" alt="Logo UNJ" class="h-10 w-10 object-contain">
-                            </div>
-                            <span class="text-lg font-semibold text-gray-900">SIADMIN FEB</span>
+                            <a href="{{ route('switcher') }}"
+                                class="flex h-10 w-10 items-center justify-center hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                                title="Kembali ke Pilihan Modul">
+                                <img src="{{ asset('logo-unj.png') }}" alt="Logo UNJ" class="h-8 w-8 object-contain">
+                            </a>
+                            <span class="text-lg font-semibold text-gray-900">
+                                @if (request()->routeIs('admin.*', 'master.users.*'))
+                                    Pengaturan
+                                @elseif(request()->routeIs('legalizations.*', 'master.education-levels.*'))
+                                    Legalisir FEB
+                                @else
+                                    Surat FEB
+                                @endif
+                            </span>
                         </div>
                     </div>
 
                     {{-- Sidebar Navigation --}}
                     <nav class="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-                        {{-- Dashboard --}}
-                        <a href="{{ route('dashboard') }}" 
-                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                            <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
-                            Dashboard
-                        </a>
+                        @if (request()->routeIs('admin.*', 'master.users.*'))
+                            {{-- ========================================== --}}
+                            {{-- NAVIGASI MODUL PENGATURAN --}}
+                            {{-- ========================================== --}}
 
-                        {{-- Letters Section --}}
-                        <div class="pt-2">
-                            <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Surat</h3>
-                            <div class="mt-2 space-y-1">
-                                @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
-                                    <a href="{{ route('letters.create') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('letters.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
-                                        Buat Surat Baru
-                                    </a>
-                                @endif
-                                <a href="{{ route('letters.index') }}" 
-                                   class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('letters.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                    <i data-lucide="mail" class="mr-3 h-5 w-5"></i>
-                                    Daftar Surat
-                                </a>
-                            </div>
-                        </div>
+                            {{-- Dashboard Pengaturan --}}
+                            <a href="{{ route('admin.dashboard') }}"
+                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
+                                Dashboard
+                            </a>
 
-                        {{-- Master Data Section (Admin & Operator) --}}
-                        @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
+                            {{-- Akses & Pengguna Section --}}
                             <div class="pt-4">
-                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master Data</h3>
+                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Akses &
+                                    Pengguna</h3>
                                 <div class="mt-2 space-y-1">
-                                    <a href="{{ route('master.classification-letters.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.classification-letters.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="tags" class="mr-3 h-5 w-5"></i>
-                                        Klasifikasi Surat
+                                    <a href="{{ route('master.users.index') }}"
+                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.users.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="users" class="mr-3 h-5 w-5"></i>
+                                        Pengguna
                                     </a>
-                                    <a href="{{ route('master.letter-types.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.letter-types.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="file-text" class="mr-3 h-5 w-5"></i>
-                                        Jenis Surat
-                                    </a>
-                                    <a href="{{ route('master.letter-purposes.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.letter-purposes.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="bookmark" class="mr-3 h-5 w-5"></i>
-                                        Keperluan Surat
-                                    </a>
-                                    <a href="{{ route('master.signatories.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.signatories.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="user-check" class="mr-3 h-5 w-5"></i>
-                                        Penandatangan
-                                    </a>
-                                    @if (auth()->user()->isAdmin())
-                                        <a href="{{ route('master.users.index') }}" 
-                                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.users.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="users" class="mr-3 h-5 w-5"></i>
-                                            Pengguna
-                                        </a>
-                                    @endif
                                 </div>
                             </div>
 
-                            {{-- System Monitoring Section (Admin Only) --}}
-                            @if (auth()->user()->isAdmin())
-                                <div class="pt-4">
-                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System Monitoring</h3>
-                                    <div class="mt-2 space-y-1">
-                                        <a href="{{ route('admin.error-logs.index') }}" 
-                                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.error-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="alert-triangle" class="mr-3 h-5 w-5"></i>
-                                            Error Logs
+                            {{-- System Monitoring Section --}}
+                            <div class="pt-4">
+                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System
+                                    Monitoring</h3>
+                                <div class="mt-2 space-y-1">
+                                    <a href="{{ route('admin.error-logs.index') }}"
+                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.error-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="alert-triangle" class="mr-3 h-5 w-5"></i>
+                                        Error Logs
+                                    </a>
+                                    <a href="{{ route('admin.activity-logs.index') }}"
+                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.activity-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="activity" class="mr-3 h-5 w-5"></i>
+                                        Activity Logs
+                                    </a>
+                                </div>
+                            </div>
+                        @elseif(request()->routeIs('legalizations.*', 'master.education-levels.*'))
+                            {{-- ========================================== --}}
+                            {{-- NAVIGASI MODUL LEGALISIR --}}
+                            {{-- ========================================== --}}
+
+                            {{-- Dashboard Legalisir --}}
+                            <a href="{{ route('legalizations.dashboard') }}"
+                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('legalizations.dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
+                                Dashboard
+                            </a>
+
+                            {{-- Legalisir Section --}}
+                            <div class="pt-2">
+                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Transaksi</h3>
+                                <div class="mt-2 space-y-1">
+                                    @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
+                                        <a href="{{ route('legalizations.create') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('legalizations.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
+                                            Buat Legalisir
                                         </a>
-                                        <a href="{{ route('admin.activity-logs.index') }}" 
-                                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.activity-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="activity" class="mr-3 h-5 w-5"></i>
-                                            Activity Logs
+                                    @endif
+                                    <a href="{{ route('legalizations.index') }}"
+                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('legalizations.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="files" class="mr-3 h-5 w-5"></i>
+                                        Daftar Legalisir
+                                    </a>
+                                </div>
+                            </div>
+
+                            @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
+                                <div class="pt-4">
+                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master
+                                        Data</h3>
+                                    <div class="mt-2 space-y-1">
+                                        <a href="{{ route('master.education-levels.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.education-levels.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="graduation-cap" class="mr-3 h-5 w-5"></i>
+                                            Jenjang Pendidikan
+                                        </a>
+                                    </div>
+                                </div>
+                            @endif
+                        @else
+                            {{-- ========================================== --}}
+                            {{-- NAVIGASI MODUL PERSURATAN --}}
+                            {{-- ========================================== --}}
+
+                            {{-- Dashboard Surat --}}
+                            <a href="{{ route('dashboard') }}"
+                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
+                                Dashboard
+                            </a>
+
+                            {{-- Letters Section --}}
+                            <div class="pt-2">
+                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Surat</h3>
+                                <div class="mt-2 space-y-1">
+                                    @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
+                                        <a href="{{ route('letters.create') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('letters.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
+                                            Buat Surat Baru
+                                        </a>
+                                    @endif
+                                    <a href="{{ route('letters.index') }}"
+                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('letters.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="mail" class="mr-3 h-5 w-5"></i>
+                                        Daftar Surat
+                                    </a>
+                                </div>
+                            </div>
+
+                            {{-- Master Data Section --}}
+                            @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
+                                <div class="pt-4">
+                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master
+                                        Data</h3>
+                                    <div class="mt-2 space-y-1">
+                                        <a href="{{ route('master.classification-letters.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.classification-letters.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="tags" class="mr-3 h-5 w-5"></i>
+                                            Klasifikasi Surat
+                                        </a>
+                                        <a href="{{ route('master.letter-types.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.letter-types.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="file-text" class="mr-3 h-5 w-5"></i>
+                                            Jenis Surat
+                                        </a>
+                                        <a href="{{ route('master.letter-purposes.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.letter-purposes.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="bookmark" class="mr-3 h-5 w-5"></i>
+                                            Keperluan Surat
+                                        </a>
+                                        <a href="{{ route('master.signatories.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.signatories.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="user-check" class="mr-3 h-5 w-5"></i>
+                                            Penandatangan
                                         </a>
                                     </div>
                                 </div>
@@ -471,37 +549,55 @@
                     {{-- User Menu at Bottom --}}
                     <div class="border-t border-gray-200 p-3 flex-shrink-0">
                         <div class="relative">
-                            <button onclick="toggleUserMenu()" class="w-full flex items-center rounded-lg px-3 py-2 text-sm transition-colors hover:bg-gray-100">
+                            <button onclick="toggleUserMenu()"
+                                class="w-full flex items-center rounded-lg px-3 py-2 text-sm transition-colors hover:bg-gray-100">
                                 <div class="flex h-8 w-8 items-center justify-center rounded-full bg-brand">
-                                    <span class="text-xs font-semibold text-white">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</span>
+                                    <span
+                                        class="text-xs font-semibold text-white">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</span>
                                 </div>
                                 <div class="ml-3 flex-1 text-left">
-                                    <p class="text-sm font-medium text-gray-900 user-name-display">{{ Auth::user()->name }}</p>
+                                    <p class="text-sm font-medium text-gray-900 user-name-display">
+                                        {{ Auth::user()->name }}</p>
                                     <p class="text-xs text-gray-500 capitalize">{{ Auth::user()->role }}</p>
                                 </div>
-                                <i data-lucide="chevron-up" class="h-4 w-4 text-gray-400 transition-transform duration-200" id="user-menu-icon"></i>
+                                <i data-lucide="chevron-up"
+                                    class="h-4 w-4 text-gray-400 transition-transform duration-200"
+                                    id="user-menu-icon"></i>
                             </button>
-                            
+
                             {{-- Dropdown Menu --}}
-                            <div id="user-menu-dropdown" class="hidden absolute bottom-full left-0 right-0 mb-2 rounded-lg border border-gray-200 bg-white shadow-lg z-50">
+                            <div id="user-menu-dropdown"
+                                class="hidden absolute bottom-full left-0 right-0 mb-2 rounded-lg border border-gray-200 bg-white shadow-lg z-50">
                                 <div class="p-2 space-y-1">
                                     <div class="px-3 py-2 border-b border-gray-100">
                                         <p class="text-xs font-medium text-gray-500">Akun</p>
-                                        <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->email }}</p>
+                                        <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->email }}
+                                        </p>
                                     </div>
-                                    
+
                                     {{-- Edit Profile --}}
-                                    <a href="{{ route('profile.edit') }}" class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                                    <a href="{{ route('profile.edit') }}"
+                                        class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
                                         <i data-lucide="user" class="mr-2 h-4 w-4"></i>
                                         Edit Profile
                                     </a>
-                                    
+
+                                    @if (auth()->user()->can_access_letters && auth()->user()->can_access_legalizations)
+                                        <div class="border-t border-gray-100 my-1"></div>
+                                        <a href="{{ route('switcher') }}"
+                                            class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                                            <i data-lucide="arrow-left-right" class="mr-2 h-4 w-4"></i>
+                                            Pindah Modul
+                                        </a>
+                                    @endif
+
                                     <div class="border-t border-gray-100 my-1"></div>
-                                    
+
                                     {{-- Logout --}}
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
-                                        <button type="submit" class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 transition-colors">
+                                        <button type="submit"
+                                            class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 transition-colors">
                                             <i data-lucide="log-out" class="mr-2 h-4 w-4"></i>
                                             Logout
                                         </button>
@@ -517,7 +613,8 @@
             <div id="sidebar-overlay" class="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden hidden"></div>
 
             {{-- Mobile Sidebar --}}
-            <aside id="mobile-sidebar" class="fixed inset-y-0 left-0 z-50 w-64 transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden bg-white border-r border-gray-200">
+            <aside id="mobile-sidebar"
+                class="fixed inset-y-0 left-0 z-50 w-64 transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden bg-white border-r border-gray-200">
                 <div class="flex h-full flex-col">
                     {{-- Mobile Sidebar Header --}}
                     <div class="flex h-16 items-center justify-between px-6 border-b border-gray-200">
@@ -525,7 +622,15 @@
                             <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand">
                                 <i data-lucide="building" class="h-5 w-5 text-white"></i>
                             </div>
-                            <span class="text-lg font-semibold text-gray-900">SIA FEB UNJ</span>
+                            <span class="text-lg font-semibold text-gray-900">
+                                @if (request()->routeIs('admin.*', 'master.users.*'))
+                                    Pengaturan
+                                @elseif(request()->routeIs('legalizations.*', 'master.education-levels.*'))
+                                    Legalisir FEB
+                                @else
+                                    Surat FEB
+                                @endif
+                            </span>
                         </div>
                         <button onclick="toggleMobileSidebar()" class="text-gray-400 hover:text-gray-500">
                             <i data-lucide="x" class="h-6 w-6"></i>
@@ -534,78 +639,149 @@
 
                     {{-- Mobile Navigation (Same as desktop) --}}
                     <nav class="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-                        <a href="{{ route('dashboard') }}" 
-                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                            <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
-                            Dashboard
-                        </a>
+                        @if (request()->routeIs('admin.*', 'master.users.*'))
+                            {{-- ========================================== --}}
+                            {{-- NAVIGASI MODUL PENGATURAN --}}
+                            {{-- ========================================== --}}
 
-                        <div class="pt-2">
-                            <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Surat</h3>
-                            <div class="mt-2 space-y-1">
-                                @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
-                                    <a href="{{ route('letters.create') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('letters.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
-                                        Buat Surat Baru
-                                    </a>
-                                @endif
-                                <a href="{{ route('letters.index') }}" 
-                                   class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('letters.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                    <i data-lucide="mail" class="mr-3 h-5 w-5"></i>
-                                    Daftar Surat
-                                </a>
-                            </div>
-                        </div>
+                            {{-- Dashboard Pengaturan --}}
+                            <a href="{{ route('admin.dashboard') }}"
+                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
+                                Dashboard
+                            </a>
 
-                        @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
+                            {{-- Akses & Pengguna Section --}}
                             <div class="pt-4">
-                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master Data</h3>
+                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Akses &
+                                    Pengguna</h3>
                                 <div class="mt-2 space-y-1">
-                                    <a href="{{ route('master.classification-letters.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.classification-letters.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="tags" class="mr-3 h-5 w-5"></i>
-                                        Klasifikasi Surat
+                                    <a href="{{ route('master.users.index') }}"
+                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.users.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="users" class="mr-3 h-5 w-5"></i>
+                                        Pengguna
                                     </a>
-                                    <a href="{{ route('master.letter-types.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.letter-types.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="file-text" class="mr-3 h-5 w-5"></i>
-                                        Jenis Surat
-                                    </a>
-                                    <a href="{{ route('master.letter-purposes.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.letter-purposes.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="bookmark" class="mr-3 h-5 w-5"></i>
-                                        Keperluan Surat
-                                    </a>
-                                    <a href="{{ route('master.signatories.index') }}" 
-                                       class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.signatories.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="user-check" class="mr-3 h-5 w-5"></i>
-                                        Penandatangan
-                                    </a>
-                                    @if (auth()->user()->isAdmin())
-                                        <a href="{{ route('master.users.index') }}" 
-                                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.users.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="users" class="mr-3 h-5 w-5"></i>
-                                            Pengguna
-                                        </a>
-                                    @endif
                                 </div>
                             </div>
 
-                            {{-- System Monitoring Section (Admin Only) --}}
-                            @if (auth()->user()->isAdmin())
-                                <div class="pt-4">
-                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System Monitoring</h3>
-                                    <div class="mt-2 space-y-1">
-                                        <a href="{{ route('admin.error-logs.index') }}" 
-                                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.error-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="alert-triangle" class="mr-3 h-5 w-5"></i>
-                                            Error Logs
+                            {{-- System Monitoring Section --}}
+                            <div class="pt-4">
+                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System
+                                    Monitoring</h3>
+                                <div class="mt-2 space-y-1">
+                                    <a href="{{ route('admin.error-logs.index') }}"
+                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.error-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="alert-triangle" class="mr-3 h-5 w-5"></i>
+                                        Error Logs
+                                    </a>
+                                    <a href="{{ route('admin.activity-logs.index') }}"
+                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.activity-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="activity" class="mr-3 h-5 w-5"></i>
+                                        Activity Logs
+                                    </a>
+                                </div>
+                            </div>
+                        @elseif(request()->routeIs('legalizations.*', 'master.education-levels.*'))
+                            {{-- ========================================== --}}
+                            {{-- NAVIGASI MODUL LEGALISIR --}}
+                            {{-- ========================================== --}}
+
+                            {{-- Dashboard Legalisir --}}
+                            <a href="{{ route('legalizations.dashboard') }}"
+                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('legalizations.dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
+                                Dashboard
+                            </a>
+
+                            {{-- Legalisir Section --}}
+                            <div class="pt-2">
+                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Transaksi
+                                </h3>
+                                <div class="mt-2 space-y-1">
+                                    @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
+                                        <a href="{{ route('legalizations.create') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('legalizations.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
+                                            Buat Legalisir
                                         </a>
-                                        <a href="{{ route('admin.activity-logs.index') }}" 
-                                           class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.activity-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="activity" class="mr-3 h-5 w-5"></i>
-                                            Activity Logs
+                                    @endif
+                                    <a href="{{ route('legalizations.index') }}"
+                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('legalizations.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="files" class="mr-3 h-5 w-5"></i>
+                                        Daftar Legalisir
+                                    </a>
+                                </div>
+                            </div>
+
+                            @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
+                                <div class="pt-4">
+                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master
+                                        Data</h3>
+                                    <div class="mt-2 space-y-1">
+                                        <a href="{{ route('master.education-levels.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.education-levels.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="graduation-cap" class="mr-3 h-5 w-5"></i>
+                                            Jenjang Pendidikan
+                                        </a>
+                                    </div>
+                                </div>
+                            @endif
+                        @else
+                            {{-- ========================================== --}}
+                            {{-- NAVIGASI MODUL PERSURATAN --}}
+                            {{-- ========================================== --}}
+
+                            {{-- Dashboard Surat --}}
+                            <a href="{{ route('dashboard') }}"
+                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
+                                Dashboard
+                            </a>
+
+                            {{-- Letters Section --}}
+                            <div class="pt-2">
+                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Surat</h3>
+                                <div class="mt-2 space-y-1">
+                                    @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
+                                        <a href="{{ route('letters.create') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('letters.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
+                                            Buat Surat Baru
+                                        </a>
+                                    @endif
+                                    <a href="{{ route('letters.index') }}"
+                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('letters.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                        <i data-lucide="mail" class="mr-3 h-5 w-5"></i>
+                                        Daftar Surat
+                                    </a>
+                                </div>
+                            </div>
+
+                            {{-- Master Data Section --}}
+                            @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
+                                <div class="pt-4">
+                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master
+                                        Data</h3>
+                                    <div class="mt-2 space-y-1">
+                                        <a href="{{ route('master.classification-letters.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.classification-letters.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="tags" class="mr-3 h-5 w-5"></i>
+                                            Klasifikasi Surat
+                                        </a>
+                                        <a href="{{ route('master.letter-types.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.letter-types.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="file-text" class="mr-3 h-5 w-5"></i>
+                                            Jenis Surat
+                                        </a>
+                                        <a href="{{ route('master.letter-purposes.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.letter-purposes.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="bookmark" class="mr-3 h-5 w-5"></i>
+                                            Keperluan Surat
+                                        </a>
+                                        <a href="{{ route('master.signatories.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.signatories.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="user-check" class="mr-3 h-5 w-5"></i>
+                                            Penandatangan
                                         </a>
                                     </div>
                                 </div>
@@ -616,37 +792,56 @@
                     {{-- Mobile User Menu --}}
                     <div class="border-t border-gray-200 p-3">
                         <div class="relative">
-                            <button onclick="toggleMobileUserMenu()" class="w-full flex items-center rounded-lg px-3 py-2 text-sm transition-colors hover:bg-gray-100">
-                                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                                    <span class="text-xs font-semibold">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</span>
+                            <button onclick="toggleMobileUserMenu()"
+                                class="w-full flex items-center rounded-lg px-3 py-2 text-sm transition-colors hover:bg-gray-100">
+                                <div
+                                    class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                    <span
+                                        class="text-xs font-semibold">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</span>
                                 </div>
                                 <div class="ml-3 flex-1 text-left">
-                                    <p class="text-sm font-medium text-gray-900 user-name-display">{{ Auth::user()->name }}</p>
+                                    <p class="text-sm font-medium text-gray-900 user-name-display">
+                                        {{ Auth::user()->name }}</p>
                                     <p class="text-xs text-gray-500 capitalize">{{ Auth::user()->role }}</p>
                                 </div>
-                                <i data-lucide="chevron-up" class="h-4 w-4 text-gray-400 transition-transform duration-200" id="mobile-user-menu-icon"></i>
+                                <i data-lucide="chevron-up"
+                                    class="h-4 w-4 text-gray-400 transition-transform duration-200"
+                                    id="mobile-user-menu-icon"></i>
                             </button>
-                            
+
                             {{-- Mobile Dropdown Menu --}}
-                            <div id="mobile-user-menu-dropdown" class="hidden absolute bottom-full left-0 right-0 mb-2 rounded-lg border border-gray-200 bg-white shadow-lg">
+                            <div id="mobile-user-menu-dropdown"
+                                class="hidden absolute bottom-full left-0 right-0 mb-2 rounded-lg border border-gray-200 bg-white shadow-lg">
                                 <div class="p-2 space-y-1">
                                     <div class="px-3 py-2 border-b border-gray-100">
                                         <p class="text-xs font-medium text-gray-500">Akun</p>
-                                        <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->email }}</p>
+                                        <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->email }}
+                                        </p>
                                     </div>
-                                    
+
                                     {{-- Edit Profile --}}
-                                    <a href="{{ route('profile.edit') }}" class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                                    <a href="{{ route('profile.edit') }}"
+                                        class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
                                         <i data-lucide="user" class="mr-2 h-4 w-4"></i>
                                         Edit Profile
                                     </a>
-                                    
+
+                                    @if (auth()->user()->can_access_letters && auth()->user()->can_access_legalizations)
+                                        <div class="border-t border-gray-100 my-1"></div>
+                                        <a href="{{ route('switcher') }}"
+                                            class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-orange-600 hover:bg-orange-50 transition-colors">
+                                            <i data-lucide="arrow-left-right" class="mr-2 h-4 w-4"></i>
+                                            Ganti Modul
+                                        </a>
+                                    @endif
+
                                     <div class="border-t border-gray-100 my-1"></div>
-                                    
+
                                     {{-- Logout --}}
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
-                                        <button type="submit" class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 transition-colors">
+                                        <button type="submit"
+                                            class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 transition-colors">
                                             <i data-lucide="log-out" class="mr-2 h-4 w-4"></i>
                                             Logout
                                         </button>
@@ -664,7 +859,8 @@
                 <header class="sticky top-0 z-10 flex h-16 flex-shrink-0 items-center border-b border-gray-200 bg-white">
                     <div class="flex flex-1 justify-between px-4 sm:px-6 lg:px-8">
                         <div class="flex flex-1 items-center">
-                            <button onclick="toggleMobileSidebar()" class="lg:hidden p-2 text-gray-400 hover:text-gray-500">
+                            <button onclick="toggleMobileSidebar()"
+                                class="lg:hidden p-2 text-gray-400 hover:text-gray-500">
                                 <i data-lucide="menu" class="h-6 w-6"></i>
                             </button>
                             <h1 class="ml-4 lg:ml-0 text-lg font-semibold text-gray-900">@yield('title', 'Dashboard')</h1>
@@ -720,7 +916,8 @@
                                     </div>
                                     <div class="ml-auto pl-3">
                                         <div class="-mx-1.5 -my-1.5">
-                                            <button type="button" onclick="this.closest('.rounded-lg').remove()" class="inline-flex rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none">
+                                            <button type="button" onclick="this.closest('.rounded-lg').remove()"
+                                                class="inline-flex rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none">
                                                 <i data-lucide="x" class="h-5 w-5"></i>
                                             </button>
                                         </div>
@@ -747,11 +944,11 @@
     {{-- JavaScript --}}
     {{-- Select2 JS --}}
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    
+
     {{-- Flatpickr JS (Datepicker) --}}
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
-    
+
     <script>
         // Initialize Lucide Icons
         lucide.createIcons();
@@ -772,15 +969,15 @@
         function handleLogout(event) {
             event.preventDefault();
             const form = event.target;
-            
+
             // Ambil CSRF token terbaru
             const metaToken = document.querySelector('meta[name="csrf-token"]');
             const csrfInput = form.querySelector('input[name="_token"]');
-            
+
             if (metaToken && csrfInput) {
                 csrfInput.value = metaToken.content;
             }
-            
+
             // Submit form
             form.submit();
         }
@@ -797,7 +994,7 @@
         function toggleMobileSidebar() {
             const sidebar = document.getElementById('mobile-sidebar');
             const overlay = document.getElementById('sidebar-overlay');
-            
+
             sidebar.classList.toggle('-translate-x-full');
             overlay.classList.toggle('hidden');
         }
@@ -809,10 +1006,10 @@
         function toggleUserMenu() {
             const dropdown = document.getElementById('user-menu-dropdown');
             const icon = document.getElementById('user-menu-icon');
-            
+
             dropdown.classList.toggle('hidden');
             icon.style.transform = dropdown.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-            
+
             // Re-initialize Lucide icons for dropdown
             lucide.createIcons();
         }
@@ -821,10 +1018,10 @@
         function toggleMobileUserMenu() {
             const dropdown = document.getElementById('mobile-user-menu-dropdown');
             const icon = document.getElementById('mobile-user-menu-icon');
-            
+
             dropdown.classList.toggle('hidden');
             icon.style.transform = dropdown.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-            
+
             // Re-initialize Lucide icons for dropdown
             lucide.createIcons();
         }
@@ -835,12 +1032,12 @@
             const userMenuDropdown = document.getElementById('user-menu-dropdown');
             const mobileUserMenuButton = event.target.closest('button[onclick="toggleMobileUserMenu()"]');
             const mobileUserMenuDropdown = document.getElementById('mobile-user-menu-dropdown');
-            
+
             if (!userMenuButton && userMenuDropdown && !userMenuDropdown.contains(event.target)) {
                 userMenuDropdown.classList.add('hidden');
                 document.getElementById('user-menu-icon').style.transform = 'rotate(0deg)';
             }
-            
+
             if (!mobileUserMenuButton && mobileUserMenuDropdown && !mobileUserMenuDropdown.contains(event.target)) {
                 mobileUserMenuDropdown.classList.add('hidden');
                 document.getElementById('mobile-user-menu-icon').style.transform = 'rotate(0deg)';
@@ -868,8 +1065,3 @@
 </body>
 
 </html>
-
-
-
-
-

@@ -93,14 +93,15 @@ class ClassificationLetterController extends Controller
      */
     public function store(Request $request)
     {
+        // Validasi input
+        $validated = $request->validate([
+            'code' => 'required|string|max:50|unique:classification_letters,code',
+            'name' => 'required|string|max:150',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
+        ]);
+
         try {
-            // Validasi input
-            $validated = $request->validate([
-                'code' => 'required|string|max:50|unique:classification_letters,code',
-                'name' => 'required|string|max:150',
-                'description' => 'nullable|string',
-                'is_active' => 'boolean',
-            ]);
 
             // Simpan data menggunakan transaction
             DB::transaction(function () use ($validated) {
@@ -157,14 +158,15 @@ class ClassificationLetterController extends Controller
      */
     public function update(Request $request, ClassificationLetter $classificationLetter)
     {
+        // Validasi input
+        $validated = $request->validate([
+            'code' => 'required|string|max:50|unique:classification_letters,code,' . $classificationLetter->id,
+            'name' => 'required|string|max:150',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
+        ]);
+
         try {
-            // Validasi input
-            $validated = $request->validate([
-                'code' => 'required|string|max:50|unique:classification_letters,code,' . $classificationLetter->id,
-                'name' => 'required|string|max:150',
-                'description' => 'nullable|string',
-                'is_active' => 'boolean',
-            ]);
 
             // Update data menggunakan transaction
             DB::transaction(function () use ($classificationLetter, $validated) {

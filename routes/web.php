@@ -13,6 +13,12 @@ use App\Http\Controllers\LetterImportController;
 use App\Http\Controllers\Admin\ErrorLogController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ModuleSwitcherController;
+use App\Http\Controllers\Master\EducationLevelController;
+use App\Http\Controllers\LegalisirDashboardController;
+use App\Http\Controllers\LegalizationController;
+use App\Http\Controllers\LegalizationImportController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,11 +38,23 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 // Fallback GET route untuk logout (jika CSRF expired)
 Route::get('logout', [LoginController::class, 'logout'])->name('logout.get');
 
-// Dashboard
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+// Module Switcher (Landing Page)
+Route::get('/', [ModuleSwitcherController::class, 'index'])->name('switcher');
+
+// Dashboard Surat
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+// Route Legalisir
+Route::prefix('legalisir')->name('legalizations.')->middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [LegalisirDashboardController::class, 'index'])->name('dashboard');
+});
+Route::get('legalizations/import/template', [LegalizationImportController::class, 'template'])->name('legalizations.import.template')->middleware(['auth', 'role:admin,operator']);
+Route::post('legalizations/import', [LegalizationImportController::class, 'import'])->name('legalizations.import')->middleware(['auth', 'role:admin,operator']);
+Route::resource('legalizations', LegalizationController::class);
 
 // Master Data Routes (Middleware di Controller)
 Route::prefix('master')->name('master.')->group(function () {
+    Route::resource('education-levels', EducationLevelController::class)->except(['show']);
     Route::resource('classification-letters', ClassificationLetterController::class);
     Route::get('classification-letters-template/download', [ClassificationLetterController::class, 'downloadTemplate'])->name('classification-letters.download-template');
     Route::post('classification-letters-import', [ClassificationLetterController::class, 'import'])->name('classification-letters.import');
@@ -63,6 +81,7 @@ Route::middleware('auth')->group(function () {
 
 // Admin Routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::get('error-logs', [ErrorLogController::class, 'index'])->name('error-logs.index');
     Route::get('error-logs/{errorId}', [ErrorLogController::class, 'show'])->name('error-logs.show');
     Route::get('error-logs-statistics', [ErrorLogController::class, 'statistics'])->name('error-logs.statistics');

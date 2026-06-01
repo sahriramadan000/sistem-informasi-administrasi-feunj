@@ -1,4 +1,4 @@
-@if ($paginator->hasPages())
+{{-- Always show pagination for consistent UI --}}
     <nav role="navigation" aria-label="Pagination Navigation" class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 rounded-b-lg">
         <div class="flex flex-1 justify-between sm:hidden">
             @if ($paginator->onFirstPage())
@@ -100,4 +100,3 @@
         }
     </script>
     @endpush
-@endif

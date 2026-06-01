@@ -24,6 +24,8 @@ class User extends Authenticatable
         'password',
         'role',
         'is_active',
+        'can_access_letters',
+        'can_access_legalizations',
     ];
 
     /**
@@ -45,6 +47,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'is_active' => 'boolean',
         'password' => 'hashed',
+        'can_access_letters' => 'boolean',
+        'can_access_legalizations' => 'boolean',
     ];
 
     /**
