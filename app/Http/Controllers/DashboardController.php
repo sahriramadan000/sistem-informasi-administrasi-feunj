@@ -20,7 +20,7 @@ class DashboardController extends Controller
 
     /**
      * Menampilkan halaman dashboard dengan statistik
-     * 
+     *
      * @return \Illuminate\View\View
      */
     public function index()
@@ -47,7 +47,7 @@ class DashboardController extends Controller
             // Surat terbaru - hanya surat aktif
             $recentLetters = Letter::with(['signatory', 'classification'])
                 ->active()
-                ->orderBy('created_at', 'desc')
+                ->orderBy('running_number', 'desc')
                 ->limit(5)
                 ->get();
 
