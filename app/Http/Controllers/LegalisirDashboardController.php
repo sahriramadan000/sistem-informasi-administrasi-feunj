@@ -27,18 +27,18 @@ class LegalisirDashboardController extends Controller
         $stats = [
             'total_today' => Legalization::whereDate('date', $today)->count(),
             'total_this_month' => Legalization::whereMonth('date', $thisMonth)
-                                            ->whereYear('date', $thisYear)
-                                            ->count(),
+                ->whereYear('date', $thisYear)
+                ->count(),
             'revenue_today' => Legalization::whereDate('date', $today)->sum('total_price'),
             'revenue_this_month' => Legalization::whereMonth('date', $thisMonth)
-                                              ->whereYear('date', $thisYear)
-                                              ->sum('total_price'),
+                ->whereYear('date', $thisYear)
+                ->sum('total_price'),
         ];
 
         $recentLegalizations = Legalization::with(['educationLevel', 'creator'])
-                                         ->orderBy('created_at', 'desc')
-                                         ->take(5)
-                                         ->get();
+            ->orderBy('running_number', 'desc')
+            ->take(5)
+            ->get();
 
         return view('legalizations.dashboard', compact('stats', 'recentLegalizations'));
     }

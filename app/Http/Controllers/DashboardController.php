@@ -47,7 +47,7 @@ class DashboardController extends Controller
             // Surat terbaru - hanya surat aktif
             $recentLetters = Letter::with(['signatory', 'classification'])
                 ->active()
-                ->orderBy('running_number', 'desc')
+                ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->get();
 
