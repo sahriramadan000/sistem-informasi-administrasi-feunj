@@ -20,7 +20,7 @@ class LegalizationController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Legalization::with(['educationLevel', 'creator'])->orderBy('date', 'desc')->orderBy('created_at', 'desc');
+            $query = Legalization::with(['educationLevel', 'creator'])->orderBy('running_number', 'desc');
 
             if ($request->filled('search')) {
                 $query->where('alumni_name', 'like', "%{$request->search}%");
