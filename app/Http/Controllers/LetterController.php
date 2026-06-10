@@ -95,6 +95,7 @@ class LetterController extends Controller
 
             $letters = $query->orderBy('year', 'desc')
                 ->orderBy('letter_date', 'desc')
+                ->orderBy('running_number', 'desc')
                 ->paginate($perPage);
 
             // TIDAK mark surat sebagai viewed di halaman index

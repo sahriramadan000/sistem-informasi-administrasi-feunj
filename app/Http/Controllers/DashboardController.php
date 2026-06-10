@@ -48,6 +48,7 @@ class DashboardController extends Controller
             $recentLetters = Letter::with(['signatory', 'classification'])
                 ->active()
                 ->orderBy('created_at', 'desc')
+                ->orderBy('running_number', 'desc')
                 ->limit(5)
                 ->get();
 
