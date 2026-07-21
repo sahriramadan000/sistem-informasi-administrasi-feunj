@@ -167,6 +167,9 @@
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total
                                 Rp</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Dibuat Oleh</th>
                             @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
                                 <th scope="col"
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -203,6 +206,9 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     Rp {{ number_format($legalization->total_price, 0, ',', '.') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $legalization->creator->name ?? '-' }}
                                 </td>
 
                                 @if (auth()->user()->isAdmin() || auth()->user()->isOperator())

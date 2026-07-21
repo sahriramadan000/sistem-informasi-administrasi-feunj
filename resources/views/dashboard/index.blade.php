@@ -210,6 +210,54 @@
         </div>
     </div>
 
+    {{-- Performa Pembuatan Surat (Admin Only) --}}
+    @if (auth()->user()->isAdmin())
+        <div class="mb-8">
+            <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+                <div class="border-b border-gray-200 px-6 py-4">
+                    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i data-lucide="users" class="mr-2 h-5 w-5 text-brand"></i>
+                        Performa Pembuatan Surat per Pengguna
+                    </h3>
+                </div>
+                <div class="p-6">
+                    @if (isset($lettersByUser) && $lettersByUser->count() > 0)
+                        <div class="overflow-auto max-h-96">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="sticky top-0 z-10 bg-white shadow-sm">
+                                    <tr>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Pengguna</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                        <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Surat Dibuat</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    @foreach ($lettersByUser as $user)
+                                        <tr class="hover:bg-gray-50 transition-colors">
+                                            <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $user->name }}</td>
+                                            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{{ $user->role }}</td>
+                                            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <span class="inline-flex items-center rounded-full bg-brand-lighter px-2.5 py-0.5 text-xs font-medium text-brand-darker">
+                                                    {{ $user->letters_count }} surat
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center py-12">
+                            <i data-lucide="users" class="mx-auto h-12 w-12 text-gray-400"></i>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">Belum ada data pengguna</h3>
+                            <p class="mt-1 text-sm text-gray-500">Belum ada data pengguna yang bisa ditampilkan.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="grid gap-8 lg:grid-cols-3">
         {{-- Recent Letters --}}
         <div class="lg:col-span-2">

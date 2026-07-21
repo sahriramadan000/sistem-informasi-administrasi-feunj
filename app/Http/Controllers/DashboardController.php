@@ -80,6 +80,14 @@ class DashboardController extends Controller
             // Hitung total surat untuk percentage
             $totalLettersThisYear = $lettersByTypeThisYear->sum('count');
 
+            // Data performa user (hanya untuk admin)
+            $lettersByUser = [];
+            if (auth()->user()->isAdmin()) {
+                $lettersByUser = \App\Models\User::withCount('letters')
+                    ->orderBy('letters_count', 'desc')
+                    ->get();
+            }
+
             return view('dashboard.index', compact(
                 'totalLetters',
                 'currentYearLetters',
@@ -91,7 +99,8 @@ class DashboardController extends Controller
                 'lettersByYear',
                 'lettersByType',
                 'lettersByTypeThisYear',
-                'totalLettersThisYear'
+                'totalLettersThisYear',
+                'lettersByUser'
             ));
         } catch (\Throwable $e) {
             return $this->handleError($e, 'DashboardController.index', 'Gagal memuat dashboard. Silakan refresh halaman.');
