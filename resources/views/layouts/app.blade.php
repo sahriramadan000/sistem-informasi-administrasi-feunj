@@ -388,6 +388,8 @@
                                     Pengaturan
                                 @elseif(request()->routeIs('legalizations.*', 'master.education-levels.*'))
                                     Legalisir FEB
+                                @elseif(request()->routeIs('room-reservations.*', 'master.rooms.*'))
+                                    Ruangan FEB
                                 @else
                                     Surat FEB
                                 @endif
@@ -482,6 +484,49 @@
                                         </a>
                                     </div>
                                 </div>
+                            @endif
+                        @elseif(request()->routeIs('room-reservations.*', 'master.rooms.*'))
+                            @if(auth()->user()->can_access_room_reservations || auth()->user()->isAdmin())
+                                {{-- ========================================== --}}
+                                {{-- NAVIGASI MODUL PEMINJAMAN RUANG --}}
+                                {{-- ========================================== --}}
+
+                                {{-- Dashboard Peminjaman --}}
+                                <a href="{{ route('room-reservations.dashboard') }}"
+                                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('room-reservations.dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                    <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
+                                    Dashboard
+                                </a>
+
+                                {{-- Peminjaman Section --}}
+                                <div class="pt-2">
+                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Transaksi</h3>
+                                    <div class="mt-2 space-y-1">
+                                        <a href="{{ route('room-reservations.create') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('room-reservations.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
+                                            Buat Peminjaman
+                                        </a>
+                                        <a href="{{ route('room-reservations.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('room-reservations.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="list" class="mr-3 h-5 w-5"></i>
+                                            Daftar Peminjaman
+                                        </a>
+                                    </div>
+                                </div>
+
+                                @if (auth()->user()->isAdmin())
+                                    <div class="pt-4">
+                                        <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master Data</h3>
+                                        <div class="mt-2 space-y-1">
+                                        <a href="{{ route('master.rooms.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.rooms.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="box" class="mr-3 h-5 w-5"></i>
+                                            Master Ruangan
+                                        </a>
+                                    </div>
+                                </div>
+                                @endif
                             @endif
                         @else
                             {{-- ========================================== --}}
@@ -627,6 +672,8 @@
                                     Pengaturan
                                 @elseif(request()->routeIs('legalizations.*', 'master.education-levels.*'))
                                     Legalisir FEB
+                                @elseif(request()->routeIs('room-reservations.*'))
+                                    Peminjaman Ruang
                                 @else
                                     Surat FEB
                                 @endif
@@ -725,6 +772,49 @@
                                         </a>
                                     </div>
                                 </div>
+                            @endif
+                        @elseif(request()->routeIs('room-reservations.*', 'master.rooms.*'))
+                            @if(auth()->user()->can_access_room_reservations || auth()->user()->isAdmin())
+                                {{-- ========================================== --}}
+                                {{-- NAVIGASI MODUL PEMINJAMAN RUANG --}}
+                                {{-- ========================================== --}}
+
+                                {{-- Dashboard Peminjaman --}}
+                                <a href="{{ route('room-reservations.dashboard') }}"
+                                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('room-reservations.dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                    <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
+                                    Dashboard
+                                </a>
+
+                                {{-- Peminjaman Section --}}
+                                <div class="pt-2">
+                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Transaksi</h3>
+                                    <div class="mt-2 space-y-1">
+                                        <a href="{{ route('room-reservations.create') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('room-reservations.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
+                                            Buat Peminjaman
+                                        </a>
+                                        <a href="{{ route('room-reservations.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('room-reservations.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="list" class="mr-3 h-5 w-5"></i>
+                                            Daftar Peminjaman
+                                        </a>
+                                    </div>
+                                </div>
+
+                                @if (auth()->user()->isAdmin())
+                                    <div class="pt-4">
+                                        <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master Data</h3>
+                                        <div class="mt-2 space-y-1">
+                                            <a href="{{ route('master.rooms.index') }}"
+                                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.rooms.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                                <i data-lucide="box" class="mr-3 h-5 w-5"></i>
+                                                Master Ruangan
+                                            </a>
+                                        </div>
+                                    </div>
+                                @endif
                             @endif
                         @else
                             {{-- ========================================== --}}
@@ -910,7 +1000,7 @@
                                         <h3 class="text-sm font-medium text-red-800">Terjadi kesalahan:</h3>
                                         <ul class="mt-2 list-disc list-inside text-sm text-red-700">
                                             @foreach ($errors->all() as $error)
-                                                <li>{{ $error }}</li>
+                                                <li>{!! $error !!}</li>
                                             @endforeach
                                         </ul>
                                     </div>

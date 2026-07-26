@@ -26,6 +26,7 @@ class User extends Authenticatable
         'is_active',
         'can_access_letters',
         'can_access_legalizations',
+        'can_access_room_reservations',
     ];
 
     /**
@@ -49,6 +50,7 @@ class User extends Authenticatable
         'password' => 'hashed',
         'can_access_letters' => 'boolean',
         'can_access_legalizations' => 'boolean',
+        'can_access_room_reservations' => 'boolean',
     ];
 
     /**

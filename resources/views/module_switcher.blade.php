@@ -524,7 +524,8 @@
                 $hasAny =
                     auth()->user()->can_access_letters ||
                     auth()->user()->can_access_legalizations ||
-                    auth()->user()->isAdmin();
+                    auth()->user()->isAdmin() ||
+                    true; // Semua user bisa akses peminjaman ruang
             @endphp
 
             @if ($hasAny)
@@ -567,7 +568,7 @@
                     @endif
 
                     {{-- Modul Legalisir --}}
-                    @if (auth()->user()->can_access_legalizations)
+                    @if (auth()->user()->can_access_legalizations || auth()->user()->isAdmin())
                         <a href="{{ route('legalizations.dashboard') }}" class="module-card module-card--amber">
                             <span class="card-number" aria-hidden="true">02</span>
 
@@ -602,10 +603,45 @@
                         </a>
                     @endif
 
+                    {{-- Modul Peminjaman Ruang --}}
+                    @if(auth()->user()->can_access_room_reservations || auth()->user()->isAdmin())
+                        <a href="{{ route('room-reservations.dashboard') }}" class="module-card module-card--orange">
+                            <span class="card-number" aria-hidden="true">03</span>
+
+                            <div class="card-icon-wrap card-icon-wrap--orange" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1v2H9V7zm0 4h1v2H9v-2zm0 4h1v2H9v-2zm3-8h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z" />
+                                </svg>
+                            </div>
+
+                            <span class="card-tag card-tag--orange">Peminjaman</span>
+                            <h2 class="card-title">Modul Peminjaman Ruang</h2>
+                            <p class="card-desc">Layanan reservasi ruang sidang, pengecekan ketersediaan jadwal, dan pengelolaan penggunaan ruangan.</p>
+
+                            <div class="card-footer">
+                                <div class="card-feature-list" aria-label="Fitur tersedia">
+                                    <span class="card-feature">Jadwal</span>
+                                    <span class="card-feature">Booking</span>
+                                    <span class="card-feature">Riwayat</span>
+                                </div>
+                                <span class="card-cta card-cta--orange" aria-hidden="true">
+                                    Buka Modul
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                                    </svg>
+                                </span>
+                            </div>
+                        </a>
+                    @endif
+
                     {{-- Modul Pengaturan Sistem --}}
                     @if (auth()->user()->isAdmin())
                         <a href="{{ route('admin.dashboard') }}" class="module-card module-card--amber">
-                            <span class="card-number" aria-hidden="true">03</span>
+                            <span class="card-number" aria-hidden="true">04</span>
 
                             <div class="card-icon-wrap card-icon-wrap--amber" aria-hidden="true">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

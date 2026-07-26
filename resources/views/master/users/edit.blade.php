@@ -197,7 +197,21 @@
                                 </div>
                                 <div class="ml-3">
                                     <label for="can_access_legalizations" class="font-medium text-gray-700">Modul Legalisir</label>
-                                    <p class="text-sm text-muted-foreground">Berikan akses untuk fitur penomoran legalisir</p>
+                                    <p class="text-sm text-muted-foreground">Berikan akses untuk fitur legalisir dokumen</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input type="checkbox" 
+                                           id="can_access_room_reservations" 
+                                           name="can_access_room_reservations" 
+                                           value="1" 
+                                           {{ old('can_access_room_reservations', $user->can_access_room_reservations) ? 'checked' : '' }}
+                                           class="w-4 h-4 text-brand border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
+                                </div>
+                                <div class="ml-3">
+                                    <label for="can_access_room_reservations" class="font-medium text-gray-700">Modul Peminjaman Ruang</label>
+                                    <p class="text-sm text-muted-foreground">Berikan akses untuk fitur reservasi dan peminjaman ruang</p>
                                 </div>
                             </div>
                         </div>

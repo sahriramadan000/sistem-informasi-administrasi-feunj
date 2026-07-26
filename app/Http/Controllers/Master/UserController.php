@@ -82,6 +82,7 @@ class UserController extends Controller
             'is_active' => 'boolean',
             'can_access_letters' => 'boolean',
             'can_access_legalizations' => 'boolean',
+            'can_access_room_reservations' => 'boolean',
         ]);
 
         try {
@@ -89,6 +90,7 @@ class UserController extends Controller
             $validated['is_active'] = $request->has('is_active');
             $validated['can_access_letters'] = $request->has('can_access_letters');
             $validated['can_access_legalizations'] = $request->has('can_access_legalizations');
+            $validated['can_access_room_reservations'] = $request->has('can_access_room_reservations');
             $validated['password'] = Hash::make($validated['password']);
 
             // Simpan data menggunakan transaction
@@ -163,6 +165,7 @@ class UserController extends Controller
             'is_active' => 'boolean',
             'can_access_letters' => 'boolean',
             'can_access_legalizations' => 'boolean',
+            'can_access_room_reservations' => 'boolean',
         ]);
 
         try {
@@ -170,6 +173,7 @@ class UserController extends Controller
             $validated['is_active'] = $request->has('is_active');
             $validated['can_access_letters'] = $request->has('can_access_letters');
             $validated['can_access_legalizations'] = $request->has('can_access_legalizations');
+            $validated['can_access_room_reservations'] = $request->has('can_access_room_reservations');
             
             // Hanya update password jika diisi
             if (!empty($validated['password'])) {

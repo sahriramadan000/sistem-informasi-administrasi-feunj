@@ -8,6 +8,7 @@ use App\Http\Controllers\Master\ClassificationLetterController;
 use App\Http\Controllers\Master\LetterTypeController;
 use App\Http\Controllers\Master\SignatoryController;
 use App\Http\Controllers\Master\LetterPurposeController;
+use App\Http\Controllers\Master\RoomController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\LetterImportController;
 use App\Http\Controllers\Admin\ErrorLogController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\LegalisirDashboardController;
 use App\Http\Controllers\LegalizationController;
 use App\Http\Controllers\LegalizationImportController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\RoomReservationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -52,6 +54,14 @@ Route::get('legalizations/import/template', [LegalizationImportController::class
 Route::post('legalizations/import', [LegalizationImportController::class, 'import'])->name('legalizations.import')->middleware(['auth', 'role:admin,operator']);
 Route::resource('legalizations', LegalizationController::class);
 
+// Route Peminjaman Ruang
+Route::get('room-reservations/public-display', [RoomReservationController::class, 'publicDisplay'])->name('room-reservations.public-display');
+
+Route::prefix('room-reservations')->name('room-reservations.')->middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [RoomReservationController::class, 'dashboard'])->name('dashboard');
+});
+Route::resource('room-reservations', RoomReservationController::class)->middleware(['auth']);
+
 // Master Data Routes (Middleware di Controller)
 Route::prefix('master')->name('master.')->group(function () {
     Route::resource('education-levels', EducationLevelController::class)->except(['show']);
@@ -64,6 +74,7 @@ Route::prefix('master')->name('master.')->group(function () {
     
     Route::resource('signatories', SignatoryController::class);
     Route::resource('letter-purposes', LetterPurposeController::class);
+    Route::resource('rooms', RoomController::class);
     Route::resource('users', UserController::class);
 });
 
