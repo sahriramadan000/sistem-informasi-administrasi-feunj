@@ -84,4 +84,18 @@ class User extends Authenticatable
     {
         return $this->role === 'viewer';
     }
+
+    /**
+     * Cek apakah user punya akses ke lebih dari 1 modul
+     */
+    public function hasMultipleModules(): bool
+    {
+        $count = 0;
+        if ($this->can_access_letters) $count++;
+        if ($this->can_access_legalizations) $count++;
+        if ($this->can_access_room_reservations) $count++;
+        if ($this->isAdmin()) $count++;
+
+        return $count >= 2;
+    }
 }

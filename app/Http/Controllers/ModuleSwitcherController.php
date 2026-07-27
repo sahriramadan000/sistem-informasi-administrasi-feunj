@@ -15,27 +15,23 @@ class ModuleSwitcherController extends Controller
     {
         $user = auth()->user();
 
-        $accessCount = 0;
-        if ($user->can_access_letters) $accessCount++;
-        if ($user->can_access_legalizations) $accessCount++;
-        if ($user->isAdmin()) $accessCount++;
-
-        // Redirect langsung jika user hanya punya 1 akses
-        if ($accessCount === 1) {
-            if ($user->can_access_letters) {
-                return redirect()->route('dashboard'); // Dashboard Persuratan
-            }
-            if ($user->can_access_legalizations) {
-                return redirect()->route('legalizations.dashboard'); // Dashboard Legalisir
-            }
-            if ($user->isAdmin()) {
-                return redirect()->route('admin.dashboard'); // Pengaturan Sistem
-            }
+        // Tampilkan halaman switcher jika punya >= 2 akses
+        if ($user->hasMultipleModules()) {
+            return view('module_switcher');
         }
 
-        // Tampilkan halaman switcher jika punya >= 2 akses
-        if ($accessCount >= 2) {
-            return view('module_switcher');
+        // Redirect langsung jika user hanya punya 1 akses
+        if ($user->can_access_letters) {
+            return redirect()->route('dashboard'); // Dashboard Persuratan
+        }
+        if ($user->can_access_legalizations) {
+            return redirect()->route('legalizations.dashboard'); // Dashboard Legalisir
+        }
+        if ($user->can_access_room_reservations) {
+            return redirect()->route('room-reservations.dashboard'); // Dashboard Peminjaman Ruang
+        }
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard'); // Pengaturan Sistem
         }
 
         // Tidak punya akses

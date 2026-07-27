@@ -530,11 +530,12 @@
 
             @if ($hasAny)
                 <div class="modules-grid">
+                    @php $cardNumber = 1; @endphp
 
                     {{-- Modul Surat --}}
                     @if (auth()->user()->can_access_letters)
                         <a href="{{ route('dashboard') }}" class="module-card module-card--orange">
-                            <span class="card-number" aria-hidden="true">01</span>
+                            <span class="card-number" aria-hidden="true">{{ str_pad($cardNumber++, 2, '0', STR_PAD_LEFT) }}</span>
 
                             <div class="card-icon-wrap card-icon-wrap--orange" aria-hidden="true">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -570,7 +571,7 @@
                     {{-- Modul Legalisir --}}
                     @if (auth()->user()->can_access_legalizations || auth()->user()->isAdmin())
                         <a href="{{ route('legalizations.dashboard') }}" class="module-card module-card--amber">
-                            <span class="card-number" aria-hidden="true">02</span>
+                            <span class="card-number" aria-hidden="true">{{ str_pad($cardNumber++, 2, '0', STR_PAD_LEFT) }}</span>
 
                             <div class="card-icon-wrap card-icon-wrap--amber" aria-hidden="true">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -606,7 +607,7 @@
                     {{-- Modul Peminjaman Ruang --}}
                     @if(auth()->user()->can_access_room_reservations || auth()->user()->isAdmin())
                         <a href="{{ route('room-reservations.dashboard') }}" class="module-card module-card--orange">
-                            <span class="card-number" aria-hidden="true">03</span>
+                            <span class="card-number" aria-hidden="true">{{ str_pad($cardNumber++, 2, '0', STR_PAD_LEFT) }}</span>
 
                             <div class="card-icon-wrap card-icon-wrap--orange" aria-hidden="true">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -641,7 +642,7 @@
                     {{-- Modul Pengaturan Sistem --}}
                     @if (auth()->user()->isAdmin())
                         <a href="{{ route('admin.dashboard') }}" class="module-card module-card--amber">
-                            <span class="card-number" aria-hidden="true">04</span>
+                            <span class="card-number" aria-hidden="true">{{ str_pad($cardNumber++, 2, '0', STR_PAD_LEFT) }}</span>
 
                             <div class="card-icon-wrap card-icon-wrap--amber" aria-hidden="true">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

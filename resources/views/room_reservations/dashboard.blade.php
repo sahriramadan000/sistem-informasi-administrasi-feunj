@@ -16,6 +16,12 @@
                         Pantau jadwal peminjaman ruang sidang dan ketersediaan fasilitas.
                     </p>
                 </div>
+                <div class="hidden sm:block">
+                    <a href="{{ route('room-reservations.public-display') }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 border border-white/30 rounded-lg text-white font-medium transition-colors duration-200">
+                        <i data-lucide="monitor" class="w-5 h-5 mr-2"></i>
+                        Public Display
+                    </a>
+                </div>
             </div>
         </div>
     </div>

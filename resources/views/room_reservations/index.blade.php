@@ -35,11 +35,11 @@
             {{-- Fade kanan --}}
             <div id="tab-fade-right" class="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent z-10"></div>
 
-            <div id="tab-scroll-container" class="overflow-x-auto py-1 scroll-smooth" style="-webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none;">
-                <nav class="flex px-4 min-w-max" aria-label="Tabs">
+            <div id="tab-scroll-container" class="overflow-x-auto py-1 scroll-smooth w-full" style="-webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none;">
+                <nav class="flex px-4 flex-nowrap" aria-label="Tabs">
                     <a href="{{ route('room-reservations.index', array_merge(request()->except(['room_id', 'page']))) }}"
                        data-active="{{ !request('room_id') ? '1' : '0' }}"
-                       class="tab-item whitespace-nowrap flex items-center gap-2 py-3.5 px-4 border-b-2 text-sm font-medium -mb-px transition-all
+                       class="tab-item shrink-0 whitespace-nowrap flex items-center gap-2 py-3.5 px-4 border-b-2 text-sm font-medium -mb-px transition-all
                            {{ !request('room_id') ? 'border-brand text-brand' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                         <i data-lucide="layers" class="h-4 w-4"></i>
                         Semua Ruangan
@@ -47,7 +47,7 @@
                     @foreach($rooms as $room)
                         <a href="{{ route('room-reservations.index', array_merge(request()->except(['room_id', 'page']), ['room_id' => $room->id])) }}"
                            data-active="{{ request('room_id') == $room->id ? '1' : '0' }}"
-                           class="tab-item whitespace-nowrap flex items-center gap-2 py-3.5 px-4 border-b-2 text-sm font-medium -mb-px transition-all
+                           class="tab-item shrink-0 whitespace-nowrap flex items-center gap-2 py-3.5 px-4 border-b-2 text-sm font-medium -mb-px transition-all
                                {{ request('room_id') == $room->id ? 'border-brand text-brand' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                             <i data-lucide="door-open" class="h-4 w-4"></i>
                             {{ $room->name }}

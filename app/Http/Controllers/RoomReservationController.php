@@ -62,8 +62,14 @@ class RoomReservationController extends Controller
             ->where('status', '!=', 'rejected')
             ->where('status', '!=', 'cancelled');
 
+        $selectedRoomId = null;
         if ($request->filled('room_id')) {
-            $query->where('room_id', $request->room_id);
+            try {
+                $selectedRoomId = decrypt($request->room_id);
+                $query->where('room_id', $selectedRoomId);
+            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+                // Invalid encrypted payload, ignore
+            }
         }
 
         $reservations = $query->orderBy('start_time')->get();
@@ -90,8 +96,8 @@ class RoomReservationController extends Controller
         $rooms = Room::where('is_active', true)->orderBy('name')->get();
         
         $selectedRoom = null;
-        if ($request->filled('room_id')) {
-            $selectedRoom = Room::find($request->room_id);
+        if ($selectedRoomId) {
+            $selectedRoom = Room::find($selectedRoomId);
         }
 
         return view('room_reservations.public_display', compact('reservations', 'rooms', 'selectedRoom', 'scheduleData'));
@@ -148,6 +154,8 @@ class RoomReservationController extends Controller
             'contact_person' => 'nullable|string|max:50',
             'facilities' => 'nullable|string',
             'remarks' => 'nullable|string',
+        ], [
+            'end_time.after' => 'Waktu selesai harus lebih besar/setelah waktu mulai.',
         ]);
 
         // Cek Bentrok (Double booking check)
@@ -212,6 +220,8 @@ class RoomReservationController extends Controller
             'contact_person' => 'nullable|string|max:50',
             'facilities' => 'nullable|string',
             'remarks' => 'nullable|string',
+        ], [
+            'end_time.after' => 'Waktu selesai harus lebih besar/setelah waktu mulai.',
         ]);
 
         // Cek Bentrok jika jadwal diubah

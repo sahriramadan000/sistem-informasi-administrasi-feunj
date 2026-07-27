@@ -173,7 +173,7 @@
                     <select name="room_id" class="flex-1 bg-white border border-[color:var(--hairline)] rounded-xl px-4 py-3 text-base text-[color:var(--text)] focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 font-medium transition-all">
                         <option value="">-- Pilih Ruangan untuk Monitor Ini --</option>
                         @foreach($rooms as $room)
-                            <option value="{{ $room->id }}" {{ request('room_id') == $room->id ? 'selected' : '' }}>{{ $room->name }}</option>
+                            <option value="{{ encrypt($room->id) }}" {{ $selectedRoom && $selectedRoom->id == $room->id ? 'selected' : '' }}>{{ $room->name }}</option>
                         @endforeach
                     </select>
                     <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl text-base font-bold transition-all shadow-[0_4px_12px_rgba(249,115,22,0.4)] hover:shadow-[0_6px_16px_rgba(249,115,22,0.5)] hover:-translate-y-0.5 flex items-center gap-2">
@@ -205,7 +205,7 @@
                 </div>
 
                 <!-- ===== Sidebar Timeline (Semua Agenda Hari Ini) ===== -->
-                <div class="w-[450px] xl:w-[500px] rounded-[3rem] flex flex-col overflow-hidden shrink-0 h-full border border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.05)] bg-white/80 backdrop-blur-3xl relative">
+                <div class="w-[450px] xl:w-[500px] rounded-[3rem] flex flex-col overflow-hidden shrink-0 h-full border-2 border-slate-200 shadow-[0_20px_60px_rgba(0,0,0,0.08)] bg-white/90 backdrop-blur-3xl relative">
                     <!-- Subtle background decoration -->
                     <div class="absolute top-0 right-0 w-64 h-64 bg-orange-100/50 rounded-full blur-[80px] pointer-events-none"></div>
                     <div class="absolute bottom-0 left-0 w-64 h-64 bg-teal-100/40 rounded-full blur-[80px] pointer-events-none"></div>
@@ -228,8 +228,28 @@
                         </div>
                     </div>
                     
-                    <div class="px-10 py-8 flex justify-center shrink-0 relative z-10">
-                        <div id="page-dots" class="flex gap-2"></div>
+                    <!-- Enhanced Footer Widget for Sidebar -->
+                    <div class="px-8 py-5 shrink-0 relative z-10 border-t border-slate-100/50 bg-gradient-to-b from-transparent to-slate-50/80">
+                        <div class="flex flex-col gap-4">
+                            <!-- Page Dots -->
+                            <div class="flex justify-center">
+                                <div id="page-dots" class="flex gap-2"></div>
+                            </div>
+                            
+                            <!-- Info / Interactive Widget -->
+                            <div class="relative p-3.5 rounded-[1.25rem] overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 shadow-md group">
+                                <div class="absolute top-0 right-0 w-24 h-24 bg-orange-500/20 rounded-full blur-xl group-hover:bg-orange-500/30 transition-colors pointer-events-none"></div>
+                                <div class="relative z-10 flex items-center gap-3">
+                                    <div class="w-11 h-11 bg-white/10 rounded-xl flex items-center justify-center shrink-0 border border-white/10 backdrop-blur-md">
+                                        <i data-lucide="sparkles" class="w-5 h-5 text-orange-400"></i>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-base font-extrabold text-white leading-tight">Fasilitas Ruangan</span>
+                                        <span class="text-sm text-slate-400 font-medium mt-0.5">Harap menjaga kebersihan bersama</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -443,15 +463,39 @@
                         <div class="flex flex-col justify-center relative z-10 flex-1 px-10 xl:px-14 min-h-0 py-6">
                             <h2 class="text-4xl xl:text-[4rem] font-black text-white leading-[1.15] mb-8 font-display tracking-tight drop-shadow-lg line-clamp-3">${active.event_name}</h2>
                             
-                            <div class="flex flex-wrap items-center gap-5 text-xl xl:text-2xl text-white font-medium shrink-0">
-                                <div class="flex items-center gap-4 bg-white/10 backdrop-blur-xl px-6 py-4 rounded-3xl border border-white/20 shadow-lg">
-                                    <i data-lucide="user" class="w-7 h-7 text-white/70"></i>
-                                    <span>${active.requester_name}</span>
+                            <div class="flex flex-wrap items-center gap-4 text-white shrink-0">
+                                
+                                <div class="flex items-center gap-4 bg-white/15 backdrop-blur-xl px-5 py-4 rounded-2xl border border-white/25 shadow-lg">
+                                    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-white/20 border border-white/20 shrink-0">
+                                        <i data-lucide="user-round" class="w-6 h-6 text-white"></i>
+                                    </div>
+                                    <div class="flex flex-col leading-tight">
+                                        <span class="text-[11px] font-bold tracking-[0.2em] uppercase text-white/60">Penanggung Jawab</span>
+                                        <span class="text-xl xl:text-2xl font-black text-white">${active.requester_name}</span>
+                                    </div>
                                 </div>
+
+                                ${active.contact_person ? `
+                                <div class="flex items-center gap-4 bg-white/15 backdrop-blur-xl px-5 py-4 rounded-2xl border border-white/25 shadow-lg">
+                                    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-white/20 border border-white/20 shrink-0">
+                                        <i data-lucide="phone" class="w-6 h-6 text-white"></i>
+                                    </div>
+                                    <div class="flex flex-col leading-tight">
+                                        <span class="text-[11px] font-bold tracking-[0.2em] uppercase text-white/60">Kontak</span>
+                                        <span class="text-xl xl:text-2xl font-black text-white">${active.contact_person}</span>
+                                    </div>
+                                </div>
+                                ` : ''}
+
                                 ${showRoomBadge ? `
-                                <div class="flex items-center gap-4 bg-white/10 backdrop-blur-xl px-6 py-4 rounded-3xl border border-white/20 shadow-lg">
-                                    <i data-lucide="door-open" class="w-7 h-7 text-white/70"></i>
-                                    <span>${active.room_name}</span>
+                                <div class="flex items-center gap-4 bg-white/15 backdrop-blur-xl px-5 py-4 rounded-2xl border border-white/25 shadow-lg">
+                                    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-white/20 border border-white/20 shrink-0">
+                                        <i data-lucide="door-open" class="w-6 h-6 text-white"></i>
+                                    </div>
+                                    <div class="flex flex-col leading-tight">
+                                        <span class="text-[11px] font-bold tracking-[0.2em] uppercase text-white/60">Ruangan</span>
+                                        <span class="text-xl xl:text-2xl font-black text-white">${active.room_name}</span>
+                                    </div>
                                 </div>
                                 ` : ''}
                             </div>
@@ -541,15 +585,39 @@
                             </span>
                             <h2 class="text-4xl xl:text-[4rem] font-black text-slate-900 leading-[1.15] mb-8 font-display tracking-tight drop-shadow-md line-clamp-3">${upcoming.event_name}</h2>
                             
-                            <div class="flex flex-wrap items-center gap-5 text-xl xl:text-2xl text-amber-900 font-medium shrink-0">
-                                <div class="flex items-center gap-4 bg-white/30 backdrop-blur-xl px-6 py-4 rounded-3xl border border-white/40 shadow-lg">
-                                    <i data-lucide="user" class="w-7 h-7 text-amber-700"></i>
-                                    <span>${upcoming.requester_name}</span>
+                            <div class="flex flex-wrap items-center gap-4 text-slate-800 shrink-0">
+
+                                <div class="flex items-center gap-4 bg-white/30 backdrop-blur-xl px-5 py-4 rounded-2xl border border-white/50 shadow-lg">
+                                    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-white/30 border border-white/30 shrink-0">
+                                        <i data-lucide="user-round" class="w-6 h-6 text-amber-900"></i>
+                                    </div>
+                                    <div class="flex flex-col leading-tight">
+                                        <span class="text-[11px] font-bold tracking-[0.2em] uppercase text-amber-900/60">Penanggung Jawab</span>
+                                        <span class="text-xl xl:text-2xl font-black text-slate-900">${upcoming.requester_name}</span>
+                                    </div>
                                 </div>
+
+                                ${upcoming.contact_person ? `
+                                <div class="flex items-center gap-4 bg-white/30 backdrop-blur-xl px-5 py-4 rounded-2xl border border-white/50 shadow-lg">
+                                    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-white/30 border border-white/30 shrink-0">
+                                        <i data-lucide="phone" class="w-6 h-6 text-amber-900"></i>
+                                    </div>
+                                    <div class="flex flex-col leading-tight">
+                                        <span class="text-[11px] font-bold tracking-[0.2em] uppercase text-amber-900/60">Kontak</span>
+                                        <span class="text-xl xl:text-2xl font-black text-slate-900">${upcoming.contact_person}</span>
+                                    </div>
+                                </div>
+                                ` : ''}
+
                                 ${showRoomBadge ? `
-                                <div class="flex items-center gap-4 bg-white/30 backdrop-blur-xl px-6 py-4 rounded-3xl border border-white/40 shadow-lg">
-                                    <i data-lucide="door-open" class="w-7 h-7 text-amber-700"></i>
-                                    <span>${upcoming.room_name}</span>
+                                <div class="flex items-center gap-4 bg-white/30 backdrop-blur-xl px-5 py-4 rounded-2xl border border-white/50 shadow-lg">
+                                    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-white/30 border border-white/30 shrink-0">
+                                        <i data-lucide="door-open" class="w-6 h-6 text-amber-900"></i>
+                                    </div>
+                                    <div class="flex flex-col leading-tight">
+                                        <span class="text-[11px] font-bold tracking-[0.2em] uppercase text-amber-900/60">Ruangan</span>
+                                        <span class="text-xl xl:text-2xl font-black text-slate-900">${upcoming.room_name}</span>
+                                    </div>
                                 </div>
                                 ` : ''}
                             </div>
@@ -673,9 +741,9 @@
                         </div>
 
                         <!-- Card -->
-                        <div class="bg-white rounded-3xl p-5 border ${isActive ? 'border-orange-400 shadow-[0_15px_40px_rgba(249,115,22,0.2)] ring-4 ring-orange-500/10 bg-gradient-to-br from-white to-orange-50/50' : 'border-slate-100 shadow-[0_15px_40px_rgba(0,0,0,0.06)] hover:shadow-xl'} transition-all duration-300 relative z-20">
+                        <div class="bg-white rounded-3xl p-5 border ${isActive ? 'border-orange-400 shadow-[0_15px_40px_rgba(249,115,22,0.2)] ring-4 ring-orange-500/10 bg-gradient-to-br from-white to-orange-50/50' : 'border-slate-200 shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-xl hover:border-slate-300'} transition-all duration-300 relative z-20">
                             <div class="flex items-center justify-between mb-2">
-                                <span class="font-mono font-bold text-base ${isActive ? 'text-orange-600' : 'text-slate-600'} bg-slate-50 px-3 py-1 rounded-lg border border-slate-100 shadow-sm">${item.start_label} - ${item.end_label}</span>
+                                <span class="font-mono font-bold text-base px-3 py-1 rounded-lg border shadow-sm ${isActive ? 'text-orange-700 bg-orange-100 border-orange-200' : 'text-slate-700 bg-slate-100 border-slate-300'}">${item.start_label} - ${item.end_label}</span>
                                 ${isActive 
                                     ? `<span class="text-[10px] font-black tracking-widest px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md animate-pulse">LIVE</span>` 
                                     : `<span class="text-[10px] font-bold tracking-wider px-3 py-1.5 rounded-xl bg-slate-100 text-slate-500">${meta.label}</span>`}

@@ -627,7 +627,7 @@
                                         Edit Profile
                                     </a>
 
-                                    @if (auth()->user()->can_access_letters && auth()->user()->can_access_legalizations)
+                                    @if (auth()->user()->hasMultipleModules())
                                         <div class="border-t border-gray-100 my-1"></div>
                                         <a href="{{ route('switcher') }}"
                                             class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
@@ -916,7 +916,7 @@
                                         Edit Profile
                                     </a>
 
-                                    @if (auth()->user()->can_access_letters && auth()->user()->can_access_legalizations)
+                                    @if (auth()->user()->hasMultipleModules())
                                         <div class="border-t border-gray-100 my-1"></div>
                                         <a href="{{ route('switcher') }}"
                                             class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-orange-600 hover:bg-orange-50 transition-colors">
@@ -944,7 +944,7 @@
             </aside>
 
             {{-- Main Content --}}
-            <div class="flex flex-1 flex-col">
+            <div class="flex flex-1 flex-col min-w-0">
                 {{-- Top Header --}}
                 <header class="sticky top-0 z-10 flex h-16 flex-shrink-0 items-center border-b border-gray-200 bg-white">
                     <div class="flex flex-1 justify-between px-4 sm:px-6 lg:px-8">
