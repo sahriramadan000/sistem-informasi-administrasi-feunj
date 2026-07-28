@@ -121,43 +121,36 @@
 
     <!-- Header -->
     <header class="border-b border-[color:var(--hairline)] bg-white/80 backdrop-blur-xl shrink-0 shadow-sm relative z-20">
-        <div class="px-8 py-5 mx-auto w-full flex items-center justify-between">
-            <div class="flex items-center gap-5">
-                <div class="flex items-center justify-center shrink-0">
-                    <img src="{{ asset('logo-unj.png') }}" alt="Logo UNJ" class="w-16 h-16 object-contain drop-shadow-md">
-                </div>
+        <div class="px-8 py-4 mx-auto w-full flex items-center justify-between gap-6">
+            
+            <!-- Left: Brand -->
+            <div class="flex items-center gap-4 shrink-0">
+                <img src="{{ asset('logo-unj.png') }}" alt="Logo UNJ" class="w-12 h-12 xl:w-14 xl:h-14 object-contain">
                 <div class="flex flex-col justify-center">
-                    <h1 class="text-2xl xl:text-2xl font-extrabold tracking-tight text-slate-900 font-display uppercase">
-                        {{ $selectedRoom ? $selectedRoom->name : 'Monitor Informasi Peminjaman' }}
+                    <h1 class="text-2xl xl:text-2xl font-black text-slate-900 font-display uppercase leading-none mb-1">
+                        Fakultas Ekonomi & Bisnis
                     </h1>
-                    <p class="text-slate-600 font-medium text-md xl:text-md flex items-center gap-2">
-                        <span class="font-bold">Fakultas Ekonomi dan Bisnis</span>
-                        <span class="text-slate-300">|</span>
-                        <span>Universitas Negeri Jakarta</span>
-                    </p>
+                    <span class="text-slate-500 font-bold text-[14px] uppercase">
+                        Universitas Negeri Jakarta
+                    </span>
                 </div>
             </div>
-            <div class="flex items-center gap-6 text-right">
-                <!-- Zoom Controls -->
-                <div class="flex items-center bg-slate-50 rounded-xl border border-slate-200 shadow-sm p-1.5 shrink-0">
-                    <button id="btn-zoom-out" class="p-1.5 rounded-lg text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all" title="Zoom Out">
-                        <i data-lucide="minus" class="w-4 h-4"></i>
-                    </button>
-                    <span id="zoom-level-text" class="px-2 text-sm font-bold text-slate-600 font-mono">100%</span>
-                    <button id="btn-zoom-in" class="p-1.5 rounded-lg text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all" title="Zoom In">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                    </button>
-                </div>
 
-                <button id="btn-fullscreen" class="p-3 rounded-xl bg-slate-50 text-slate-500 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-all border border-slate-200 shadow-sm shrink-0" title="Toggle Fullscreen">
-                    <i data-lucide="maximize" class="w-6 h-6"></i>
-                </button>
+            <!-- Right: Clock -->
+            <div class="flex items-center text-right shrink-0 gap-5">
+                <h2 class="text-xl xl:text-xl font-black text-slate-800 font-display uppercase">
+                    Jadwal Pemakaian Ruangan
+                </h2>
                 <div class="w-px h-10 bg-[color:var(--hairline)]"></div>
-                <div id="digital-date" class="text-[color:var(--muted)] font-semibold text-base flex items-center gap-2">
-                    Memuat tanggal...
+                <!-- Date and Clock Stacked -->
+                <div class="flex flex-col items-center justify-center">
+                    <div id="digital-date" class="text-[color:var(--text)] font-bold text-sm xl:text-base tracking-wider uppercase flex items-center gap-2 mb-1">
+                        <!-- JS injected -->
+                    </div>
+                    <div id="digital-clock" class="text-[color:var(--text)] font-black text-2xl xl:text-3xl tracking-tight font-mono leading-none">
+                        <!-- JS injected -->
+                    </div>
                 </div>
-                <div class="w-px h-10 bg-[color:var(--hairline)]"></div>
-                <div class="text-4xl font-extrabold tracking-tight font-mono text-[color:var(--text)]" id="digital-clock">--:--:--</div>
             </div>
         </div>
     </header>
@@ -256,8 +249,27 @@
         @endif
     </main>
 
-    <footer class="py-3 text-center border-t border-slate-200 shrink-0 bg-white/80 backdrop-blur-md relative z-20">
+    <footer class="py-2.5 px-8 border-t border-slate-200 shrink-0 bg-white/80 backdrop-blur-md relative z-20 flex items-center justify-between">
+        <!-- Spacer for balance -->
+        <div class="w-[200px]"></div>
+        
         <p class="text-slate-400 text-xs font-bold tracking-wider uppercase">&copy; {{ date('Y') }} Fakultas Ekonomi dan Bisnis UNJ &middot; Sistem Informasi Administrasi</p>
+        
+        <!-- UI Controls (Zoom & Fullscreen) -->
+        <div class="flex items-center gap-3 w-[200px] justify-end">
+            <div class="flex items-center bg-slate-50 rounded-lg border border-slate-200 shadow-sm p-1">
+                <button id="btn-zoom-out" class="p-1 rounded text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all" title="Zoom Out">
+                    <i data-lucide="minus" class="w-3.5 h-3.5"></i>
+                </button>
+                <span id="zoom-level-text" class="px-1 text-[10px] font-bold text-slate-600 font-mono">100%</span>
+                <button id="btn-zoom-in" class="p-1 rounded text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all" title="Zoom In">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                </button>
+            </div>
+            <button id="btn-fullscreen" class="p-1.5 rounded-lg bg-slate-50 text-slate-500 hover:text-orange-600 hover:bg-orange-50 border border-slate-200 shadow-sm transition-all" title="Toggle Fullscreen">
+                <i data-lucide="maximize" class="w-4 h-4"></i>
+            </button>
+        </div>
     </footer>
 
     <!-- Scripts -->
@@ -328,11 +340,11 @@
             const h = String(now.getHours()).padStart(2, '0');
             const m = String(now.getMinutes()).padStart(2, '0');
             const s = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('digital-clock').innerHTML = `${h}<span class="clock-colon opacity-50">:</span>${m}<span class="clock-colon opacity-50">:</span>${s}`;
+            document.getElementById('digital-clock').innerHTML = `${h}<span class="clock-colon opacity-75">:</span>${m}<span class="clock-colon opacity-75">:</span>${s}`;
 
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('digital-date').innerHTML =
-                `<i data-lucide="calendar-days" class="w-5 h-5 text-orange-500"></i> ${now.toLocaleDateString('id-ID', options)}`;
+                `${now.toLocaleDateString('id-ID', options)}`;
             
             // Render icon only once ideally, but this is fine for now
             lucide.createIcons();
