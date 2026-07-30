@@ -56,6 +56,7 @@ Route::resource('legalizations', LegalizationController::class);
 
 // Route Peminjaman Ruang
 Route::get('room-reservations/public-display', [RoomReservationController::class, 'publicDisplay'])->name('room-reservations.public-display');
+Route::get('room-reservations/public-display/timegrid', [RoomReservationController::class, 'publicDisplayTimeGrid'])->name('room-reservations.public-display.timegrid');
 
 Route::prefix('room-reservations')->name('room-reservations.')->middleware(['auth'])->group(function () {
     Route::get('/dashboard', [RoomReservationController::class, 'dashboard'])->name('dashboard');

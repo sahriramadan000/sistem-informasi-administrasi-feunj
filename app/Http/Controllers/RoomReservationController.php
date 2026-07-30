@@ -9,13 +9,13 @@ class RoomReservationController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth')->except('publicDisplay');
+        $this->middleware('auth')->except(['publicDisplay', 'publicDisplayTimeGrid']);
         $this->middleware(function ($request, $next) {
             if (!auth()->user()->can_access_room_reservations && !auth()->user()->isAdmin()) {
                 abort(403, 'Anda tidak memiliki akses ke Modul Peminjaman Ruang.');
             }
             return $next($request);
-        })->except('publicDisplay');
+        })->except(['publicDisplay', 'publicDisplayTimeGrid']);
     }
 
     public function dashboard()
@@ -57,6 +57,7 @@ class RoomReservationController extends Controller
 
     public function publicDisplay(Request $request)
     {
+        // 1. Fetch Today's Data
         $query = RoomReservation::with(['room', 'creator'])
             ->whereDate('reservation_date', today())
             ->where('status', '!=', 'rejected')
@@ -88,8 +89,52 @@ class RoomReservationController extends Controller
             ];
         })->sortBy('start')->values();
 
+        // 2. Fetch Monthly Data for Calendar
+        $startOfMonth = today()->startOfMonth();
+        $endOfMonth = today()->endOfMonth();
+        
+        $monthlyQuery = RoomReservation::with(['room'])
+            ->whereBetween('reservation_date', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')])
+            ->where('status', '!=', 'rejected')
+            ->where('status', '!=', 'cancelled');
+
+        if ($selectedRoomId) {
+            $monthlyQuery->where('room_id', $selectedRoomId);
+        }
+
+        $monthlyReservations = $monthlyQuery->orderBy('reservation_date')->orderBy('start_time')->get();
+
+        $monthlyScheduleData = $monthlyReservations->map(function($r) {
+            return [
+                'id' => $r->id,
+                'event_name' => $r->event_name,
+                'room_name' => $r->room->name ?? 'Lainnya',
+                'requester_name' => $r->requester_name ?? 'Umum',
+                'creator_name' => $r->creator->name ?? 'Sistem',
+                'date' => \Carbon\Carbon::parse($r->reservation_date)->format('Y-m-d'),
+                'start_label' => \Carbon\Carbon::parse($r->start_time)->format('H:i'),
+                'end_label' => \Carbon\Carbon::parse($r->end_time)->format('H:i'),
+                'title' => ($r->room->name ?? 'Lainnya') . ' - ' . $r->event_name,
+                'start' => \Carbon\Carbon::parse($r->reservation_date)->format('Y-m-d') . 'T' . \Carbon\Carbon::parse($r->start_time)->format('H:i:s'),
+                'end' => \Carbon\Carbon::parse($r->reservation_date)->format('Y-m-d') . 'T' . \Carbon\Carbon::parse($r->end_time)->format('H:i:s'),
+                'backgroundColor' => '#ea580c', // orange-600 for public display theme
+                'borderColor' => '#c2410c', // orange-700
+                'textColor' => '#ffffff',
+                'extendedProps' => [
+                    'room_name' => $r->room->name ?? 'Lainnya',
+                    'event_name' => $r->event_name,
+                    'requester_name' => $r->requester_name,
+                    'creator_name' => $r->creator->name ?? 'Sistem',
+                    'time_range' => \Carbon\Carbon::parse($r->start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($r->end_time)->format('H:i'),
+                ]
+            ];
+        })->values();
+
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['schedule' => $scheduleData]);
+            return response()->json([
+                'schedule' => $scheduleData,
+                'monthlySchedule' => $monthlyScheduleData
+            ]);
         }
 
         // Ambil semua ruangan aktif untuk dropdown filter jika perlu
@@ -100,7 +145,35 @@ class RoomReservationController extends Controller
             $selectedRoom = Room::find($selectedRoomId);
         }
 
-        return view('room_reservations.public_display', compact('reservations', 'rooms', 'selectedRoom', 'scheduleData'));
+        return view('room_reservations.public_display', compact('reservations', 'rooms', 'selectedRoom', 'scheduleData', 'monthlyScheduleData'));
+    }
+
+    public function publicDisplayTimeGrid(Request $request)
+    {
+        $date = $request->input('date', today()->toDateString());
+        $parsedDate = \Carbon\Carbon::parse($date);
+        
+        $query = RoomReservation::with(['room', 'creator'])
+            ->whereDate('reservation_date', $parsedDate)
+            ->where('status', '!=', 'rejected')
+            ->where('status', '!=', 'cancelled');
+            
+        $selectedRoom = null;
+        if ($request->filled('room_id')) {
+            try {
+                $selectedRoomId = decrypt($request->room_id);
+                $query->where('room_id', $selectedRoomId);
+                $selectedRoom = \App\Models\Room::find($selectedRoomId);
+            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+                // Invalid encrypted payload, ignore
+            }
+        }
+            
+        $reservations = $query->orderBy('start_time')->get();
+            
+        $rooms = \App\Models\Room::where('is_active', true)->orderBy('name')->get();
+        
+        return view('room_reservations.partials.timegrid', compact('reservations', 'rooms', 'parsedDate', 'selectedRoom'));
     }
 
     public function index(Request $request)

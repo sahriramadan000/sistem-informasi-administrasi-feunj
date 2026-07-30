@@ -15,6 +15,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- FullCalendar -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+
     <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -110,9 +115,95 @@
         }
 
         ::-webkit-scrollbar { display: none; }
+
+        /* ===== Prodless Weekly & Mini Calendar Customization ===== */
+        #weekly-calendar .fc-theme-standard td, #weekly-calendar .fc-theme-standard th {
+            border-color: #f1f5f9;
+        }
+        #weekly-calendar .fc-timegrid-slot {
+            height: 3rem;
+        }
+        #weekly-calendar .fc-timegrid-axis {
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            padding-right: 12px;
+        }
+        #weekly-calendar .fc-col-header-cell {
+            padding: 12px 0;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        #weekly-calendar .fc-timegrid-event {
+            border: none;
+            background: transparent;
+            box-shadow: none;
+            border-radius: 0;
+            margin: 0;
+            padding: 1px 4px;
+        }
+        
+        #mini-calendar .fc-header-toolbar {
+            margin-bottom: 1rem !important;
+        }
+        #mini-calendar .fc-toolbar-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            font-family: 'Space Grotesk', sans-serif;
+            color: #1e293b;
+        }
+        #mini-calendar .fc-col-header-cell {
+            padding: 4px 0;
+            border: none !important;
+            font-size: 0.7rem;
+            color: #94a3b8;
+        }
+        #mini-calendar td, #mini-calendar th, #mini-calendar .fc-scrollgrid {
+            border: none !important;
+        }
+        #mini-calendar .fc-daygrid-day-frame {
+            min-height: 40px !important;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #mini-calendar .fc-daygrid-day-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        #mini-calendar .fc-daygrid-day-top:hover {
+            background-color: #f1f5f9;
+        }
+        #mini-calendar .active-week-highlight .fc-daygrid-day-top {
+            background-color: #ffedd5;
+            color: #c2410c;
+            font-weight: 800;
+        }
+        #mini-calendar .fc-day-today .fc-daygrid-day-top {
+            background-color: #0f172a;
+            color: white;
+        }
+        #mini-calendar .fc-daygrid-day-events {
+            display: none;
+        }
+        #mini-calendar .fc-daygrid-day-number {
+            font-size: 13px;
+            font-weight: 600;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* ===== FullCalendar Modern Customization ===== */
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col relative selection:bg-orange-500/30 selection:text-orange-900">
+
         <!-- Background Decoration -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10 bg-slate-50">
         <div class="absolute -top-[25%] -left-[10%] w-[50%] h-[50%] rounded-full bg-orange-100/60 blur-[130px]"></div>
@@ -136,9 +227,10 @@
                 </div>
             </div>
 
-            <!-- Right: Clock -->
+            <!-- Right: Clock & Controls -->
             <div class="flex items-center text-right shrink-0 gap-5">
-                <h2 class="text-xl xl:text-xl font-black text-slate-800 font-display uppercase">
+                
+                <h2 id="header-title" class="text-xl xl:text-xl font-black text-slate-800 font-display uppercase ml-2">
                     Jadwal Pemakaian Ruangan
                 </h2>
                 <div class="w-px h-10 bg-[color:var(--hairline)]"></div>
@@ -156,41 +248,123 @@
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1 w-full p-6 lg:p-8 mx-auto flex flex-col min-h-0 relative z-10 max-w-[1920px]">
-        @if(!$selectedRoom)
-            <div class="mb-6 p-4 glass-panel rounded-2xl flex items-center gap-4 mx-auto w-full max-w-4xl shrink-0 shadow-sm">
-                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                    <i data-lucide="settings-2" class="w-5 h-5 text-[color:var(--muted)]"></i>
+    <!-- PORTAL VIEW -->
+    <main id="portal-view" class="flex-1 w-full p-6 lg:p-10 mx-auto min-h-0 relative z-10 animate-[pageFadeIn_0.5s_ease_both] overflow-y-auto">
+        <div class="max-w-[1920px] mx-auto w-full flex flex-col lg:flex-row gap-10 lg:gap-16 items-start">
+            
+            <!-- Bagian Kiri: Header Unik (Sticky) -->
+            <div class="w-full lg:w-[400px] xl:w-[450px] shrink-0 lg:sticky lg:top-8 flex flex-col relative z-10 group">
+                
+                <!-- Watermark Background Teks Vertikal -->
+                <div class="absolute top-10 -left-12 text-[12rem] xl:text-[14rem] font-black text-slate-200/50 rotate-180 origin-center pointer-events-none tracking-tighter select-none font-display hidden xl:block" style="writing-mode: vertical-rl;">
+                    UNJ
                 </div>
-                <form action="{{ route('room-reservations.public-display') }}" method="GET" class="flex-1 flex gap-4">
-                    <select name="room_id" class="flex-1 bg-white border border-[color:var(--hairline)] rounded-xl px-4 py-3 text-base text-[color:var(--text)] focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 font-medium transition-all">
-                        <option value="">-- Pilih Ruangan untuk Monitor Ini --</option>
-                        @foreach($rooms as $room)
-                            <option value="{{ encrypt($room->id) }}" {{ $selectedRoom && $selectedRoom->id == $room->id ? 'selected' : '' }}>{{ $room->name }}</option>
-                        @endforeach
-                    </select>
-                    <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl text-base font-bold transition-all shadow-[0_4px_12px_rgba(249,115,22,0.4)] hover:shadow-[0_6px_16px_rgba(249,115,22,0.5)] hover:-translate-y-0.5 flex items-center gap-2">
-                        <i data-lucide="save" class="w-5 h-5"></i>
-                        Simpan Pengaturan
-                    </button>
-                </form>
-            </div>
-        @endif
 
-        @if($reservations->isEmpty())
-            <!-- ===== Empty state: seluruh hari kosong ===== -->
-            <div class="flex-1 flex flex-col items-center justify-center text-center">
-                <div class="w-40 h-40 rounded-full flex items-center justify-center mb-10 bg-emerald-50 border border-emerald-100 shadow-[0_20px_40px_rgba(16,185,129,0.1)] relative">
-                    <div class="absolute inset-0 rounded-full bg-emerald-400/20 animate-ping" style="animation-duration: 3s;"></div>
-                    <i data-lucide="check-circle-2" class="w-20 h-20 text-emerald-500 relative z-10"></i>
+                <!-- Premium Nested Glass Card (Bezel) -->
+                <div class="relative bg-white/40 backdrop-blur-3xl rounded-[3rem] p-3 xl:p-4 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.1)] border border-white/60">
+                    
+                    <!-- Inner Dark UI Panel -->
+                    <div class="relative bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-[2.5rem] p-8 xl:p-10 overflow-hidden text-white shadow-2xl flex flex-col h-full min-h-[400px]">
+                        
+                        <!-- Ambient Glowing Orbs -->
+                        <div class="absolute -right-20 -top-20 w-64 h-64 bg-orange-600 rounded-full blur-[70px] opacity-30 mix-blend-screen animate-pulse"></div>
+                        <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-amber-500 rounded-full blur-[70px] opacity-20 mix-blend-screen"></div>
+                        
+                        <!-- Top Bar -->
+                        <div class="flex justify-between items-start mb-14 relative z-10">
+                            <div class="w-14 h-14 xl:w-16 xl:h-16 rounded-[1.25rem] bg-white/5 backdrop-blur-md flex items-center justify-center border border-white/10 shadow-xl group-hover:scale-110 group-hover:bg-white/10 transition-all duration-500">
+                                <i data-lucide="layout-dashboard" class="w-7 h-7 xl:w-8 xl:h-8 text-orange-400"></i>
+                            </div>
+                            <div class="px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 text-[10px] font-bold font-mono tracking-widest uppercase flex items-center gap-2 backdrop-blur-md shadow-inner">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
+                                Live Sync
+                            </div>
+                        </div>
+
+                        <!-- Huge Typography -->
+                        <h1 class="text-6xl xl:text-7xl font-black tracking-tight font-display mb-4 leading-[1.05] relative z-10">
+                            Smart<br>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-br from-orange-400 to-orange-500">Display.</span>
+                        </h1>
+                        <p class="text-slate-400 font-medium leading-relaxed mb-8 relative z-10">
+                            Ketuk ruangan untuk memantau agenda harian secara eksklusif. Jadwal tersinkronisasi <strong class="text-orange-400">otomatis</strong> secara terpusat.
+                        </p>
+
+                        <!-- Search Bar -->
+                        <div class="mb-12 relative z-10 w-full">
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                    <i data-lucide="search" class="w-5 h-5 text-slate-500 group-focus-within:text-orange-400 transition-colors"></i>
+                                </div>
+                                <input type="text" id="room-search" placeholder="Cari nama ruangan..." class="w-full bg-slate-900/50 backdrop-blur-md border border-slate-700 text-white text-sm rounded-2xl focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 block pl-12 p-4 shadow-inner transition-all duration-300 placeholder-slate-500 font-medium outline-none hover:border-slate-600">
+                            </div>
+                        </div>
+
+                        <!-- System Info Footer (Integrated inside card) -->
+                        <div class="relative z-10 mt-auto pt-8 border-t border-white/10 flex items-center justify-between">
+                            <div>
+                                <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Sistem Terintegrasi</div>
+                                <div class="font-bold text-base flex items-center gap-1.5 text-white">
+                                    FEB UNJ
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-orange-500"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="text-right">
+                                    <div class="text-2xl font-black text-white leading-none font-display">{{ count($rooms) }}</div>
+                                    <div class="text-[9px] font-bold uppercase tracking-widest text-orange-400 mt-1">Ruang Aktif</div>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center border border-orange-500/20 shadow-inner">
+                                    <i data-lucide="layout-grid" class="w-4 h-4 text-orange-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h2 class="text-5xl font-extrabold text-slate-800 mb-5 font-display tracking-tight">Ruangan Bebas Tersedia</h2>
-                <p class="text-slate-500 text-2xl max-w-2xl leading-relaxed font-medium">Tidak ada jadwal peminjaman {{ $selectedRoom ? 'untuk ruangan ini' : '' }} pada hari ini. Silakan gunakan sesuai prosedur yang berlaku.</p>
             </div>
-        @else
+            
+            <!-- Bagian Kanan: Grid Ruangan -->
+            <div class="flex-1 w-full pb-12 pt-4 xl:pt-8 flex flex-col">
 
+                <div class="flex flex-wrap justify-center gap-6" id="room-grid">
+                    @foreach($rooms as $room)
+                    <div data-room-name="{{ $room->name }}" onclick="openRoom('{{ encrypt($room->id) }}', '{{ addslashes($room->name) }}')" class="room-card w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)] 2xl:w-[calc(20%-19.2px)] cursor-pointer group bg-white rounded-[1.5rem] p-6 xl:p-7 border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 hover:-translate-y-1 flex flex-col relative overflow-hidden h-full">
+                        
+                        <!-- Top Row: Icon & Action -->
+                        <div class="flex justify-between items-start mb-5 relative z-10">
+                            <div class="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:bg-slate-800 group-hover:border-slate-800 shadow-sm">
+                                <i data-lucide="door-open" class="w-6 h-6 text-slate-400 group-hover:text-white transition-colors duration-300"></i>
+                            </div>
+                            <div class="w-8 h-8 flex items-center justify-center text-slate-300 group-hover:text-slate-800 transition-all duration-300 -rotate-45 group-hover:rotate-0 transform">
+                                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </div>
+                        </div>
 
-            <div class="flex-1 flex flex-row gap-8 min-h-0 h-full w-full mx-auto">
+                        <!-- Content -->
+                        <div class="relative z-10 flex-1 flex flex-col">
+                            <h3 class="text-xl font-bold text-slate-800 mb-1 leading-tight group-hover:text-slate-900 transition-colors duration-300">{{ $room->name }}</h3>
+                            <p class="text-[11px] font-medium text-slate-400 mb-5">Ketuk untuk lihat detail</p>
+                            
+                            <!-- Bottom Info -->
+                            <div class="mt-auto">
+                                <div class="inline-flex items-center gap-2 text-xs font-bold text-slate-500">
+                                    <i data-lucide="users" class="w-3.5 h-3.5 text-slate-400"></i>
+                                    {{ $room->capacity ?? '-' }} Orang
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+        </div>
+    </main>
+    
+    <!-- CALENDAR VIEW -->
+    <main id="calendar-view-container" class="hidden flex-1 w-full p-6 lg:p-8 mx-auto flex flex-col min-h-0 relative z-10 max-w-[1920px] animate-[pageFadeIn_0.5s_ease_both]">
+
+            <div id="today-view" class="flex-1 flex flex-row gap-8 min-h-0 h-full w-full mx-auto animate-[pageFadeIn_0.5s_ease_both]">
 
                 <!-- ===== Main Stage (Now Playing / Hero Column) ===== -->
                 <div class="flex-[1.5] xl:flex-[2] flex flex-col min-h-0 h-full relative" id="main-stage">
@@ -211,7 +385,7 @@
                             <h3 class="text-2xl font-black text-slate-800 tracking-tight font-display">DAFTAR AGENDA</h3>
                         </div>
                         <div class="flex flex-col items-end">
-                            <span class="text-sm font-extrabold px-4 py-2 bg-white/90 backdrop-blur-md text-orange-600 rounded-xl font-mono border border-orange-100 shadow-sm">{{ $scheduleData->count() }} ITEM</span>
+                            <span id="agenda-count" class="text-sm font-extrabold px-4 py-2 bg-white/90 backdrop-blur-md text-orange-600 rounded-xl font-mono border border-orange-100 shadow-sm">{{ $scheduleData->count() }} ITEM</span>
                         </div>
                     </div>
 
@@ -246,12 +420,87 @@
                     </div>
                 </div>
             </div>
-        @endif
+
+        <!-- ===== WEEKLY VIEW (Prodless Style) ===== -->
+        <div id="weekly-view" class="hidden flex flex-1 flex-row gap-6 min-h-0 h-full w-full mx-auto animate-[pageFadeIn_0.5s_ease_both]">
+            
+            <!-- Sidebar (Mini Calendar & Event Details) -->
+            <div class="w-[380px] xl:w-[420px] rounded-[2.5rem] bg-white border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col p-6 h-full gap-6 shrink-0">
+                <!-- Header Title -->
+                <div class="px-2 pt-2">
+                    <h2 class="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white">
+                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                        </div>
+                        Calendar
+                    </h2>
+                </div>
+                
+                <!-- Mini Calendar -->
+                <div class="bg-slate-50/50 rounded-3xl p-4 border border-slate-100">
+                    <div id="mini-calendar" class="w-full"></div>
+                </div>
+                
+                <!-- Separator -->
+                <hr class="border-t-2 border-dashed border-slate-200/60">
+
+                <!-- Event Detail Card -->
+                <div class="flex-1 overflow-y-auto">
+                    <div class="px-2 pb-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-[15px] font-bold text-slate-800">Detail Agenda</h3>
+                            <span class="text-[10px] font-bold px-2 py-1 bg-red-50 text-red-600 rounded-full flex items-center gap-1">
+                                <i data-lucide="clock" class="w-3 h-3"></i> Terpilih
+                            </span>
+                        </div>
+                        
+                        <div id="weekly-event-detail" class="space-y-4">
+                            <div class="text-center py-10 text-slate-400">
+                                <i data-lucide="mouse-pointer-click" class="w-10 h-10 mx-auto mb-3 opacity-20"></i>
+                                <p class="text-sm font-medium">Klik salah satu agenda di kalender mingguan<br>untuk melihat detailnya.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Weekly Calendar -->
+            <div class="flex-1 bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200/60 overflow-hidden flex flex-col p-8 h-full">
+                <!-- Custom Toolbar for Weekly -->
+                <div class="flex items-center justify-between mb-6 shrink-0">
+                    <div class="flex items-center gap-4">
+                        <h2 id="weekly-title" class="text-2xl font-extrabold text-slate-800 tracking-tight">Minggu Ini</h2>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-200 shadow-sm">
+                            <button onclick="weeklyCalendar.prev()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-sm hover:text-slate-800 transition-all"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                            <button onclick="weeklyCalendar.today()" class="px-3 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors">Hari Ini</button>
+                            <button onclick="weeklyCalendar.next()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-sm hover:text-slate-800 transition-all"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="weekly-calendar" class="flex-1 w-full min-h-0"></div>
+            </div>
+        </div>
     </main>
 
     <footer class="py-2.5 px-8 border-t border-slate-200 shrink-0 bg-white/80 backdrop-blur-md relative z-20 flex items-center justify-between">
-        <!-- Spacer for balance -->
-        <div class="w-[200px]"></div>
+        <!-- Tabs & Navigation -->
+        <div id="footer-tabs" class="hidden items-center gap-2 w-[450px]">
+            <button id="btn-back-to-portal" onclick="closeRoom()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs shadow-md transition-colors flex items-center gap-1.5">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Ganti Ruang
+            </button>
+            <div class="w-px h-5 bg-slate-300 mx-1"></div>
+            <button id="tab-today" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-orange-100 text-orange-700 shadow-sm border border-orange-200 transition-colors flex items-center gap-1.5">
+                <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> Jadwal Hari Ini
+            </button>
+            <button id="tab-weekly" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-100 border border-slate-200 shadow-sm transition-colors flex items-center gap-1.5">
+                <i data-lucide="calendar-days" class="w-3.5 h-3.5"></i> Kalender
+            </button>
+        </div>
+        
+        
         
         <p class="text-slate-400 text-xs font-bold tracking-wider uppercase">&copy; {{ date('Y') }} Fakultas Ekonomi dan Bisnis UNJ &middot; Sistem Informasi Administrasi</p>
         
@@ -269,19 +518,204 @@
             <button id="btn-fullscreen" class="p-1.5 rounded-lg bg-slate-50 text-slate-500 hover:text-orange-600 hover:bg-orange-50 border border-slate-200 shadow-sm transition-all" title="Toggle Fullscreen">
                 <i data-lucide="maximize" class="w-4 h-4"></i>
             </button>
-        </div>
     </footer>
 
     <!-- Scripts -->
     <script>
         lucide.createIcons();
+        
+        let monthlySchedule = @json($monthlyScheduleData ?? []);
 
         // ===================================================
-        // Fullscreen Logic
+        let isTabCalendarActive = false;
+        const tabToday = document.getElementById('tab-today');
+        const tabWeekly = document.getElementById('tab-weekly');
+        const viewToday = document.getElementById('today-view');
+        const viewWeekly = document.getElementById('weekly-view');
+
+        if(tabToday && tabWeekly && viewToday && viewWeekly) {
+            tabToday.addEventListener('click', () => {
+                viewToday.classList.remove('hidden');
+                viewWeekly.classList.add('hidden');
+                
+                tabToday.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-orange-100 text-orange-700 shadow-sm border border-orange-200 transition-colors flex items-center gap-1.5";
+                tabWeekly.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-100 border border-slate-200 shadow-sm transition-colors flex items-center gap-1.5";
+            });
+
+            tabWeekly.addEventListener('click', () => {
+                viewToday.classList.add('hidden');
+                viewWeekly.classList.remove('hidden');
+                
+                tabToday.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-100 border border-slate-200 shadow-sm transition-colors flex items-center gap-1.5";
+                tabWeekly.className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-orange-100 text-orange-700 shadow-sm border border-orange-200 transition-colors flex items-center gap-1.5";
+                
+                renderWeeklyCalendar();
+            });
+        }
+
+        let weeklyCalendar = null;
+        let miniCalendar = null;
+
+        function renderWeeklyCalendar() {
+            if (weeklyCalendar) {
+                weeklyCalendar.updateSize();
+                if(miniCalendar) miniCalendar.updateSize();
+                return;
+            }
+
+            var miniEl = document.getElementById('mini-calendar');
+            miniCalendar = new FullCalendar.Calendar(miniEl, {
+                initialView: 'dayGridMonth',
+                locale: 'id',
+                headerToolbar: {
+                    left: 'prev',
+                    center: 'title',
+                    right: 'next'
+                },
+                height: 350,
+                contentHeight: 'auto',
+                fixedWeekCount: false,
+                showNonCurrentDates: false,
+                events: monthlySchedule,
+                dateClick: function(info) {
+                    weeklyCalendar.gotoDate(info.date);
+                },
+                datesSet: function() {
+                    // Timeout ensures cells are rendered before we attempt to highlight them
+                    setTimeout(applyMiniCalendarHighlight, 10);
+                }
+            });
+            miniCalendar.render();
+
+            var weeklyEl = document.getElementById('weekly-calendar');
+            weeklyCalendar = new FullCalendar.Calendar(weeklyEl, {
+                initialView: 'timeGridWeek',
+                locale: 'id',
+                headerToolbar: false,
+                height: '100%',
+                slotMinTime: '07:00:00',
+                slotMaxTime: '21:00:00',
+                allDaySlot: false,
+                nowIndicator: true,
+                events: monthlySchedule,
+                datesSet: function(info) {
+                    document.getElementById('weekly-title').innerText = info.view.title;
+                    if (miniCalendar) {
+                        miniCalendar.gotoDate(info.view.currentStart);
+                        highlightMiniCalendarWeek(info.view.currentStart);
+                    }
+                },
+                eventClick: function(info) {
+                    showWeeklyEventDetail(info.event);
+                },
+                eventContent: function(arg) {
+                    return {
+                        html: `
+                        <div class="h-full w-full p-2.5 flex flex-col justify-start rounded-xl bg-orange-50/90 backdrop-blur-sm border border-orange-200/80 shadow-sm hover:shadow-[0_8px_20px_-6px_rgba(234,88,12,0.3)] hover:-translate-y-0.5 transition-all duration-300 relative group overflow-hidden cursor-pointer">
+                            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-orange-400 to-orange-600"></div>
+                            
+                            <!-- Dekorasi Halus -->
+                            <div class="absolute -right-6 -bottom-6 w-16 h-16 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition-colors"></div>
+
+                            <div class="pl-1 relative z-10 flex flex-col h-full overflow-hidden">
+                                <div class="text-[10px] font-black text-orange-600 tracking-wider mb-0.5 flex items-center gap-1">
+                                    <i data-lucide="clock" class="w-3 h-3"></i> ${arg.timeText}
+                                </div>
+                                <div class="text-xs font-bold text-slate-800 leading-snug break-words line-clamp-2">${arg.event.title}</div>
+                                
+                                <div class="mt-auto pt-1">
+                                    <div class="text-[10px] font-semibold text-slate-500 truncate flex items-center gap-1">
+                                        <i data-lucide="user-round" class="w-3 h-3 text-orange-400"></i>
+                                        ${arg.event.extendedProps.requester_name || '-'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        `
+                    };
+                }
+            });
+            weeklyCalendar.render();
+        }
+
+        let activeWeekDates = [];
+
+        function highlightMiniCalendarWeek(startDate) {
+            activeWeekDates = [];
+            // info.view.currentStart from weekly calendar is the start of the week
+            let curr = new Date(startDate);
+            for(let i=0; i<7; i++) {
+                // Ensure date format is YYYY-MM-DD in local time
+                let year = curr.getFullYear();
+                let month = String(curr.getMonth() + 1).padStart(2, '0');
+                let day = String(curr.getDate()).padStart(2, '0');
+                activeWeekDates.push(`${year}-${month}-${day}`);
+                curr.setDate(curr.getDate() + 1);
+            }
+            applyMiniCalendarHighlight();
+        }
+
+        function applyMiniCalendarHighlight() {
+            // Remove previous highlights
+            document.querySelectorAll('#mini-calendar .fc-daygrid-day').forEach(el => {
+                el.classList.remove('active-week-highlight');
+            });
+            
+            // Add new highlights
+            activeWeekDates.forEach(d => {
+                let cell = document.querySelector(`#mini-calendar .fc-daygrid-day[data-date="${d}"]`);
+                if (cell) {
+                    cell.classList.add('active-week-highlight');
+                }
+            });
+        }
+
+        function showWeeklyEventDetail(event) {
+            const detailEl = document.getElementById('weekly-event-detail');
+            const start = event.start;
+            const end = event.end;
+            
+            const timeStr = start.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + ' - ' + (end ? end.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '');
+            const dateStr = start.toLocaleDateString('id-ID', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
+            
+            let html = `
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
+                        <i data-lucide="building" class="w-4 h-4 text-slate-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-lg leading-tight">${event.title}</h4>
+                        <p class="text-xs text-slate-500 mt-1">${dateStr}</p>
+                    </div>
+                </div>
+                
+                <div class="mt-5 p-4 rounded-2xl bg-orange-50 border border-orange-100">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i data-lucide="clock" class="w-4 h-4 text-orange-500"></i>
+                        <span class="text-sm font-semibold text-orange-800">${timeStr}</span>
+                    </div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <i data-lucide="door-open" class="w-4 h-4 text-orange-500"></i>
+                        <span class="text-sm font-semibold text-orange-800">${event.extendedProps.room_name || 'Ruangan'}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="user-round" class="w-4 h-4 text-orange-500"></i>
+                        <span class="text-sm font-semibold text-orange-800">${event.extendedProps.requester_name || '-'}</span>
+                    </div>
+                </div>
+                
+                <div class="mt-4 text-sm text-slate-600">
+                    Agenda ini dilaksanakan di <strong>${event.extendedProps.room_name || 'Ruangan'}</strong> pada jam yang telah ditentukan.
+                </div>
+            `;
+            
+            detailEl.innerHTML = html;
+            lucide.createIcons();
+        }        // Fullscreen Logic
         // ===================================================
-        const btnFullscreen = document.getElementById('btn-fullscreen');
-        if(btnFullscreen) {
-            btnFullscreen.addEventListener('click', () => {
+        const btnFullscreens = document.querySelectorAll('#btn-fullscreen, #btn-fullscreen-portal');
+        btnFullscreens.forEach(btn => {
+            btn.addEventListener('click', () => {
                 if (!document.fullscreenElement) {
                     document.documentElement.requestFullscreen().catch((err) => {
                         console.error(`Error attempting to enable fullscreen: ${err.message}`);
@@ -290,47 +724,47 @@
                     document.exitFullscreen();
                 }
             });
+        });
 
-            document.addEventListener('fullscreenchange', () => {
-                const icon = document.fullscreenElement ? 'minimize' : 'maximize';
-                btnFullscreen.innerHTML = `<i data-lucide="${icon}" class="w-6 h-6"></i>`;
-                lucide.createIcons();
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.fullscreenElement ? 'minimize' : 'maximize';
+            btnFullscreens.forEach(btn => {
+                btn.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i>`;
             });
-        }
+            lucide.createIcons();
+        });
 
         // ===================================================
         // Zoom Logic (Simulate Chrome Ctrl +/- via REM scaling)
         // ===================================================
         let currentZoom = parseFloat(localStorage.getItem('display_zoom_level')) || 1;
-        const btnZoomIn = document.getElementById('btn-zoom-in');
-        const btnZoomOut = document.getElementById('btn-zoom-out');
-        const zoomLevelText = document.getElementById('zoom-level-text');
+        const btnsZoomIn = document.querySelectorAll('#btn-zoom-in');
+        const btnsZoomOut = document.querySelectorAll('#btn-zoom-out');
+        const zoomLevelTexts = document.querySelectorAll('#zoom-level-text');
 
         function applyZoom() {
-            // Mengubah ukuran base font akan men-scale semua elemen Tailwind yang menggunakan 'rem'
             document.documentElement.style.fontSize = (currentZoom * 16) + 'px';
-            if(zoomLevelText) zoomLevelText.innerText = Math.round(currentZoom * 100) + '%';
+            zoomLevelTexts.forEach(el => { el.innerText = Math.round(currentZoom * 100) + '%'; });
             localStorage.setItem('display_zoom_level', currentZoom);
         }
         
-        // Terapkan zoom saat pertama kali dimuat
         applyZoom();
 
-        if(btnZoomIn) {
-            btnZoomIn.addEventListener('click', () => {
+        btnsZoomIn.forEach(btn => {
+            btn.addEventListener('click', () => {
                 currentZoom += 0.1;
                 applyZoom();
             });
-        }
+        });
         
-        if(btnZoomOut) {
-            btnZoomOut.addEventListener('click', () => {
+        btnsZoomOut.forEach(btn => {
+            btn.addEventListener('click', () => {
                 if (currentZoom > 0.3) {
                     currentZoom -= 0.1;
                     applyZoom();
                 }
             });
-        }
+        });
 
         // ===================================================
         // Digital Clock
@@ -343,24 +777,86 @@
             document.getElementById('digital-clock').innerHTML = `${h}<span class="clock-colon opacity-75">:</span>${m}<span class="clock-colon opacity-75">:</span>${s}`;
 
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('digital-date').innerHTML =
-                `${now.toLocaleDateString('id-ID', options)}`;
+            document.getElementById('digital-date').innerHTML = `${now.toLocaleDateString('id-ID', options)}`;
             
-            // Render icon only once ideally, but this is fine for now
-            lucide.createIcons();
+            // Only update icons if they are empty
+            if(!document.querySelector('#digital-date svg')) lucide.createIcons();
         }
         updateClock();
         setInterval(updateClock, 1000);
 
         // ===================================================
-        // Data jadwal dari server & AJAX Auto-Refresh
+        // SPA Logic (No Refresh Navigation)
         // ===================================================
         let schedule = @json($scheduleData ?? []);
-        const showRoomBadge = {{ $selectedRoom ? 'false' : 'true' }};
+        window.selectedRoomId = null;
+        let showRoomBadge = true;
 
-        // Polling data setiap 60 detik (tanpa refresh halaman)
-        setInterval(() => {
-            fetch(window.location.href, {
+        function openRoom(roomId, roomName) {
+            // Tampilkan loading state jika perlu, namun untuk seamless kita langsung sembunyikan portal
+            document.getElementById('portal-view').classList.add('hidden');
+            document.getElementById('calendar-view-container').classList.remove('hidden');
+            document.getElementById('btn-back-to-portal').classList.remove('hidden');
+            document.getElementById('footer-tabs').classList.remove('hidden');
+            document.getElementById('footer-tabs').classList.add('flex');
+            
+            // Re-render calendar so it corrects its dimensions after being unhidden
+            setTimeout(() => {
+                if(typeof calendar !== 'undefined' && calendar !== null) calendar.render();
+                if(typeof weeklyCalendar !== 'undefined' && weeklyCalendar !== null) weeklyCalendar.render();
+                if(typeof miniCalendar !== 'undefined' && miniCalendar !== null) miniCalendar.render();
+            }, 100);
+
+            // Update URL and State
+            window.selectedRoomId = roomId;
+            window.selectedRoomName = roomName;
+            history.pushState({ room_id: roomId }, '', '?room_id=' + roomId);
+            showRoomBadge = false;
+
+            // Fetch new data via AJAX
+            fetchDataAndRender(roomId);
+        }
+
+        function closeRoom() {
+            document.getElementById('calendar-view-container').classList.add('hidden');
+            document.getElementById('portal-view').classList.remove('hidden');
+            document.getElementById('btn-back-to-portal').classList.add('hidden');
+            document.getElementById('footer-tabs').classList.add('hidden');
+            document.getElementById('footer-tabs').classList.remove('flex');
+            
+            window.selectedRoomId = null;
+            history.pushState(null, '', window.location.pathname);
+        }
+
+        window.addEventListener('popstate', function(event) {
+            const params = new URLSearchParams(window.location.search);
+            const roomId = params.get('room_id');
+            if (roomId) {
+                openRoom(roomId, "Ruangan");
+            } else {
+                closeRoom();
+            }
+        });
+
+        // Initialize state based on URL on first load
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const roomId = params.get('room_id');
+            if (roomId) {
+                // If loaded with room_id, open it (but we don't know the name right away unless passed from server)
+                openRoom(roomId, "Ruangan Terpilih");
+            }
+        });
+
+        // ===================================================
+        // Data jadwal dari server & AJAX Auto-Refresh
+        // ===================================================
+        
+        function fetchDataAndRender(roomId = null) {
+            let url = '/room-reservations/public-display'; // Ensure base URL is clean
+            if(roomId) url += '?room_id=' + roomId;
+
+            fetch(url, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
@@ -373,8 +869,19 @@
                     renderMainStage();
                     renderTimelinePage();
                 }
-            })
-            .catch(err => console.error('Failed to fetch schedule updates:', err));
+                if(data && data.monthlySchedule) {
+                    monthlySchedule = data.monthlySchedule;
+                    if(typeof weeklyCalendar !== 'undefined' && weeklyCalendar !== null) {
+                        weeklyCalendar.removeAllEventSources();
+                        weeklyCalendar.addEventSource(monthlySchedule);
+                    }
+                }
+            }).catch(console.error);
+        }
+
+        // Polling data setiap 60 detik (tanpa refresh halaman)
+        setInterval(() => {
+            fetchDataAndRender(window.selectedRoomId);
         }, 60000);
 
         function getStatus(item, now) {
@@ -702,7 +1209,7 @@
                         </span>
 
                         <h2 class="text-5xl xl:text-[5.5rem] font-black text-white mb-8 font-display tracking-tight relative z-10 drop-shadow-lg leading-tight px-10">
-                            {{ $selectedRoom ? $selectedRoom->name : 'Ruangan FEB UNJ' }}
+                            ${window.selectedRoomName ? window.selectedRoomName : 'Ruangan FEB UNJ'}
                         </h2>
                         
                         <p class="text-2xl xl:text-3xl text-emerald-50 max-w-3xl relative z-10 font-medium leading-relaxed drop-shadow-sm px-10">
@@ -731,10 +1238,38 @@
         function renderTimelinePage() {
             const container = document.getElementById('timeline-container');
             if (!container) return;
+            
+            const agendaCountEl = document.getElementById('agenda-count');
+            if(agendaCountEl) {
+                agendaCountEl.innerText = schedule.length + ' ITEM';
+            }
+            
             const now = Date.now();
             const pages = Math.ceil(schedule.length / PAGE_SIZE) || 1;
             currentPage = currentPage % pages;
             const items = schedule.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE);
+
+            if (schedule.length === 0) {
+                const emptyTitle = "Belum Ada Aktivitas";
+                const emptyDesc = !showRoomBadge 
+                    ? "Jadwal peminjaman untuk ruangan ini masih kosong hari ini." 
+                    : "Belum ada data peminjaman yang tercatat untuk seluruh ruangan.";
+                    
+                container.innerHTML = `
+                    <div class="flex-1 flex flex-col items-center justify-center text-center p-6 h-full page-fade-enter">
+                        <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100 shadow-inner">
+                            <i data-lucide="inbox" class="w-10 h-10 text-slate-300"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-700 mb-2 font-display">${emptyTitle}</h4>
+                        <p class="text-sm font-medium text-slate-500 max-w-[250px] leading-relaxed">
+                            ${emptyDesc}
+                        </p>
+                    </div>
+                `;
+                lucide.createIcons();
+                renderPageDots(0);
+                return;
+            }
 
             const rows = items.map((item, index) => {
                 const status = getStatus(item, now);
@@ -806,11 +1341,11 @@
             }, ROTATE_INTERVAL);
         }
 
+
         // ===================================================
         // Init + refresh berkala
         // ===================================================
         function initDisplay() {
-            if (!schedule.length) return;
             renderMainStage();
             renderTimelinePage();
             startRotation();
@@ -824,6 +1359,23 @@
             // renderMainStage tidak perlu dipanggil manual di sini karena 
             // timer sudah melakukan auto-refresh layout saat state berubah (lihat setInterval countdown).
         }, 30000);
+        
+        // Search Filter Logic for Room Grid
+        const searchInput = document.getElementById('room-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const term = e.target.value.toLowerCase();
+                const cards = document.querySelectorAll('.room-card');
+                cards.forEach(card => {
+                    const name = card.getAttribute('data-room-name').toLowerCase();
+                    if (name.includes(term)) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
     </script>
 </body>
 </html>
