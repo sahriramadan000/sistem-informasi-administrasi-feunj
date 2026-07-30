@@ -1342,15 +1342,41 @@
         }
 
 
-        // ===================================================
+        // Equalize Room Cards Height
+        function equalizeCardHeights() {
+            const cards = document.querySelectorAll('.room-card');
+            if (!cards.length) return;
+            // Reset
+            cards.forEach(card => card.style.height = 'auto');
+            // Find max height
+            let maxHeight = 0;
+            cards.forEach(card => {
+                // Ensure element is visible before calculating height
+                if (card.style.display !== 'none') {
+                    const h = card.offsetHeight;
+                    if (h > maxHeight) maxHeight = h;
+                }
+            });
+            // Apply max height
+            if (maxHeight > 0) {
+                cards.forEach(card => card.style.height = maxHeight + 'px');
+            }
+        }
+
         // Init + refresh berkala
         // ===================================================
         function initDisplay() {
             renderMainStage();
             renderTimelinePage();
             startRotation();
+            // Allow DOM to fully paint before calculating height
+            setTimeout(equalizeCardHeights, 100);
         }
         initDisplay();
+        
+        window.addEventListener('resize', () => {
+            setTimeout(equalizeCardHeights, 100);
+        });
         
         // Cek secara berkala (30s) hanya jika perlu redraw keseluruhan 
         // yang tidak tertangkap oleh ticking timer (misal: refresh data)
@@ -1374,6 +1400,7 @@
                         card.style.display = 'none';
                     }
                 });
+                equalizeCardHeights();
             });
         }
     </script>
