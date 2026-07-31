@@ -14,6 +14,7 @@ class Room extends Model
         'capacity',
         'description',
         'is_active',
+        'room_group_id',
     ];
 
     protected $casts = [
@@ -23,5 +24,10 @@ class Room extends Model
     public function reservations()
     {
         return $this->hasMany(RoomReservation::class);
+    }
+
+    public function roomGroup()
+    {
+        return $this->belongsTo(RoomGroup::class);
     }
 }

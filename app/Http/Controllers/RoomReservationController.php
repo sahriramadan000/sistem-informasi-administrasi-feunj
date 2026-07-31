@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Room;
+use App\Models\RoomGroup;
 use App\Models\RoomReservation;
 class RoomReservationController extends Controller
 {
@@ -81,6 +82,7 @@ class RoomReservationController extends Controller
                 'event_name' => $r->event_name,
                 'requester_name' => $r->requester_name,
                 'contact_person' => $r->contact_person,
+                'room_id' => $r->room_id,
                 'room_name' => $r->room->name ?? 'Lainnya',
                 'start' => \Carbon\Carbon::parse($r->start_time)->valueOf(),
                 'end' => \Carbon\Carbon::parse($r->end_time)->valueOf(),
@@ -137,15 +139,30 @@ class RoomReservationController extends Controller
             ]);
         }
 
-        // Ambil semua ruangan aktif untuk dropdown filter jika perlu
-        $rooms = Room::where('is_active', true)->orderBy('name')->get();
+        // Ambil data untuk hirarki tampilan grid ruangan
+        $totalRooms = Room::where('is_active', true)->count();
+        $roomGroups = RoomGroup::with(['rooms' => function($q) {
+            $q->where('is_active', true)->orderBy('name');
+        }])->where('is_active', true)->orderBy('name')->get();
+
+        $ungroupedRooms = Room::where('is_active', true)
+            ->whereNull('room_group_id')
+            ->orderBy('name')->get();
         
         $selectedRoom = null;
         if ($selectedRoomId) {
             $selectedRoom = Room::find($selectedRoomId);
         }
 
-        return view('room_reservations.public_display', compact('reservations', 'rooms', 'selectedRoom', 'scheduleData', 'monthlyScheduleData'));
+        return view('room_reservations.public_display', compact(
+            'reservations', 
+            'roomGroups', 
+            'ungroupedRooms', 
+            'totalRooms',
+            'selectedRoom', 
+            'scheduleData', 
+            'monthlyScheduleData'
+        ));
     }
 
     public function publicDisplayTimeGrid(Request $request)

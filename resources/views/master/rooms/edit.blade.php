@@ -44,7 +44,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pl-0 md:pl-13">
                             
                             {{-- Nama Ruangan --}}
-                            <div class="space-y-2 md:col-span-2">
+                            <div class="space-y-2 md:col-span-1">
                                 <label for="name" class="label flex items-center gap-2">
                                     <i data-lucide="box" class="w-4 h-4 text-gray-400"></i>
                                     Nama Ruangan <span class="text-destructive">*</span>
@@ -53,6 +53,28 @@
                                     class="input @error('name') !border-red-500 @enderror"
                                     placeholder="Misal: Ruang Sidang Utama">
                                 @error('name')
+                                    <p class="text-sm text-destructive flex items-center gap-1.5">
+                                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
+
+                            {{-- Grup Ruangan --}}
+                            <div class="space-y-2 md:col-span-1">
+                                <label for="room_group_id" class="label flex items-center gap-2">
+                                    <i data-lucide="folder" class="w-4 h-4 text-gray-400"></i>
+                                    Grup Ruangan
+                                </label>
+                                <select id="room_group_id" name="room_group_id" class="select @error('room_group_id') !border-red-500 @enderror">
+                                    <option value="">-- Tidak ada grup --</option>
+                                    @foreach($roomGroups as $group)
+                                        <option value="{{ $group->id }}" {{ old('room_group_id', $room->room_group_id) == $group->id ? 'selected' : '' }}>
+                                            {{ $group->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('room_group_id')
                                     <p class="text-sm text-destructive flex items-center gap-1.5">
                                         <i data-lucide="alert-circle" class="w-4 h-4"></i>
                                         {{ $message }}

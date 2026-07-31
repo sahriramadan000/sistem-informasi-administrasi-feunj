@@ -485,7 +485,7 @@
                                     </div>
                                 </div>
                             @endif
-                        @elseif(request()->routeIs('room-reservations.*', 'master.rooms.*'))
+                        @elseif(request()->routeIs('room-reservations.*', 'master.rooms.*', 'master.room-groups.*'))
                             @if(auth()->user()->can_access_room_reservations || auth()->user()->isAdmin())
                                 {{-- ========================================== --}}
                                 {{-- NAVIGASI MODUL PEMINJAMAN RUANG --}}
@@ -523,6 +523,11 @@
                                             class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.rooms.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
                                             <i data-lucide="box" class="mr-3 h-5 w-5"></i>
                                             Master Ruangan
+                                        </a>
+                                        <a href="{{ route('master.room-groups.index') }}"
+                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.room-groups.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                            <i data-lucide="folder" class="mr-3 h-5 w-5"></i>
+                                            Master Grup Ruangan
                                         </a>
                                     </div>
                                 </div>
@@ -773,7 +778,7 @@
                                     </div>
                                 </div>
                             @endif
-                        @elseif(request()->routeIs('room-reservations.*', 'master.rooms.*'))
+                        @elseif(request()->routeIs('room-reservations.*', 'master.rooms.*', 'master.room-groups.*'))
                             @if(auth()->user()->can_access_room_reservations || auth()->user()->isAdmin())
                                 {{-- ========================================== --}}
                                 {{-- NAVIGASI MODUL PEMINJAMAN RUANG --}}
@@ -811,6 +816,11 @@
                                                 class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.rooms.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
                                                 <i data-lucide="box" class="mr-3 h-5 w-5"></i>
                                                 Master Ruangan
+                                            </a>
+                                            <a href="{{ route('master.room-groups.index') }}"
+                                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.room-groups.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                                                <i data-lucide="folder" class="mr-3 h-5 w-5"></i>
+                                                Master Grup Ruangan
                                             </a>
                                         </div>
                                     </div>

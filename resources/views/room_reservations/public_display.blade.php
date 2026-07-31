@@ -114,6 +114,11 @@
             100% { transform: translateY(0px); }
         }
 
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translate(-50%, 20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
         ::-webkit-scrollbar { display: none; }
 
         /* ===== Prodless Weekly & Mini Calendar Customization ===== */
@@ -311,7 +316,7 @@
                             </div>
                             <div class="flex items-center gap-3">
                                 <div class="text-right">
-                                    <div class="text-2xl font-black text-white leading-none font-display">{{ count($rooms) }}</div>
+                                    <div class="text-2xl font-black text-white leading-none font-display">{{ $totalRooms }}</div>
                                     <div class="text-[9px] font-bold uppercase tracking-widest text-orange-400 mt-1">Ruang Aktif</div>
                                 </div>
                                 <div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center border border-orange-500/20 shadow-inner">
@@ -326,9 +331,38 @@
             <!-- Bagian Kanan: Grid Ruangan -->
             <div class="flex-1 w-full pb-12 pt-4 xl:pt-8 flex flex-col">
 
-                <div class="flex flex-wrap justify-center gap-6" id="room-grid">
-                    @foreach($rooms as $room)
-                    <div data-room-name="{{ $room->name }}" onclick="openRoom('{{ encrypt($room->id) }}', '{{ addslashes($room->name) }}')" class="room-card w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)] 2xl:w-[calc(20%-19.2px)] cursor-pointer group bg-white rounded-[1.5rem] p-6 xl:p-7 border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 hover:-translate-y-1 flex flex-col relative overflow-hidden h-full">
+                <div class="flex flex-wrap justify-center gap-6 w-full" id="portal-main-grid">
+                    @foreach($roomGroups as $group)
+                    <div data-group-name="{{ $group->name }}" onclick="openGroup('{{ $group->id }}')" class="room-card w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)] 2xl:w-[calc(20%-19.2px)] cursor-pointer group bg-white rounded-[1.5rem] p-6 xl:p-7 border border-slate-200 shadow-sm hover:shadow-xl hover:border-orange-300 transition-all duration-300 hover:-translate-y-1 flex flex-col relative overflow-hidden h-full">
+                        <!-- Top Row: Icon & Action -->
+                        <div class="flex justify-between items-start mb-5 relative z-10">
+                            <div class="w-12 h-12 bg-orange-50 border border-orange-100 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:bg-orange-500 group-hover:border-orange-500 shadow-sm">
+                                <i data-lucide="folder" class="w-6 h-6 text-orange-500 group-hover:text-white transition-colors duration-300"></i>
+                            </div>
+                            <div class="w-8 h-8 flex items-center justify-center text-slate-300 group-hover:text-orange-500 transition-all duration-300 -rotate-45 group-hover:rotate-0 transform">
+                                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="relative z-10 flex-1 flex flex-col">
+                            <div class="text-[10px] font-black tracking-widest text-orange-500 mb-1 uppercase">Grup Ruangan</div>
+                            <h3 class="text-xl font-bold text-slate-800 mb-1 leading-tight group-hover:text-slate-900 transition-colors duration-300">{{ $group->name }}</h3>
+                            <p class="text-[11px] font-medium text-slate-400 mb-5">Ketuk untuk melihat isi ruangan</p>
+                            
+                            <!-- Bottom Info -->
+                            <div class="mt-auto">
+                                <div class="inline-flex items-center gap-2 text-xs font-bold text-slate-500">
+                                    <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-slate-400"></i>
+                                    {{ $group->rooms->count() }} Ruangan
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+
+                    @foreach($ungroupedRooms as $room)
+                    <div data-room-name="{{ $room->name }}" onclick="openRoom('{{ encrypt($room->id) }}', '{{ addslashes($room->name) }}')" class="room-card room-item w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)] 2xl:w-[calc(20%-19.2px)] cursor-pointer group bg-white rounded-[1.5rem] p-6 xl:p-7 border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 hover:-translate-y-1 flex flex-col relative overflow-hidden h-full">
                         
                         <!-- Top Row: Icon & Action -->
                         <div class="flex justify-between items-start mb-5 relative z-10">
@@ -343,7 +377,7 @@
                         <!-- Content -->
                         <div class="relative z-10 flex-1 flex flex-col">
                             <h3 class="text-xl font-bold text-slate-800 mb-1 leading-tight group-hover:text-slate-900 transition-colors duration-300">{{ $room->name }}</h3>
-                            <p class="text-[11px] font-medium text-slate-400 mb-5">Ketuk untuk lihat detail</p>
+                            <p class="text-[11px] font-medium text-slate-400 mb-5">Ketuk untuk lihat jadwal detail</p>
                             
                             <!-- Bottom Info -->
                             <div class="mt-auto">
@@ -358,7 +392,151 @@
                 </div>
             </div>
         </div>
+    </main>
+
+    <!-- GROUP DETAIL VIEW (FULL SCREEN) -->
+    <main id="group-detail-view-container" class="hidden flex-1 w-full p-6 mx-auto flex flex-col min-h-0 relative z-10 max-w-[1920px] animate-[pageFadeIn_0.5s_ease_both]">
+        @foreach($roomGroups as $groupIndex => $group)
+        <div id="group-detail-{{ $group->id }}" class="group-detail-view hidden flex-col lg:flex-row w-full h-full relative gap-10 lg:gap-16">
+            
+            <!-- Left Side: Sticky Hero Title -->
+            <div class="w-full lg:w-[35%] flex flex-col pt-10 pb-10 relative">
+                <div class="sticky top-10 w-full pr-0 lg:pr-8 h-[calc(100vh-5rem)] flex flex-col justify-center">
+                    
+                    <!-- Premium Nested Glass Card (Bezel) -->
+                    <div class="relative bg-white/40 backdrop-blur-3xl rounded-[3rem] p-3 xl:p-4 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.1)] border border-white/60 w-full h-auto">
+                        
+                        <!-- Inner Dark UI Panel -->
+                        <div class="relative bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-[2.5rem] p-8 md:p-12 overflow-hidden text-white shadow-2xl flex flex-col w-full h-auto">
+                            
+                            <!-- Ambient Glowing Orbs -->
+                            <div class="absolute -right-20 -top-20 w-64 h-64 bg-orange-600 rounded-full blur-[70px] opacity-30 mix-blend-screen animate-pulse pointer-events-none"></div>
+                            <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-amber-500 rounded-full blur-[70px] opacity-20 mix-blend-screen pointer-events-none"></div>
+
+                            <!-- Middle Content Wrapper (Centered Vertically) -->
+                            <div class="flex flex-col justify-center relative z-10 w-full">
+                                <!-- Top Bar -->
+                                <div class="flex justify-between items-start mb-14 relative z-10">
+                                    <div class="w-14 h-14 xl:w-16 xl:h-16 rounded-[1.25rem] bg-white/5 backdrop-blur-md flex items-center justify-center border border-white/10 shadow-xl group-hover:scale-110 group-hover:bg-white/10 transition-all duration-500">
+                                        <i data-lucide="layers" class="w-7 h-7 xl:w-8 xl:h-8 text-orange-400"></i>
+                                    </div>
+                                    <div class="px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 text-[10px] font-bold font-mono tracking-widest uppercase flex items-center gap-2 backdrop-blur-md shadow-inner">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
+                                        Live Sync
+                                    </div>
+                                </div>
+
+                            <!-- Massive Title -->
+                            <h2 class="text-5xl md:text-6xl xl:text-7xl font-black font-display tracking-tighter leading-[1.05] mb-8 text-white drop-shadow-lg">
+                                {{ $group->name }}
+                            </h2>
+
+                            <!-- Modern Description Line -->
+                            <div class="pl-6 border-l-[3px] border-orange-400 mb-10">
+                                <p class="text-slate-300 font-medium text-lg leading-relaxed">
+                                    Sistem informasi jadwal dan penggunaan ruang <span class="font-bold text-white">Fakultas Ekonomi UNJ</span>. Menampilkan agenda akademik dan kegiatan kemahasiswaan hari ini.
+                                </p>
+                            </div>
+                            
+                            <!-- Stats to fill empty space -->
+                            <div class="mt-4 flex flex-col gap-8">
+                                
+                                <!-- Stat Grid -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- Stat 1 -->
+                                <div class="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <div class="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400">
+                                            <i data-lucide="door-open" class="w-4 h-4"></i>
+                                        </div>
+                                        <p class="text-[10px] font-bold text-orange-400 uppercase tracking-widest">Total Ruang</p>
+                                    </div>
+                                    <p class="text-3xl font-black text-white tracking-tight">{{ $group->rooms->count() }}</p>
+                                </div>
+
+                                <!-- Stat 2 -->
+                                <div class="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <div class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400">
+                                            <i data-lucide="users" class="w-4 h-4"></i>
+                                        </div>
+                                        <p class="text-[10px] font-bold text-orange-400 uppercase tracking-widest">Kapasitas</p>
+                                    </div>
+                                    <p class="text-3xl font-black text-white tracking-tight">{{ $group->rooms->sum('capacity') ?? 0 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                        
+                        <!-- System Info Footer (Integrated inside card) -->
+                        <div class="relative z-10 mt-12 pt-8 border-t border-white/10 flex items-center justify-between">
+                            <div>
+                                <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Sistem Terintegrasi</div>
+                                <div class="font-bold text-base flex items-center gap-1.5 text-white">
+                                    FEB UNJ
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-orange-500"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="text-right">
+                                    <div class="text-base font-black text-white leading-none">{{ date('d F Y') }}</div>
+                                    <div class="text-[9px] font-bold uppercase tracking-widest text-orange-400 mt-1.5">Jadwal Hari Ini</div>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center border border-orange-500/20 shadow-inner">
+                                    <i data-lucide="calendar" class="w-4 h-4 text-orange-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Huge Watermark Text (Decorative) -->
+                        <div class="absolute -right-6 -bottom-16 text-[200px] font-black text-white/[0.03] select-none pointer-events-none transform -rotate-12 leading-none z-0">
+                            #{{ str_pad($groupIndex + 1, 2, '0', STR_PAD_LEFT) }}
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Modern Cards Grid -->
+            <div class="w-full lg:w-[65%] flex flex-col pt-10 pb-20 min-h-full">
+                @php $roomCount = $group->rooms->count(); @endphp
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start w-full my-auto">
+                    @foreach($group->rooms as $index => $room)
+                    @php
+                        $isLastOdd = ($roomCount % 2 !== 0 && $index === $roomCount - 1);
+                        $centerClass = $isLastOdd ? 'xl:col-span-2 xl:w-[calc(50%-0.75rem)] xl:mx-auto' : '';
+                    @endphp
+                    <!-- Modern Rounded Card (Fixed Height) -->
+                    <div data-room-name="{{ $room->name }}" onclick="openRoom('{{ encrypt($room->id) }}', '{{ addslashes($room->name) }}')" class="room-status-card group cursor-pointer relative rounded-[2rem] overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl bg-white border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.06)] h-[210px] flex flex-col p-5 lg:p-6 {{ $centerClass }}" data-room-id="{{ $room->id }}">
+                    
+                    <!-- Background Glow Overlay (Injected by JS) -->
+                    <div class="card-bg-glow absolute inset-0 opacity-0 transition-opacity duration-500"></div>
+
+                    <!-- Header: Room Name & Capacity -->
+                    <div class="relative z-10 flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-4">
+                            <div class="card-icon-wrapper w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500 transition-colors duration-300 shrink-0">
+                                <i data-lucide="door-open" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-black text-slate-800 font-display tracking-tight leading-none">{{ $room->name }}</h3>
+                                <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase mt-1.5">Kapasitas: {{ $room->capacity ?? '-' }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Content Injected by JS -->
+                    <div class="room-activity-content relative z-10 flex-1 flex flex-col w-full">
+                        <div class="flex items-center justify-center gap-2 text-slate-400 m-auto">
+                            <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+                            <span class="text-[10px] font-bold uppercase tracking-widest">Memuat...</span>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
         </div>
+        @endforeach
     </main>
     
     <!-- CALENDAR VIEW -->
@@ -502,7 +680,13 @@
         
         
         
-        <p class="text-slate-400 text-xs font-bold tracking-wider uppercase">&copy; {{ date('Y') }} Fakultas Ekonomi dan Bisnis UNJ &middot; Sistem Informasi Administrasi</p>
+        <div class="flex items-center gap-4">
+            <button id="btn-back-from-group" onclick="closeGroup()" class="hidden px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs shadow-md transition-colors items-center gap-1.5">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Ganti Ruang
+            </button>
+            <div class="w-px h-5 bg-slate-300 mx-1"></div>
+            <p class="text-slate-400 text-[11px] font-bold tracking-wider uppercase">&copy; {{ date('Y') }} Fakultas Ekonomi dan Bisnis UNJ &middot; Sistem Informasi Administrasi</p>
+        </div>
         
         <!-- UI Controls (Zoom & Fullscreen) -->
         <div class="flex items-center gap-3 w-[200px] justify-end">
@@ -781,6 +965,11 @@
             
             // Only update icons if they are empty
             if(!document.querySelector('#digital-date svg')) lucide.createIcons();
+
+            // Auto-refresh data exactly at second 00 of every minute (Server Sync)
+            if (s === '00' && typeof fetchDataAndRender === 'function') {
+                fetchDataAndRender(window.selectedRoomId);
+            }
         }
         updateClock();
         setInterval(updateClock, 1000);
@@ -792,11 +981,156 @@
         window.selectedRoomId = null;
         let showRoomBadge = true;
 
+        // Group Navigation Logic
+        function openGroup(groupId) {
+            document.getElementById('portal-view').classList.add('hidden');
+            document.getElementById('group-detail-view-container').classList.remove('hidden');
+            
+            // Show footer button
+            document.getElementById('btn-back-from-group').classList.remove('hidden');
+            document.getElementById('btn-back-from-group').classList.add('flex');
+            document.querySelectorAll('.group-detail-view').forEach(el => {
+                el.classList.add('hidden');
+                el.style.display = 'none';
+            });
+            const detailView = document.getElementById('group-detail-' + groupId);
+            if (detailView) {
+                detailView.classList.remove('hidden');
+                detailView.style.display = 'flex';
+            }
+            setTimeout(equalizeCardHeights, 50);
+            updateRoomStatuses();
+        }
+
+        function closeGroup() {
+            document.getElementById('group-detail-view-container').classList.add('hidden');
+            document.getElementById('portal-view').classList.remove('hidden');
+            
+            // Hide footer button
+            document.getElementById('btn-back-from-group').classList.add('hidden');
+            document.getElementById('btn-back-from-group').classList.remove('flex');
+            
+            setTimeout(equalizeCardHeights, 50);
+        }
+
+        // Room Status Real-time Logic (for Full Screen Group View)
+        function updateRoomStatuses() {
+            if (!schedule || !Array.isArray(schedule)) return;
+            const now = Date.now();
+            let activeRooms = new Map();
+            
+            schedule.forEach(item => {
+                if (now >= item.start && now <= item.end && item.room_id) {
+                    activeRooms.set(item.room_id, item);
+                }
+            });
+
+            document.querySelectorAll('.room-status-badge').forEach(badge => {
+                const roomId = parseInt(badge.getAttribute('data-room-id'));
+                if (activeRooms.has(roomId)) {
+                    badge.innerHTML = `
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-50 text-red-600 text-[10px] font-bold tracking-widest uppercase border border-red-200 shadow-sm animate-pulse">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Terpakai
+                        </span>
+                    `;
+                } else {
+                    badge.innerHTML = `
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-600 text-[10px] font-bold tracking-widest uppercase border border-emerald-200 shadow-sm">
+                            <i data-lucide="check-circle-2" class="w-3 h-3"></i> Tersedia
+                        </span>
+                    `;
+                }
+            });
+
+            // Update group-detail-view Cards (Asymmetric Layout)
+            document.querySelectorAll('.room-status-card').forEach(card => {
+                const roomId = parseInt(card.getAttribute('data-room-id'));
+                const contentEl = card.querySelector('.room-activity-content');
+                const glowEl = card.querySelector('.card-bg-glow');
+                const iconWrapper = card.querySelector('.card-icon-wrapper');
+                
+                if (activeRooms.has(roomId)) {
+                    const item = activeRooms.get(roomId);
+                    // TERPAKAI (Aksen Merah Bersih)
+                    card.classList.remove('border-white/50');
+                    card.classList.add('border-red-200', 'border-l-[6px]', 'border-l-red-500', 'shadow-[0_10px_30px_-10px_rgba(239,68,68,0.15)]');
+                    
+                    if(glowEl) glowEl.className = 'card-bg-glow absolute inset-0 opacity-100 transition-opacity duration-500 bg-white/90';
+                    if(iconWrapper) iconWrapper.className = 'card-icon-wrapper relative z-10 w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-500 border border-red-100 transition-colors duration-300 shrink-0';
+                    
+                    if(contentEl) contentEl.innerHTML = `
+                        <div class="flex-1 flex flex-col justify-center animate-[pageFadeIn_0.5s_ease_both] pb-2">
+                            <h4 class="text-lg md:text-xl font-black text-slate-800 line-clamp-2 leading-tight tracking-tight" title="${item.event_name || 'Kegiatan'}">${item.event_name || 'Kegiatan'}</h4>
+                        </div>
+                        
+                        <div class="mt-auto -mx-5 lg:-mx-6 -mb-5 lg:-mb-6 border-t border-red-100 flex items-stretch h-[52px] bg-white">
+                            <!-- Kiri: Status -->
+                            <div class="flex items-center justify-center gap-2 w-[30%] px-2 bg-red-50/80 border-r border-red-100">
+                                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_6px_rgba(239,68,68,0.6)] shrink-0"></span>
+                                <span class="text-xs font-black text-red-600 tracking-[0.1em] uppercase mt-0.5">Terpakai</span>
+                            </div>
+                            
+                            <!-- Tengah: Nama Pemohon -->
+                            <div class="flex items-center justify-center gap-2 flex-1 px-4 min-w-0">
+                                <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-widest truncate mt-0.5">${item.requester_name || item.contact_person || 'Anonim'}</span>
+                            </div>
+                            
+                            <!-- Kanan: Jam Pelaksanaan -->
+                            <div class="flex items-center justify-center gap-1.5 w-[30%] px-2 text-red-600 bg-red-50/30 border-l border-red-100">
+                                <i data-lucide="clock" class="w-3.5 h-3.5 shrink-0 text-red-400"></i>
+                                <span class="font-mono text-md font-bold tracking-tighter pt-0.5">${item.start_label}-${item.end_label}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // TERSEDIA (HIJAU / TRANSPARAN)
+                    card.classList.remove('border-red-200', 'border-l-[6px]', 'border-l-red-500', 'shadow-[0_10px_30px_-10px_rgba(239,68,68,0.15)]');
+                    card.classList.add('border-slate-200');
+                    
+                    if(glowEl) glowEl.className = 'card-bg-glow absolute inset-0 opacity-100 transition-opacity duration-500 bg-white/60';
+                    if(iconWrapper) iconWrapper.className = 'card-icon-wrapper relative z-10 w-12 h-12 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 transition-colors duration-300 shrink-0';
+                    
+                    if(contentEl) contentEl.innerHTML = `
+                        <div class="flex-1 flex items-center justify-center gap-4 animate-[pageFadeIn_0.5s_ease_both] opacity-60">
+                            <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100 shadow-inner shrink-0">
+                                <i data-lucide="coffee" class="w-4 h-4 opacity-70"></i>
+                            </div>
+                            <div class="text-left">
+                                <h4 class="text-[13px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Tidak Ada Jadwal</h4>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Ruangan Siap Digunakan</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-auto -mx-5 lg:-mx-6 -mb-5 lg:-mb-6 border-t border-emerald-100 flex items-stretch h-[52px] bg-white/60">
+                            <!-- Kiri: Status -->
+                            <div class="flex items-center justify-center gap-1.5 w-[30%] px-2 bg-emerald-50/80 border-r border-emerald-100">
+                                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
+                                <span class="text-xs font-black text-emerald-600 tracking-[0.2em] uppercase mt-0.5">Tersedia</span>
+                            </div>
+                            
+                            <!-- Kanan: Info (Merged Center & Right) -->
+                            <div class="flex items-center justify-center flex-1 px-4">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mt-0.5">Ruangan Kosong Saat Ini</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            lucide.createIcons();
+        }
+
+        // Jalankan status cek setiap 30 detik
+        setInterval(updateRoomStatuses, 30000);
+
         function openRoom(roomId, roomName) {
             // Tampilkan loading state jika perlu, namun untuk seamless kita langsung sembunyikan portal
             document.getElementById('portal-view').classList.add('hidden');
+            document.getElementById('group-detail-view-container').classList.add('hidden');
             document.getElementById('calendar-view-container').classList.remove('hidden');
             document.getElementById('btn-back-to-portal').classList.remove('hidden');
+            document.getElementById('btn-back-from-group').classList.add('hidden');
+            document.getElementById('btn-back-from-group').classList.remove('flex');
             document.getElementById('footer-tabs').classList.remove('hidden');
             document.getElementById('footer-tabs').classList.add('flex');
             
@@ -868,6 +1202,7 @@
                     schedule = data.schedule;
                     renderMainStage();
                     renderTimelinePage();
+                    updateRoomStatuses();
                 }
                 if(data && data.monthlySchedule) {
                     monthlySchedule = data.monthlySchedule;
@@ -879,10 +1214,7 @@
             }).catch(console.error);
         }
 
-        // Polling data setiap 60 detik (tanpa refresh halaman)
-        setInterval(() => {
-            fetchDataAndRender(window.selectedRoomId);
-        }, 60000);
+        // Polling data dipindahkan ke fungsi updateClock agar sinkron persis di detik 00
 
         function getStatus(item, now) {
             if (now < item.start) return 'upcoming';
@@ -1369,6 +1701,7 @@
             renderMainStage();
             renderTimelinePage();
             startRotation();
+            updateRoomStatuses();
             // Allow DOM to fully paint before calculating height
             setTimeout(equalizeCardHeights, 100);
         }
@@ -1393,7 +1726,10 @@
                 const term = e.target.value.toLowerCase();
                 const cards = document.querySelectorAll('.room-card');
                 cards.forEach(card => {
-                    const name = card.getAttribute('data-room-name').toLowerCase();
+                    const roomName = card.getAttribute('data-room-name');
+                    const groupName = card.getAttribute('data-group-name');
+                    const name = (roomName || groupName || '').toLowerCase();
+                    
                     if (name.includes(term)) {
                         card.style.display = '';
                     } else {

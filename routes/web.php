@@ -76,6 +76,7 @@ Route::prefix('master')->name('master.')->group(function () {
     Route::resource('signatories', SignatoryController::class);
     Route::resource('letter-purposes', LetterPurposeController::class);
     Route::resource('rooms', RoomController::class);
+    Route::resource('room-groups', \App\Http\Controllers\Master\RoomGroupController::class);
     Route::resource('users', UserController::class);
 });
 

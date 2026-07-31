@@ -16,7 +16,7 @@ class RoomController extends Controller
 
     public function index(Request $request)
     {
-        $query = Room::query();
+        $query = Room::with('roomGroup');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -32,13 +32,15 @@ class RoomController extends Controller
 
     public function create()
     {
-        return view('master.rooms.create');
+        $roomGroups = \App\Models\RoomGroup::where('is_active', true)->orderBy('name')->get();
+        return view('master.rooms.create', compact('roomGroups'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'room_group_id' => 'nullable|exists:room_groups,id',
             'capacity' => 'nullable|integer|min:1',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
@@ -51,13 +53,15 @@ class RoomController extends Controller
 
     public function edit(Room $room)
     {
-        return view('master.rooms.edit', compact('room'));
+        $roomGroups = \App\Models\RoomGroup::where('is_active', true)->orderBy('name')->get();
+        return view('master.rooms.edit', compact('room', 'roomGroups'));
     }
 
     public function update(Request $request, Room $room)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'room_group_id' => 'nullable|exists:room_groups,id',
             'capacity' => 'nullable|integer|min:1',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
