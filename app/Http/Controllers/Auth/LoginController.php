@@ -54,7 +54,27 @@ class LoginController extends Controller
                     'ip' => $request->ip()
                 ]);
 
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Login berhasil! Selamat datang kembali.',
+                        'user' => [
+                            'name' => Auth::user()->name,
+                            'role' => Auth::user()->role,
+                            'email' => Auth::user()->email,
+                        ],
+                        'redirect' => session()->pull('url.intended', route('switcher'))
+                    ]);
+                }
+
                 return redirect()->intended(route('switcher'));
+            }
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Email/Username atau password yang Anda masukkan salah.',
+                ], 422);
             }
 
             return back()
@@ -63,11 +83,27 @@ class LoginController extends Controller
                 ])
                 ->withInput($request->only('login'));
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => collect($e->errors())->flatten()->first() ?? 'Data login tidak lengkap.',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
         } catch (\Throwable $e) {
             Log::error('Login error', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kendala pada server. Silakan coba beberapa saat lagi.',
+                ], 500);
+            }
 
             return back()
                 ->withErrors([
