@@ -51,7 +51,7 @@ class ClassificationLetterController extends Controller
         try {
             $query = ClassificationLetter::query();
 
-            // Search berdasarkan nama klasifikasi atau deskripsi
+            // Search berdasarkan nama klasifikasi, kode, atau deskripsi
             if ($request->filled('search')) {
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
@@ -59,6 +59,15 @@ class ClassificationLetterController extends Controller
                       ->orWhere('description', 'like', "%{$search}%")
                       ->orWhere('code', 'like', "%{$search}%");
                 });
+            }
+
+            // Filter status aktif/nonaktif
+            if ($request->filled('status')) {
+                if ($request->status === 'active') {
+                    $query->where('is_active', true);
+                } elseif ($request->status === 'inactive') {
+                    $query->where('is_active', false);
+                }
             }
 
             $perPage = $request->input('per_page', 10);

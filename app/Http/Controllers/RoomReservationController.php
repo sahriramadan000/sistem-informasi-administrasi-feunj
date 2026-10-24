@@ -21,39 +21,88 @@ class RoomReservationController extends Controller
 
     public function dashboard()
     {
-        $totalToday = RoomReservation::whereDate('reservation_date', today())->count();
-        
+        $today = today();
+        $totalToday = RoomReservation::whereDate('reservation_date', $today)->count();
+        $totalThisMonth = RoomReservation::whereMonth('reservation_date', $today->month)
+            ->whereYear('reservation_date', $today->year)
+            ->count();
+        $totalRooms = Room::where('is_active', true)->count();
+        $totalAll = RoomReservation::count();
+        $totalUpcoming = RoomReservation::whereDate('reservation_date', '>=', $today)->count();
+
+        // Agenda Hari Ini
+        $todayReservations = RoomReservation::with(['room', 'creator'])
+            ->whereDate('reservation_date', $today)
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        // 8 Aktivitas Peminjaman Terbaru
         $recentReservations = RoomReservation::with(['room', 'creator'])
             ->orderBy('created_at', 'desc')
-            ->take(10)
+            ->take(8)
             ->get();
-        $totalThisMonth = RoomReservation::whereMonth('reservation_date', today()->month)
-            ->whereYear('reservation_date', today()->year)
-            ->count();
-        $totalRooms = \App\Models\Room::where('is_active', true)->count();
 
-        // Calendar Events
-        $allReservations = RoomReservation::with('room')->get();
-        $calendarEvents = $allReservations->map(function($res) {
+        // Ruangan Terpopuler (Top 5)
+        $topRooms = Room::withCount('reservations')
+            ->where('is_active', true)
+            ->orderByDesc('reservations_count')
+            ->take(5)
+            ->get();
+
+        // List Ruangan & Pemetaan Warna Apple
+        $rooms = Room::where('is_active', true)->orderBy('name')->get();
+        $palette = [
+            '#ea580c', '#2563eb', '#059669', '#7c3aed', 
+            '#d97706', '#0284c7', '#db2777', '#16a34a', 
+            '#4f46e5', '#ca8a04'
+        ];
+        $roomColors = [];
+        foreach ($rooms as $idx => $r) {
+            $roomColors[$r->id] = $palette[$idx % count($palette)];
+        }
+
+        // Calendar Events dengan Color Coding per Ruangan
+        $allReservations = RoomReservation::with(['room', 'creator'])->get();
+        $calendarEvents = $allReservations->map(function($res) use ($roomColors) {
+            $roomColor = $roomColors[$res->room_id] ?? '#ea580c';
             return [
+                'id' => $res->id,
                 'title' => ($res->room->name ?? 'Ruangan Dihapus') . ' - ' . $res->event_name,
                 'start' => $res->reservation_date->format('Y-m-d') . 'T' . \Carbon\Carbon::parse($res->start_time)->format('H:i:s'),
                 'end' => $res->reservation_date->format('Y-m-d') . 'T' . \Carbon\Carbon::parse($res->end_time)->format('H:i:s'),
-                'backgroundColor' => '#2563eb', // blue-600
-                'borderColor' => '#1d4ed8', // blue-700
+                'backgroundColor' => $roomColor,
+                'borderColor' => $roomColor,
                 'textColor' => '#ffffff',
                 'extendedProps' => [
+                    'id' => $res->id,
                     'room_name' => $res->room->name ?? 'Ruangan Dihapus',
                     'event_name' => $res->event_name,
                     'requester_name' => $res->requester_name,
+                    'contact_person' => $res->contact_person ?? '-',
+                    'facilities' => $res->facilities ?? '-',
+                    'remarks' => $res->remarks ?? '-',
                     'creator_name' => $res->creator->name ?? 'Sistem',
-                    'time_range' => \Carbon\Carbon::parse($res->start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($res->end_time)->format('H:i'),
-                    'detail_url' => route('room-reservations.show', $res->id)
+                    'time_range' => \Carbon\Carbon::parse($res->start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($res->end_time)->format('H:i') . ' WIB',
+                    'date_formatted' => $res->reservation_date->translatedFormat('l, d F Y'),
+                    'detail_url' => route('room-reservations.show', $res->id),
+                    'status' => $res->status ?? 'approved',
                 ]
             ];
         });
 
-        return view('room_reservations.dashboard', compact('recentReservations', 'totalToday', 'totalThisMonth', 'totalRooms', 'calendarEvents'));
+        return view('room_reservations.dashboard', compact(
+            'recentReservations', 
+            'todayReservations',
+            'totalToday', 
+            'totalThisMonth', 
+            'totalRooms', 
+            'totalAll',
+            'totalUpcoming',
+            'topRooms',
+            'rooms',
+            'roomColors',
+            'calendarEvents'
+        ));
     }
 
     public function publicDisplay(Request $request)

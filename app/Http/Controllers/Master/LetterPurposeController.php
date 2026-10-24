@@ -52,7 +52,22 @@ class LetterPurposeController extends Controller
                 });
             }
 
-            $letterPurposes = $query->orderBy('name')->paginate($request->get('per_page', 10));
+            // Filter status aktif/nonaktif
+            if ($request->filled('status')) {
+                if ($request->status === 'active') {
+                    $query->where('is_active', true);
+                } elseif ($request->status === 'inactive') {
+                    $query->where('is_active', false);
+                }
+            }
+
+            $perPage = $request->input('per_page', 10);
+            $allowedPerPage = [10, 25, 50, 100];
+            if (!in_array($perPage, $allowedPerPage)) {
+                $perPage = 10;
+            }
+
+            $letterPurposes = $query->orderBy('name')->paginate($perPage);
             
             return view('master.letter-purposes.index', compact('letterPurposes'));
         } catch (\Throwable $e) {
@@ -86,6 +101,8 @@ class LetterPurposeController extends Controller
         ]);
 
         try {
+            $validated['is_active'] = $request->boolean('is_active');
+
             // Simpan data menggunakan transaction
             DB::transaction(function () use ($validated) {
                 LetterPurpose::create($validated);
@@ -142,6 +159,8 @@ class LetterPurposeController extends Controller
         ]);
 
         try {
+            $validated['is_active'] = $request->boolean('is_active');
+
             // Update data menggunakan transaction
             DB::transaction(function () use ($letterPurpose, $validated) {
                 $letterPurpose->update($validated);

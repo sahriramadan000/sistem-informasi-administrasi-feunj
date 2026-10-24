@@ -54,7 +54,22 @@ class LetterTypeController extends Controller
                 });
             }
 
-            $letterTypes = $query->orderBy('name')->paginate($request->get('per_page', 10));
+            // Filter status aktif/nonaktif
+            if ($request->filled('status')) {
+                if ($request->status === 'active') {
+                    $query->where('is_active', true);
+                } elseif ($request->status === 'inactive') {
+                    $query->where('is_active', false);
+                }
+            }
+
+            $perPage = $request->input('per_page', 10);
+            $allowedPerPage = [10, 25, 50, 100];
+            if (!in_array($perPage, $allowedPerPage)) {
+                $perPage = 10;
+            }
+
+            $letterTypes = $query->orderBy('name')->paginate($perPage);
             
             return view('master.letter_type.index', compact('letterTypes'));
         } catch (\Throwable $e) {
@@ -90,9 +105,9 @@ class LetterTypeController extends Controller
         ]);
 
         try {
-            // Handle checkbox values (jika tidak dicentang, set false)
-            $validated['is_active'] = $request->has('is_active');
-            $validated['requires_purpose'] = $request->has('requires_purpose');
+            // Handle checkbox values safely
+            $validated['is_active'] = $request->boolean('is_active');
+            $validated['requires_purpose'] = $request->boolean('requires_purpose');
 
             // Simpan data menggunakan transaction
             DB::transaction(function () use ($validated) {
@@ -153,9 +168,9 @@ class LetterTypeController extends Controller
         ]);
 
         try {
-            // Handle checkbox values (jika tidak dicentang, set false)
-            $validated['is_active'] = $request->has('is_active');
-            $validated['requires_purpose'] = $request->has('requires_purpose');
+            // Handle checkbox values safely
+            $validated['is_active'] = $request->boolean('is_active');
+            $validated['requires_purpose'] = $request->boolean('requires_purpose');
 
             // Update data menggunakan transaction
             DB::transaction(function () use ($letterType, $validated) {

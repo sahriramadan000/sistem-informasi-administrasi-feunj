@@ -1,123 +1,237 @@
 @extends('layouts.app')
 
-@section('title', 'Daftar Surat')
+@section('title', 'Daftar Surat - FEB UNJ')
+@section('disable_layout_alerts', true)
+
+@push('styles')
+    <style>
+        /* iOS / macOS Subtle Cards */
+        .mac-card {
+            background: #ffffff;
+            border-radius: 1.25rem;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Floating Toast Notification */
+        .toast-popup {
+            transform: translate(-50%, -24px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .toast-popup.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Segmented Pill Tabs */
+        .mac-tab-active {
+            background: #ffffff;
+            color: #111827;
+            font-weight: 700;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+        }
+        .mac-tab-inactive {
+            color: #64748b;
+            font-weight: 500;
+            background: transparent;
+            border: 1px solid transparent;
+        }
+        .mac-tab-inactive:hover {
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Line Clamp Utilities */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+@endpush
 
 @section('content')
-    {{-- Page Header --}}
-    <div class="mb-6 flex items-center justify-between">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900 flex items-center">
-                <i data-lucide="mail" class="mr-3 h-7 w-7 text-brand"></i>
-                Daftar Surat
-            </h2>
-            <p class="mt-1 text-sm text-gray-500">Kelola dan lihat semua surat yang telah dibuat</p>
-        </div>
-        @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
-            <div class="flex items-center gap-2">
-                @if (auth()->user()->isAdmin())
-                <a href="{{ route('letters.import.template') }}"
-                    class="inline-flex items-center rounded-lg bg-white border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 transition-colors">
-                    <i data-lucide="download" class="mr-2 h-4 w-4 text-gray-500"></i>
-                    Template
-                </a>
-                <button type="button" onclick="document.getElementById('importModal').classList.remove('hidden')"
-                    class="inline-flex items-center rounded-lg bg-white border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 transition-colors">
-                    <i data-lucide="upload" class="mr-2 h-4 w-4 text-gray-500"></i>
-                    Import Excel
-                </button>
-                @endif
-                <a href="{{ route('letters.create') }}"
-                    class="inline-flex items-center rounded-lg btn-success focus:ring-offset-2 transition-colors ml-2">
-                    <i data-lucide="plus-circle" class="mr-2 h-5 w-5"></i>
-                    Buat Surat Baru
-                </a>
+    @php
+        $activeFiltersCount = 0;
+        if (request('date_range')) $activeFiltersCount++;
+        if (request('signatory_id')) $activeFiltersCount++;
+        if (request('created_by')) $activeFiltersCount++;
+        if (request('search')) $activeFiltersCount++;
+        if (request('classification_id')) $activeFiltersCount++;
+        if (request('year')) $activeFiltersCount++;
+
+        $canManage = auth()->user()->isAdmin() || auth()->user()->isOperator();
+    @endphp
+
+    <div class="w-full space-y-6 pb-12 relative">
+        {{-- Floating Toast Notification (Auto Dismiss) --}}
+        <div id="toastPopup" class="toast-popup fixed top-5 left-1/2 z-[9999] flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl text-xs sm:text-sm font-medium">
+            <div id="toastIconWrap" class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-100 text-emerald-600">
+                <i id="toastIcon" data-lucide="check" class="w-4 h-4"></i>
             </div>
-        @endif
-    </div>
+            <span id="toastMessage" class="text-gray-800"></span>
+            <button type="button" onclick="hideToast()" class="text-gray-400 hover:text-gray-600 ml-2 p-0.5 rounded-lg transition-colors cursor-pointer">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+        </div>
 
-    {{-- ============================================================ --}}
-    {{-- TABS + FILTER + TABLE dalam satu card --}}
-    {{-- ============================================================ --}}
-    <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        {{-- Page Header (Apple macOS Toolbar Style) --}}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-200/80">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#FF4D00] to-amber-500 flex items-center justify-center text-white shadow-xs flex-shrink-0">
+                    <i data-lucide="mail" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Daftar Surat</h1>
+                    <p class="text-xs sm:text-sm text-gray-500">Kelola, pantau, dan telusuri seluruh arsip surat keluar FEB UNJ</p>
+                </div>
+            </div>
 
-        {{-- Tabs Jenis Surat --}}
-        <div class="overflow-x-auto border-b border-gray-200 py-1">
-            <nav class="flex px-4" aria-label="Tabs">
+            @if ($canManage)
+                <div class="flex flex-wrap items-center gap-2.5">
+                    @if (auth()->user()->isAdmin())
+                        <a href="{{ route('letters.import.template') }}"
+                            class="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-full shadow-2xs hover:shadow-xs transition-all active:scale-[0.98]"
+                            title="Unduh Template Excel">
+                            <i data-lucide="download" class="w-4 h-4 text-gray-500"></i>
+                            <span>Template</span>
+                        </a>
+                        <button type="button" onclick="openImportModal()"
+                            class="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-full shadow-2xs hover:shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+                            title="Import Surat dari Excel">
+                            <i data-lucide="upload" class="w-4 h-4 text-gray-500"></i>
+                            <span>Import Excel</span>
+                        </button>
+                    @endif
+
+                    <a href="{{ route('letters.create') }}"
+                        class="inline-flex items-center gap-2 px-4.5 py-2 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#FF4D00] to-amber-500 hover:from-[#e04400] hover:to-[#d97706] rounded-full shadow-xs hover:shadow-md transition-all active:scale-[0.98]">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Buat Surat Baru</span>
+                    </a>
+                </div>
+            @endif
+        </div>
+
+        {{-- Apple Segmented Pill Tabs (Letter Types Filter) --}}
+        <div class="bg-gray-100/70 p-1.5 rounded-2xl border border-gray-200/60 backdrop-blur-xs">
+            <nav class="flex items-center gap-1.5 overflow-x-auto scrollbar-none" aria-label="Tabs Jenis Surat">
                 <a href="{{ route('letters.index', array_merge(request()->except(['letter_type_id', 'page']))) }}"
-                   class="whitespace-nowrap flex items-center gap-2 py-3.5 px-4 border-b-2 text-sm font-medium -mb-px transition-all
-                       {{ !request('letter_type_id') ? 'border-brand text-brand' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
-                    <i data-lucide="layers" class="h-4 w-4"></i>
-                    Semua Jenis
+                   class="whitespace-nowrap px-4 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 {{ !request('letter_type_id') ? 'mac-tab-active text-[#FF4D00]' : 'mac-tab-inactive' }}">
+                    <i data-lucide="layers" class="w-4 h-4"></i>
+                    <span>Semua Jenis</span>
                 </a>
                 @foreach($letterTypes as $type)
                     <a href="{{ route('letters.index', array_merge(request()->except(['letter_type_id', 'page']), ['letter_type_id' => $type->id])) }}"
-                       class="whitespace-nowrap flex items-center gap-2 py-3.5 px-4 border-b-2 text-sm font-medium -mb-px transition-all
-                           {{ request('letter_type_id') == $type->id ? 'border-brand text-brand' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
-                        <i data-lucide="file-text" class="h-4 w-4"></i>
-                        {{ $type->name }}
+                       class="whitespace-nowrap px-4 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 {{ request('letter_type_id') == $type->id ? 'mac-tab-active text-[#FF4D00]' : 'mac-tab-inactive' }}">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                        <span>{{ $type->name }}</span>
                     </a>
                 @endforeach
             </nav>
         </div>
 
-        {{-- Filter Section --}}
-        <div class="border-b border-gray-200">
-            <button type="button" onclick="toggleFilter()"
-                class="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors">
-                <div class="flex items-center">
-                    <i data-lucide="sliders-horizontal" class="mr-2 h-5 w-5 text-brand"></i>
-                    <h3 class="text-base font-semibold text-gray-900">Filter Data</h3>
-                    @if (request()->hasAny(['date_range', 'signatory_id', 'created_by', 'search']))
-                        <span class="ml-3 inline-flex items-center rounded-full bg-brand-lighter px-2.5 py-0.5 text-xs font-medium text-brand-dark">
-                            <i data-lucide="filter" class="mr-1 h-3 w-3"></i>
-                            Aktif
-                        </span>
-                    @endif
-                </div>
-                <i data-lucide="chevron-down" id="filter-icon"
-                    class="h-5 w-5 text-gray-400 transition-transform duration-200"></i>
-            </button>
+        {{-- MAIN DATA CONTAINER (Filter + Toolbar + Table) --}}
+        <div class="mac-card overflow-hidden">
+            
+            {{-- Filter Collapsible Header --}}
+            <div class="border-b border-gray-100">
+                <div class="flex items-center justify-between px-5 py-3.5 bg-gray-50/50">
+                    <button type="button" onclick="toggleFilter()"
+                        class="flex items-center gap-2.5 text-left text-xs sm:text-sm font-bold text-gray-800 hover:text-gray-900 transition-colors cursor-pointer group">
+                        <div class="w-7 h-7 rounded-lg bg-white border border-gray-200/80 shadow-2xs flex items-center justify-center text-gray-600 group-hover:text-[#FF4D00] group-hover:border-orange-200 transition-colors">
+                            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <span>Filter &amp; Pencarian</span>
 
-            <div id="filter-content" class="hidden border-t border-gray-100">
-                <div class="p-6">
+                        @if ($activeFiltersCount > 0)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-800 border border-orange-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                                {{ $activeFiltersCount }} Filter Aktif
+                            </span>
+                        @endif
+
+                        <i data-lucide="chevron-down" id="filter-icon"
+                            class="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-transform duration-200 ml-1"></i>
+                    </button>
+
+                    <div class="flex items-center gap-2">
+                        @if ($activeFiltersCount > 0)
+                            <a href="{{ route('letters.index', request()->has('letter_type_id') ? ['letter_type_id' => request('letter_type_id')] : []) }}"
+                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-gray-500 hover:text-red-600 bg-white border border-gray-200 shadow-2xs hover:border-red-200 transition-all">
+                                <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                                <span>Reset Filter</span>
+                            </a>
+                        @endif
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white border border-gray-200 text-gray-700 shadow-2xs">
+                            <i data-lucide="hash" class="w-3.5 h-3.5 text-orange-500"></i>
+                            Total: {{ number_format($letters->total(), 0, ',', '.') }}
+                        </span>
+                    </div>
+                </div>
+
+                {{-- Filter Drawer Form --}}
+                <div id="filter-content" class="hidden border-t border-gray-100 bg-gray-50/30 p-5 sm:p-6 transition-all duration-300">
                     <form method="GET" action="{{ route('letters.index') }}">
-                        {{-- Preserve letter_type_id tab --}}
                         @if (request('letter_type_id'))
                             <input type="hidden" name="letter_type_id" value="{{ request('letter_type_id') }}">
                         @endif
+                        @if (request('per_page'))
+                            <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+                        @endif
 
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 items-end">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                             {{-- Date Range Filter --}}
-                            <div class="space-y-2">
-                                <label for="date_range" class="label">Tanggal Surat</label>
+                            <div class="space-y-1.5">
+                                <label for="date_range" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-gray-400"></i>
+                                    Tanggal Surat
+                                </label>
                                 <input type="text" id="date_range" name="date_range" value="{{ request('date_range') }}"
-                                    class="input w-full" placeholder="Pilih rentang tanggal...">
+                                    class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-[#FF4D00] shadow-2xs transition-all placeholder:text-gray-400"
+                                    placeholder="Pilih rentang tanggal...">
                             </div>
 
                             {{-- Signatory Filter --}}
-                            <div class="space-y-2">
-                                <label for="signatory_id" class="label">Penandatangan</label>
-                                <select id="signatory_id" name="signatory_id" class="select">
+                            <div class="space-y-1.5">
+                                <label for="signatory_id" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                                    <i data-lucide="pen-tool" class="w-3.5 h-3.5 text-gray-400"></i>
+                                    Penandatangan
+                                </label>
+                                <select id="signatory_id" name="signatory_id" class="select2 w-full text-xs">
                                     <option value="">Semua Penandatangan</option>
                                     @foreach ($signatories as $signatory)
                                         <option value="{{ $signatory->id }}" {{ request('signatory_id') == $signatory->id ? 'selected' : '' }}>
-                                            {{ $signatory->name }}
+                                            {{ $signatory->position }} - {{ $signatory->name }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            {{-- Search Perihal Filter --}}
-                            <div class="space-y-2">
-                                <label for="search" class="label">Cari Perihal</label>
+                            {{-- Search Perihal --}}
+                            <div class="space-y-1.5">
+                                <label for="search" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                                    <i data-lucide="search" class="w-3.5 h-3.5 text-gray-400"></i>
+                                    Cari Perihal / Hal
+                                </label>
                                 <input type="text" id="search" name="search" value="{{ request('search') }}"
-                                    class="input w-full" placeholder="Ketik perihal surat...">
+                                    class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-[#FF4D00] shadow-2xs transition-all placeholder:text-gray-400"
+                                    placeholder="Ketik kata kunci perihal...">
                             </div>
 
                             {{-- Created By Filter --}}
-                            <div class="space-y-2">
-                                <label for="created_by" class="label">Dibuat Oleh</label>
-                                <select id="created_by" name="created_by" class="select">
+                            <div class="space-y-1.5">
+                                <label for="created_by" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                                    <i data-lucide="user" class="w-3.5 h-3.5 text-gray-400"></i>
+                                    Dibuat Oleh
+                                </label>
+                                <select id="created_by" name="created_by" class="select2 w-full text-xs">
                                     <option value="">Semua Pengguna</option>
                                     @foreach ($users as $user)
                                         <option value="{{ $user->id }}" {{ request('created_by') == $user->id ? 'selected' : '' }}>
@@ -127,366 +241,481 @@
                                 </select>
                             </div>
 
-                            {{-- Action Buttons --}}
-                            <div class="flex items-center gap-3 col-span-full sm:col-span-2">
-                                <button type="submit" class="btn-primary flex-1 justify-center">
-                                    <i data-lucide="filter" class="mr-2 h-4 w-4"></i>
-                                    Filter
+                            {{-- Submit & Reset Action Buttons --}}
+                            <div class="flex items-center gap-2 col-span-full pt-2">
+                                <button type="submit"
+                                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#FF4D00] to-amber-500 hover:from-[#e04400] hover:to-[#d97706] text-white font-bold text-xs rounded-xl shadow-xs transition-all active:scale-[0.98] cursor-pointer">
+                                    <i data-lucide="filter" class="w-3.5 h-3.5"></i>
+                                    <span>Terapkan Filter</span>
                                 </button>
                                 <a href="{{ route('letters.index', request()->has('letter_type_id') ? ['letter_type_id' => request('letter_type_id')] : []) }}"
-                                    class="btn-outline flex-1 justify-center">
-                                    <i data-lucide="x" class="mr-2 h-4 w-4"></i>
-                                    Reset
+                                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold text-xs rounded-xl shadow-2xs transition-all active:scale-[0.98]">
+                                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                                    <span>Reset</span>
                                 </a>
                             </div>
                         </div>
                     </form>
                 </div>
             </div>
-        </div>
 
-        {{-- Per Page Selector --}}
-        <div class="border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <label for="per_page" class="text-sm text-gray-600">Tampilkan:</label>
-                <form method="GET" action="{{ route('letters.index') }}" class="inline-block">
-                    {{-- Preserve all current query parameters --}}
-                    @if (request('letter_type_id'))
-                        <input type="hidden" name="letter_type_id" value="{{ request('letter_type_id') }}">
-                    @endif
-                    @if (request('date_range'))
-                        <input type="hidden" name="date_range" value="{{ request('date_range') }}">
-                    @endif
-                    @if (request('signatory_id'))
-                        <input type="hidden" name="signatory_id" value="{{ request('signatory_id') }}">
-                    @endif
-                    @if (request('created_by'))
-                        <input type="hidden" name="created_by" value="{{ request('created_by') }}">
-                    @endif
-                    @if (request('search'))
-                        <input type="hidden" name="search" value="{{ request('search') }}">
-                    @endif
+            {{-- Table Control Bar (Per Page & Page Info) --}}
+            <div class="px-5 py-3 border-b border-gray-100 bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-gray-500">
+                <div class="flex items-center gap-2">
+                    <span>Tampilkan:</span>
+                    <form method="GET" action="{{ route('letters.index') }}" class="inline-block">
+                        @if (request('letter_type_id')) <input type="hidden" name="letter_type_id" value="{{ request('letter_type_id') }}"> @endif
+                        @if (request('date_range')) <input type="hidden" name="date_range" value="{{ request('date_range') }}"> @endif
+                        @if (request('signatory_id')) <input type="hidden" name="signatory_id" value="{{ request('signatory_id') }}"> @endif
+                        @if (request('created_by')) <input type="hidden" name="created_by" value="{{ request('created_by') }}"> @endif
+                        @if (request('search')) <input type="hidden" name="search" value="{{ request('search') }}"> @endif
 
-                    <select name="per_page" id="per_page" class="px-3 py-1 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-0" onchange="this.form.submit()">
-                        <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
-                        <option value="25" {{ request('per_page', 10) == 25 ? 'selected' : '' }}>25</option>
-                        <option value="50" {{ request('per_page', 10) == 50 ? 'selected' : '' }}>50</option>
-                        <option value="100" {{ request('per_page', 10) == 100 ? 'selected' : '' }}>100</option>
-                    </select>
-                </form>
-                <span class="text-sm text-gray-600">data per halaman</span>
+                        <select name="per_page" id="per_page"
+                            class="px-2.5 py-1 text-xs border border-gray-200 rounded-lg bg-gray-50/50 hover:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-[#FF4D00] transition-colors cursor-pointer"
+                            onchange="this.form.submit()">
+                            <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                            <option value="25" {{ request('per_page', 10) == 25 ? 'selected' : '' }}>25</option>
+                            <option value="50" {{ request('per_page', 10) == 50 ? 'selected' : '' }}>50</option>
+                            <option value="100" {{ request('per_page', 10) == 100 ? 'selected' : '' }}>100</option>
+                        </select>
+                    </form>
+                    <span>surat per halaman</span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span>Halaman {{ $letters->currentPage() }} dari {{ $letters->lastPage() }}</span>
+                </div>
             </div>
-            <span class="text-sm text-gray-500">
-                Total: <span class="font-semibold">{{ $letters->total() }}</span> data
-            </span>
-        </div>
 
-        {{-- Table --}}
-        <div class="overflow-x-auto">
-            @if ($letters->count() > 0)
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">No</th>
-                            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Nomor Surat</th>
-                            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Tanggal</th>
-                            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 hidden lg:table-cell">Jenis</th>
-                            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 hidden lg:table-cell">Penandatangan</th>
-                            @if (request('letter_type_id') == 2)
-                                <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Nama Siswa</th>
-                            @endif
-                            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Perihal</th>
-                            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Tujuan</th>
-                            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Dibuat Oleh</th>
-                            <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @foreach ($letters as $index => $letter)
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ ($letters->currentPage() - 1) * $letters->perPage() + $index + 1 }}
-                                </td>
-                                <td class="px-3 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900 flex items-center gap-2">
-                                        @php
-                                            $parts = explode('/', $letter->letter_number);
-                                        @endphp
-                                        @if(count($parts) > 1 && $letter->security_classification)
-                                            <div>
-                                                {{ $parts[0] }}/{{ $parts[1] }}/<span class="bg-yellow-100 text-yellow-800 font-bold px-1 rounded">{{ $parts[2] }}</span>
-                                                @if(count($parts) > 3)
-                                                    /{{ implode('/', array_slice($parts, 3)) }}
-                                                @endif
-                                            </div>
-                                        @elseif(count($parts) > 1)
-                                            <div>
-                                                {{ $parts[0] }}/<span class="bg-yellow-100 text-yellow-800 font-bold px-1 rounded">{{ $parts[1] }}</span>/{{ implode('/', array_slice($parts, 2)) }}
+            {{-- Table View --}}
+            <div class="overflow-x-auto">
+                @if ($letters->count() > 0)
+                    <table class="min-w-full divide-y divide-gray-100 text-left">
+                        <thead>
+                            <tr class="bg-gray-50/60 border-b border-gray-100">
+                                <th scope="col" class="px-3 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider w-10 text-center">No</th>
+                                <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[220px]">Nomor Surat</th>
+                                <th scope="col" class="px-3.5 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[100px]">Tanggal</th>
+                                <th scope="col" class="px-3.5 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[115px] hidden md:table-cell">Jenis</th>
+                                <th scope="col" class="px-3.5 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[125px] hidden lg:table-cell">Penandatangan</th>
+                                <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[260px]">Perihal</th>
+                                <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[220px]">Tujuan</th>
+                                <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[200px]">Mahasiswa</th>
+                                <th scope="col" class="px-3.5 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[110px] hidden xl:table-cell">Dibuat Oleh</th>
+                                <th scope="col" class="px-3.5 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-center w-24">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 bg-white">
+                            @php
+                                $typeColorMap = [
+                                    'sertifikat' => 'bg-purple-50 text-purple-700 border-purple-200/80',
+                                    'mou' => 'bg-blue-50 text-blue-700 border-blue-200/80',
+                                    'sipermawa' => 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+                                    'tugas' => 'bg-amber-50 text-amber-700 border-amber-200/80',
+                                    'keputusan' => 'bg-indigo-50 text-indigo-700 border-indigo-200/80',
+                                    'undangan' => 'bg-rose-50 text-rose-700 border-rose-200/80',
+                                    'umum' => 'bg-gray-100 text-gray-700 border-gray-200/80',
+                                ];
+                            @endphp
+
+                            @foreach ($letters as $index => $letter)
+                                @php
+                                    $typeName = strtolower($letter->letterType->name ?? '');
+                                    $typeClass = 'bg-gray-100 text-gray-700 border-gray-200/80';
+                                    foreach ($typeColorMap as $key => $cls) {
+                                        if (str_contains($typeName, $key)) {
+                                            $typeClass = $cls;
+                                            break;
+                                        }
+                                    }
+                                @endphp
+                                <tr class="hover:bg-orange-50/30 transition-colors group">
+                                    {{-- No --}}
+                                    <td class="px-4 py-4 text-center text-xs font-semibold text-gray-400">
+                                        {{ ($letters->currentPage() - 1) * $letters->perPage() + $index + 1 }}
+                                    </td>
+
+                                    {{-- Nomor Surat (Ukuran Lebih Besar & Field Lebih Lebar) --}}
+                                    <td class="px-4 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ route('letters.show', $letter) }}"
+                                                class="font-mono text-[13.5px] sm:text-sm font-bold text-gray-900 group-hover:text-[#FF4D00] transition-colors leading-normal tracking-tight"
+                                                title="Klik untuk melihat detail surat">
+                                                {{ $letter->letter_number }}
+                                            </a>
+                                            <button type="button" onclick="copyToClipboard('{{ addslashes($letter->letter_number) }}', 'Nomor surat disalin!')"
+                                                class="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-orange-600 transition-all rounded-lg hover:bg-orange-50 cursor-pointer flex-shrink-0"
+                                                title="Salin Nomor">
+                                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                            </button>
+                                        </div>
+                                        @if ($letter->classification)
+                                            <p class="text-[11px] text-gray-400 font-mono mt-0.5">{{ $letter->classification->code }} - {{ $letter->classification->name }}</p>
+                                        @endif
+                                    </td>
+
+                                    {{-- Tanggal Surat --}}
+                                    <td class="px-4 py-4 whitespace-nowrap">
+                                        <div class="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
+                                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-gray-400"></i>
+                                            <span>{{ $letter->letter_date ? $letter->letter_date->format('d/m/Y') : '-' }}</span>
+                                        </div>
+                                    </td>
+
+                                    {{-- Jenis Surat --}}
+                                    <td class="px-4 py-4 whitespace-nowrap hidden md:table-cell">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $typeClass }}">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-current opacity-70"></span>
+                                            {{ $letter->letterType->name ?? '-' }}
+                                        </span>
+                                    </td>
+
+                                    {{-- Penandatangan --}}
+                                    <td class="px-4 py-4 whitespace-nowrap hidden lg:table-cell">
+                                        <div class="text-xs">
+                                            <span class="font-bold text-gray-900">{{ $letter->signatory->position ?? '-' }}</span>
+                                            @if ($letter->signatory)
+                                                <p class="text-[11px] text-gray-500 truncate max-w-[150px]">{{ $letter->signatory->name }}</p>
+                                            @endif
+                                        </div>
+                                    </td>
+
+                                    {{-- Perihal (Full Text Tanpa Batasan Truncate) --}}
+                                    <td class="px-4 py-4">
+                                        <a href="{{ route('letters.show', $letter) }}"
+                                            class="text-xs sm:text-[13px] font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors leading-relaxed block break-words"
+                                            title="Klik untuk melihat detail surat">
+                                            {{ $letter->subject ?: '-' }}
+                                        </a>
+                                    </td>
+
+                                    {{-- Tujuan / Penerima (Dilebarkan) --}}
+                                    <td class="px-4 py-4">
+                                        @if ($letter->recipient)
+                                            <div class="flex items-start gap-2 text-xs sm:text-[13px] font-medium text-gray-800">
+                                                <i data-lucide="send" class="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mt-0.5"></i>
+                                                <span class="break-words leading-relaxed">{{ $letter->recipient }}</span>
                                             </div>
                                         @else
-                                            <div>{{ $letter->letter_number }}</div>
+                                            <span class="text-xs text-gray-300 font-mono pl-3">-</span>
                                         @endif
-
-                                    </div>
-                                </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $letter->letter_date->format('d/m/Y') }}
-                                </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
-                                    {{ $letter->letterType->name }}
-                                </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
-                                    <span class="font-semibold text-blue-800">{{ $letter->signatory->position }}</span>
-                                </td>
-                                @if (request('letter_type_id') == 2)
-                                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $letter->student_name ?? '-' }}
                                     </td>
-                                @endif
-                                <td class="px-3 py-4 text-sm text-gray-900">
-                                    <div class="perihal-display">{{ $letter->subject }}</div>
-                                </td>
-                                <td class="px-3 py-4 text-sm text-gray-900">
-                                    {{ $letter->recipient }}
-                                </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                        {{ $letter->creator?->name ?? 'Sistem' }}
-                                    </span>
-                                </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-sm">
-                                    <a href="{{ route('letters.show', $letter) }}"
-                                        class="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                                        <i data-lucide="eye" class="mr-1.5 h-3.5 w-3.5"></i>
-                                        Detail
-                                    </a>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
 
-                {{-- Pagination --}}
-                <div class="px-6 py-4 border-t border-gray-100">
-                    {{ $letters->appends(request()->query())->links() }}
-                </div>
-            @else
-                <div class="text-center py-12">
-                    <i data-lucide="inbox" class="mx-auto h-12 w-12 text-gray-400"></i>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada data surat</h3>
-                    <p class="mt-1 text-sm text-gray-500">Belum ada surat yang sesuai dengan filter yang dipilih.</p>
-                    @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
-                        <div class="mt-6">
-                            <a href="{{ route('letters.create') }}"
-                                class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700">
-                                <i data-lucide="plus-circle" class="mr-2 h-4 w-4"></i>
-                                Buat Surat Baru
-                            </a>
+                                    {{-- Mahasiswa Terkait (Dilebarkan) --}}
+                                    <td class="px-4 py-4">
+                                        @if ($letter->student_name)
+                                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs sm:text-[12.5px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs max-w-full">
+                                                <i data-lucide="graduation-cap" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                                                <span class="break-words leading-snug">{{ $letter->student_name }}</span>
+                                            </div>
+                                        @else
+                                            <span class="text-xs text-gray-300 font-mono pl-3">-</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Dibuat Oleh --}}
+                                    <td class="px-4 py-4 whitespace-nowrap hidden xl:table-cell">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200/80">
+                                            <i data-lucide="user" class="w-3 h-3 text-gray-400"></i>
+                                            {{ $letter->creator?->name ?? 'Sistem' }}
+                                        </span>
+                                    </td>
+
+                                    {{-- Aksi --}}
+                                    <td class="px-3.5 py-3.5 text-center whitespace-nowrap">
+                                        <a href="{{ route('letters.show', $letter) }}"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-[#FF4D00] hover:text-orange-700 font-bold text-xs rounded-full border border-orange-200/80 shadow-2xs transition-all active:scale-[0.96]"
+                                            title="Lihat Detail Surat">
+                                            <i data-lucide="eye" class="w-3.5 h-3.5 text-[#FF4D00]"></i>
+                                            <span>Detail</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+
+                    {{-- Modern Pagination Footer (Single Unified Info & Compact Pills) --}}
+                    <div class="border-t border-gray-100">
+                        {{ $letters->appends(request()->query())->links() }}
+                    </div>
+                @else
+                    {{-- Empty State (Apple Style) --}}
+                    <div class="text-center py-16 px-4">
+                        <div class="w-16 h-16 rounded-3xl bg-orange-50 border border-orange-200/80 flex items-center justify-center mx-auto mb-4 text-[#FF4D00] shadow-2xs">
+                            <i data-lucide="inbox" class="w-8 h-8"></i>
                         </div>
-                    @endif
-                </div>
-            @endif
+                        <h3 class="text-base font-bold text-gray-900">Tidak Ada Data Surat</h3>
+                        <p class="text-xs sm:text-sm text-gray-500 mt-1 max-w-sm mx-auto">
+                            Belum ada surat yang terdaftar sesuai filter yang dipilih saat ini.
+                        </p>
+                        <div class="mt-5 flex items-center justify-center gap-3">
+                            @if ($activeFiltersCount > 0)
+                                <a href="{{ route('letters.index', request()->has('letter_type_id') ? ['letter_type_id' => request('letter_type_id')] : []) }}"
+                                    class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 font-semibold text-xs rounded-full shadow-2xs transition-all">
+                                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                                    <span>Reset Filter</span>
+                                </a>
+                            @endif
+                            @if ($canManage)
+                                <a href="{{ route('letters.create') }}"
+                                    class="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-[#FF4D00] to-amber-500 hover:from-[#e04400] hover:to-[#d97706] text-white font-bold text-xs rounded-full shadow-xs transition-all">
+                                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                    <span>Buat Surat Baru</span>
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+            </div>
+
         </div>
     </div>
-    {{-- ============================================================ --}}
+
+    {{-- Import Excel Modal (Apple macOS Sheet Dialog) --}}
+    <div id="importModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-md">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full border border-gray-200 overflow-hidden transform transition-all scale-95 opacity-0"
+            id="importModalContent">
+            {{-- Modal Header --}}
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-orange-50 border border-orange-200/80 text-[#FF4D00] flex items-center justify-center shadow-2xs">
+                        <i data-lucide="upload" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-gray-900 tracking-tight">Import Data Surat</h3>
+                        <p class="text-xs text-gray-500">Unggah file Excel (.xls, .xlsx) arsip surat</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeImportModal()"
+                    class="p-1 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            {{-- Modal Body --}}
+            <form action="{{ route('letters.import') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
+                @csrf
+                <div class="space-y-2">
+                    <label for="file_excel" class="text-xs font-bold uppercase tracking-wider text-gray-500">File Excel</label>
+                    <div class="border-2 border-dashed border-gray-200 hover:border-orange-300 rounded-2xl p-6 text-center transition-colors bg-gray-50/50 hover:bg-orange-50/30">
+                        <i data-lucide="file-spreadsheet" class="w-10 h-10 text-emerald-600 mx-auto mb-2"></i>
+                        <input type="file" name="file_excel" id="file_excel" accept=".xls,.xlsx" required
+                            class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 cursor-pointer">
+                        <p class="text-[11px] text-gray-400 mt-2">Pastikan struktur kolom sesuai dengan format template yang disediakan.</p>
+                    </div>
+                </div>
+
+                {{-- Action Buttons --}}
+                <div class="flex items-center gap-3 pt-2">
+                    <button type="button" onclick="closeImportModal()"
+                        class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200/80 text-gray-700 font-semibold text-xs rounded-xl transition-all border border-gray-200 cursor-pointer">
+                        <span>Batal</span>
+                    </button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#FF4D00] to-amber-500 hover:from-[#e04400] hover:to-[#d97706] text-white font-bold text-xs rounded-xl transition-all shadow-xs cursor-pointer">
+                        <span>Unggah &amp; Import</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Error Modal for Import Errors --}}
+    @if (session('import_errors') && count(session('import_errors')) > 0)
+        <div id="errorModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-md">
+            <div class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl max-w-2xl w-full border border-gray-200 p-6 space-y-4">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0">
+                        <i data-lucide="alert-circle" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Import Gagal</h3>
+                        <p class="text-xs text-gray-500 mt-0.5">
+                            Ditemukan <strong class="text-red-600">{{ count(session('import_errors')) }} baris</strong> yang memiliki ketidaksesuaian format.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="max-h-80 overflow-y-auto space-y-2.5 p-1">
+                    @foreach (session('import_errors') as $error)
+                        <div class="p-3.5 bg-red-50 border border-red-200/80 rounded-2xl text-xs space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-red-800">Baris {{ $error['row'] }} &bull; {{ $error['field'] }}</span>
+                            </div>
+                            <p class="text-red-700">{{ $error['message'] }}</p>
+                            @if (!empty($error['value']))
+                                <code class="block bg-white p-2 rounded-lg border border-red-200 text-gray-800 font-mono text-[11px] mt-1">{{ $error['value'] }}</code>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
+                    <a href="{{ route('letters.import.template') }}"
+                        class="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 font-semibold text-xs rounded-xl transition-all">
+                        Unduh Template
+                    </a>
+                    <button type="button" onclick="document.getElementById('errorModal').classList.add('hidden')"
+                        class="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-xs rounded-xl transition-all">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 
     @push('scripts')
         <script>
+            // Toast Notification Manager
+            let toastTimer = null;
+
+            function showToast(message, type = 'success') {
+                const toast = document.getElementById('toastPopup');
+                const toastMsg = document.getElementById('toastMessage');
+                const toastIconWrap = document.getElementById('toastIconWrap');
+                const toastIcon = document.getElementById('toastIcon');
+
+                if (!toast || !toastMsg) return;
+
+                toastMsg.textContent = message;
+
+                if (type === 'error') {
+                    toast.className = 'toast-popup show fixed top-5 left-1/2 z-[9999] flex items-center gap-3 px-4.5 py-3 rounded-2xl bg-white/95 backdrop-blur-md border border-red-200/90 text-gray-800 shadow-xl shadow-red-500/10 text-xs sm:text-sm font-medium';
+                    toastIconWrap.className = 'w-7 h-7 rounded-xl bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0';
+                    toastIcon.setAttribute('data-lucide', 'alert-circle');
+                } else {
+                    toast.className = 'toast-popup show fixed top-5 left-1/2 z-[9999] flex items-center gap-3 px-4.5 py-3 rounded-2xl bg-white/95 backdrop-blur-md border border-emerald-200/90 text-gray-800 shadow-xl shadow-emerald-500/10 text-xs sm:text-sm font-medium';
+                    toastIconWrap.className = 'w-7 h-7 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0';
+                    toastIcon.setAttribute('data-lucide', 'check');
+                }
+
+                lucide.createIcons();
+
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => {
+                    hideToast();
+                }, 4000);
+            }
+
+            function hideToast() {
+                const toast = document.getElementById('toastPopup');
+                if (toast) {
+                    toast.classList.remove('show');
+                }
+            }
+
+            function copyToClipboard(text, successMessage) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        showToast(successMessage, 'success');
+                    }).catch(function() {
+                        fallbackCopyText(text, successMessage);
+                    });
+                } else {
+                    fallbackCopyText(text, successMessage);
+                }
+            }
+
+            function fallbackCopyText(text, successMessage) {
+                try {
+                    const temp = document.createElement('textarea');
+                    temp.value = text;
+                    temp.style.position = 'fixed';
+                    temp.style.top = '-9999px';
+                    temp.style.left = '-9999px';
+                    document.body.appendChild(temp);
+                    temp.focus();
+                    temp.select();
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(temp);
+                    if (successful) {
+                        showToast(successMessage, 'success');
+                    } else {
+                        showToast('Gagal menyalin.', 'error');
+                    }
+                } catch (e) {
+                    showToast('Gagal menyalin.', 'error');
+                }
+            }
+
+            // Toggle Filter Drawer
             function toggleFilter() {
                 const content = document.getElementById('filter-content');
                 const icon = document.getElementById('filter-icon');
-                content.classList.toggle('hidden');
-                icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-            }
+                if (!content || !icon) return;
 
-            // Auto-buka filter jika ada filter aktif
-            document.addEventListener('DOMContentLoaded', function () {
-                @if(request()->hasAny(['date_range', 'signatory_id', 'created_by', 'search']))
-                    const content = document.getElementById('filter-content');
-                    const icon = document.getElementById('filter-icon');
+                const isHidden = content.classList.contains('hidden');
+                if (isHidden) {
                     content.classList.remove('hidden');
                     icon.style.transform = 'rotate(180deg)';
+                } else {
+                    content.classList.add('hidden');
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            }
+
+            // Import Modal Helpers
+            function openImportModal() {
+                const modal = document.getElementById('importModal');
+                const content = document.getElementById('importModalContent');
+                if (!modal || !content) return;
+
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                }, 10);
+                lucide.createIcons();
+            }
+
+            function closeImportModal() {
+                const modal = document.getElementById('importModal');
+                const content = document.getElementById('importModalContent');
+                if (!modal || !content) return;
+
+                content.classList.remove('scale-100', 'opacity-100');
+                content.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 200);
+            }
+
+            // On Page Ready
+            document.addEventListener('DOMContentLoaded', function () {
+                @if ($activeFiltersCount > 0)
+                    const content = document.getElementById('filter-content');
+                    const icon = document.getElementById('filter-icon');
+                    if (content && icon) {
+                        content.classList.remove('hidden');
+                        icon.style.transform = 'rotate(180deg)';
+                    }
                 @endif
 
-                flatpickr("#date_range", {
-                    mode: "range",
-                    dateFormat: "Y-m-d",
-                    altInput: true,
-                    altFormat: "d M Y",
-                    locale: "id",
-                    placeholder: "Pilih tanggal start - end"
-                });
+                if (typeof flatpickr !== 'undefined') {
+                    flatpickr("#date_range", {
+                        mode: "range",
+                        dateFormat: "Y-m-d",
+                        altInput: true,
+                        altFormat: "d M Y",
+                        locale: "id",
+                        placeholder: "Pilih tanggal start - end"
+                    });
+                }
 
-                $('#letter_type_id').select2({ placeholder: 'Semua Jenis', allowClear: true, width: '100%' });
-                $('#signatory_id').select2({ placeholder: 'Semua Penandatangan', allowClear: true, width: '100%' });
-                $('#created_by').select2({ placeholder: 'Semua Pengguna', allowClear: true, width: '100%' });
+                if (typeof $ !== 'undefined' && $.fn.select2) {
+                    $('#signatory_id').select2({ placeholder: 'Semua Penandatangan', allowClear: true, width: '100%' });
+                    $('#created_by').select2({ placeholder: 'Semua Pengguna', allowClear: true, width: '100%' });
+                }
+
+                @if (session('success'))
+                    showToast("{{ session('success') }}", 'success');
+                @elseif (session('error'))
+                    showToast("{{ session('error') }}", 'error');
+                @endif
 
                 lucide.createIcons();
             });
         </script>
     @endpush
-    {{-- Import Modal --}}
-    <div id="importModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="document.getElementById('importModal').classList.add('hidden')"></div>
-
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            <div class="relative z-10 inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <div>
-                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-brand-lighter">
-                        <i data-lucide="upload" class="h-6 w-6 text-brand"></i>
-                    </div>
-                    <div class="mt-3 text-center sm:mt-5">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                            Import Data Surat
-                        </h3>
-                        <div class="mt-2 text-sm text-gray-500">
-                            <p>Unggah file Excel (xls, xlsx) yang berisi data surat lama. Pastikan format kolom sesuai dengan template yang disediakan.</p>
-                        </div>
-                    </div>
-                </div>
-                <form action="{{ route('letters.import') }}" method="POST" enctype="multipart/form-data" class="mt-5 sm:mt-6">
-                    @csrf
-                    <div class="mb-4">
-                        <label for="file_excel" class="block text-sm font-medium text-gray-700">File Excel</label>
-                        <input type="file" name="file_excel" id="file_excel" accept=".xls,.xlsx" required
-                            class="mt-1 block w-full text-sm text-gray-500
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-md file:border-0
-                            file:text-sm file:font-medium
-                            file:bg-brand-50 file:text-brand
-                            hover:file:bg-brand-100">
-                    </div>
-                     <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-                         <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 btn-primary text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 sm:col-start-2 sm:text-sm">
-                             Import Data
-                         </button>
-                         <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand sm:mt-0 sm:col-start-1 sm:text-sm">
-                             Batal
-                         </button>
-                     </div>
-                 </form>
-             </div>
-         </div>
-     </div>
-
-     {{-- ERROR MODAL - IMPORT ERRORS DETAIL --}}
-     @if (session('import_errors') && count(session('import_errors')) > 0)
-         <div id="errorModal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-             <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                 <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" 
-                      onclick="document.getElementById('errorModal').classList.add('hidden')"></div>
-
-                 <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
-                     {{-- Header --}}
-                     <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                         <div class="sm:flex sm:items-start">
-                             <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                                 <i data-lucide="alert-circle" class="h-6 w-6 text-red-600"></i>
-                             </div>
-                             <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                                 <h3 class="text-lg font-semibold leading-6 text-gray-900" id="modal-title">
-                                     Import Gagal
-                                 </h3>
-                                 <div class="mt-2">
-                                     <p class="text-sm text-gray-600">
-                                         Ada <span class="font-semibold text-red-600">{{ count(session('import_errors')) }} baris</span> yang memiliki error. Perbaiki masalah di bawah dan coba lagi.
-                                     </p>
-                                 </div>
-                             </div>
-                         </div>
-                     </div>
-
-                     {{-- Error List --}}
-                     <div class="px-4 pb-4 sm:px-6">
-                         <div class="max-h-96 overflow-y-auto space-y-3">
-                             @foreach (session('import_errors') as $error)
-                                 <div class="p-4 border-2 border-red-200 bg-red-50 rounded-lg">
-                                     <div class="flex items-center gap-2 mb-2">
-                                         <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-800">
-                                             Baris {{ $error['row'] }}
-                                         </span>
-                                         <span class="text-base font-bold text-gray-900">
-                                             {{ $error['field'] }}
-                                         </span>
-                                     </div>
-
-                                     <div class="flex items-start gap-2 mb-2">
-                                         <i data-lucide="x-circle" class="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0"></i>
-                                         <p class="text-sm font-medium text-red-700">
-                                             {{ $error['message'] }}
-                                         </p>
-                                     </div>
-
-                                     @if ($error['value'])
-                                         <div class="ml-6 mb-2">
-                                             <span class="text-xs text-gray-600">Anda masukkan:</span>
-                                             <code class="block mt-1 bg-white px-3 py-2 rounded border border-red-200 text-sm font-mono text-gray-800">
-                                                 {{ $error['value'] }}
-                                             </code>
-                                         </div>
-                                     @endif
-
-                                     @if ($error['suggestions'])
-                                         <div class="ml-6 mt-3 p-3 bg-green-50 border border-green-200 rounded">
-                                             <div class="flex items-start gap-2">
-                                                 <i data-lucide="lightbulb" class="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0"></i>
-                                                 <div>
-                                                     <p class="text-xs font-semibold text-green-800 mb-1">Solusi:</p>
-                                                     <p class="text-xs text-green-700">{{ $error['suggestions'] }}</p>
-                                                 </div>
-                                             </div>
-                                         </div>
-                                     @endif
-                                 </div>
-                             @endforeach
-                         </div>
-                     </div>
-
-                     {{-- Tips --}}
-                     <div class="px-4 pb-4 sm:px-6">
-                         <div class="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
-                             <div class="flex items-start gap-3">
-                                 <i data-lucide="info" class="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5"></i>
-                                 <div class="text-sm text-blue-800">
-                                     <p class="font-semibold mb-2">Tips:</p>
-                                     <ul class="space-y-1 text-xs">
-                                         <li>• Download template untuk referensi format kolom yang benar</li>
-                                         <li>• Pastikan semua field yang wajib diisi sudah terisi</li>
-                                         <li>• Periksa kembali format tanggal dan kode master data</li>
-                                         <li>• Gunakan nilai yang tersedia di sistem (lihat "Solusi" untuk detail)</li>
-                                     </ul>
-                                 </div>
-                             </div>
-                         </div>
-                     </div>
-
-                     {{-- Footer Buttons --}}
-                     <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
-                         <button type="button" 
-                                 onclick="document.getElementById('errorModal').classList.add('hidden')"
-                                 class="inline-flex w-full justify-center rounded-md bg-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 sm:ml-3 sm:w-auto">
-                             Tutup
-                         </button>
-                         <a href="{{ route('letters.import.template') }}" 
-                            class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
-                             <i data-lucide="download" class="h-4 w-4 mr-2"></i>
-                             Download Template
-                         </a>
-                     </div>
-                 </div>
-             </div>
-         </div>
-
-         {{-- Auto-show error modal on page load --}}
-         <script>
-             document.addEventListener('DOMContentLoaded', function() {
-                 var errorModal = document.getElementById('errorModal');
-                 if (errorModal) {
-                     errorModal.classList.remove('hidden');
-                 }
-             });
-         </script>
-     @endif
- @endsection
+@endsection

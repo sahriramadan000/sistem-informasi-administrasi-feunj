@@ -33,13 +33,36 @@ class LegalisirDashboardController extends Controller
             'revenue_this_month' => Legalization::whereMonth('date', $thisMonth)
                 ->whereYear('date', $thisYear)
                 ->sum('total_price'),
+            'total_all' => Legalization::count(),
+            'revenue_all' => Legalization::sum('total_price'),
+            'total_pages' => Legalization::sum('page_count'),
+            'total_this_year' => Legalization::whereYear('date', $thisYear)->count(),
         ];
 
-        $recentLegalizations = Legalization::with(['educationLevel', 'creator'])
-            ->orderBy('running_number', 'desc')
-            ->take(5)
+        // Breakdown per jenjang pendidikan
+        $legalizationsByLevel = Legalization::selectRaw('education_level_id, COUNT(*) as count, SUM(total_price) as revenue')
+            ->with('educationLevel')
+            ->groupBy('education_level_id')
+            ->orderBy('count', 'desc')
             ->get();
 
-        return view('legalizations.dashboard', compact('stats', 'recentLegalizations'));
+        // Tren per tahun
+        $legalizationsByYear = Legalization::selectRaw('year, COUNT(*) as count, SUM(total_price) as revenue')
+            ->groupBy('year')
+            ->orderBy('year', 'desc')
+            ->get();
+
+        $recentLegalizations = Legalization::with(['educationLevel', 'creator'])
+            ->orderBy('date', 'desc')
+            ->orderBy('running_number', 'desc')
+            ->take(6)
+            ->get();
+
+        return view('legalizations.dashboard', compact(
+            'stats',
+            'recentLegalizations',
+            'legalizationsByLevel',
+            'legalizationsByYear'
+        ));
     }
 }

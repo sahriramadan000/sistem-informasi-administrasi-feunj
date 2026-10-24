@@ -43,6 +43,15 @@ class SignatoryController extends Controller
         try {
             $query = Signatory::query();
 
+            // Filter status aktif/nonaktif
+            if ($request->filled('status')) {
+                if ($request->status === 'active') {
+                    $query->where('is_active', true);
+                } elseif ($request->status === 'inactive') {
+                    $query->where('is_active', false);
+                }
+            }
+
             // Search berdasarkan nama, jabatan, atau NIP
             if ($request->filled('search')) {
                 $search = $request->search;
@@ -54,7 +63,8 @@ class SignatoryController extends Controller
                 });
             }
 
-            $signatories = $query->orderBy('code')->paginate($request->get('per_page', 10));
+            $perPage = in_array((int) $request->get('per_page', 10), [10, 25, 50, 100]) ? (int) $request->get('per_page', 10) : 10;
+            $signatories = $query->orderBy('code')->paginate($perPage);
             
             return view('master.signatory.index', compact('signatories'));
         } catch (\Throwable $e) {
@@ -90,8 +100,8 @@ class SignatoryController extends Controller
         ]);
 
         try {
-            // Set is_active explicitly since unchecked checkboxes send no data
-            $validated['is_active'] = $request->has('is_active');
+            // Set is_active explicitly using boolean helper
+            $validated['is_active'] = $request->boolean('is_active');
 
             // Simpan data menggunakan transaction
             DB::transaction(function () use ($validated) {
@@ -153,8 +163,8 @@ class SignatoryController extends Controller
         ]);
 
         try {
-            // Set is_active explicitly since unchecked checkboxes send no data
-            $validated['is_active'] = $request->has('is_active');
+            // Set is_active explicitly using boolean helper
+            $validated['is_active'] = $request->boolean('is_active');
 
             // Update data menggunakan transaction
             DB::transaction(function () use ($signatory, $validated) {

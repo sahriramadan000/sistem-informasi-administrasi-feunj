@@ -1,427 +1,507 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Surat')
+@section('title', 'Detail Surat - ' . $letter->letter_number)
+@section('disable_layout_alerts', true)
+
+@push('styles')
+    <style>
+        /* iOS / macOS Subtle Cards */
+        .mac-card {
+            background: #ffffff;
+            border-radius: 1.25rem;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .mac-card:hover {
+            border-color: rgba(254, 215, 170, 0.8);
+            box-shadow: 0 10px 25px -4px rgba(255, 77, 0, 0.04), 0 4px 10px -2px rgba(0, 0, 0, 0.03);
+        }
+
+        /* Warm Orange Apple Studio Card */
+        .simulator-orange-card {
+            background: linear-gradient(145deg, #fff7ed 0%, #fffaf5 50%, #ffedd5 100%);
+            border-radius: 1.25rem;
+            border: 1.5px solid #fed7aa;
+            box-shadow: 0 8px 24px -4px rgba(255, 77, 0, 0.08), 0 2px 6px -1px rgba(255, 77, 0, 0.04);
+        }
+
+        /* Number Step Badge */
+        .mac-step-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+            border: 1px solid #fed7aa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ea580c;
+            font-weight: 700;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        /* Floating Toast Notification (Auto Dismiss) */
+        .toast-popup {
+            transform: translate(-50%, -24px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .toast-popup.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+@endpush
 
 @section('content')
-    {{-- Page Header - Simple & Modern --}}
-    <div class="mb-8">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 pb-6 border-b-2 border-gray-200">
-            {{-- Left: Title & Info --}}
-            <div class="flex items-start gap-4">
-                <div
-                    class="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-xl">
-                    <i data-lucide="file-text" class="w-8 h-8 text-white"></i>
+    @php
+        $bulanIndo = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        $tgl = $letter->letter_date;
+        $tglFormatted = $tgl ? ($tgl->format('j') . ' ' . ($bulanIndo[(int)$tgl->format('n')] ?? $tgl->format('F')) . ' ' . $tgl->format('Y')) : '-';
+
+        $securityLabels = [
+            'B' => 'Biasa',
+            'T' => 'Terbatas',
+            'R' => 'Rahasia',
+            'SR' => 'Sangat Rahasia'
+        ];
+
+        $canManage = auth()->user()->isAdmin() || (auth()->user()->isOperator() && $letter->created_by === auth()->id());
+    @endphp
+
+    <div class="max-w-7xl mx-auto space-y-6 pb-12 relative">
+        {{-- Floating Toast Notification (Auto Dismiss) --}}
+        <div id="toastPopup" class="toast-popup fixed top-5 left-1/2 z-[9999] flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/95 backdrop-blur-md border border-gray-200 shadow-xl text-xs sm:text-sm font-medium">
+            <div id="toastIconWrap" class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-100 text-emerald-600">
+                <i id="toastIcon" data-lucide="check" class="w-4 h-4"></i>
+            </div>
+            <span id="toastMessage" class="text-gray-800"></span>
+            <button type="button" onclick="hideToast()" class="text-gray-400 hover:text-gray-600 ml-2 p-0.5 rounded-lg transition-colors cursor-pointer">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+        </div>
+
+        {{-- Page Header - Modern iOS / macOS Header --}}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-200/80">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#FF4D00] to-amber-500 flex items-center justify-center text-white shadow-xs flex-shrink-0">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
                 </div>
-                <div class="flex-1 pt-1">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-1">Detail Surat</h1>
-                    <p class="text-base text-gray-600">Informasi lengkap surat yang dipilih</p>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Detail Surat</h1>
+                    <p class="text-xs sm:text-sm text-gray-500">Informasi lengkap surat yang dipilih</p>
                 </div>
             </div>
 
-            {{-- Right: Back Button --}}
-            <div class="flex-shrink-0 sm:pt-1">
+            <div class="flex items-center gap-2.5">
                 <a href="{{ route('letters.index') }}"
-                    class="inline-flex items-center gap-2.5 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 group">
-                    <i data-lucide="arrow-left"
-                        class="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200"></i>
+                    class="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-full shadow-2xs hover:shadow-xs transition-all active:scale-[0.98]">
+                    <i data-lucide="arrow-left" class="w-4 h-4 text-gray-500"></i>
                     <span>Kembali</span>
                 </a>
             </div>
         </div>
-    </div>
 
-    {{-- NOMOR SURAT CARD - Highlight dengan Copy Button --}}
-    <div
-        class="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 rounded-2xl border-2 border-orange-200 shadow-lg overflow-hidden mb-6">
-        <div class="p-8">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div class="flex-1">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-12 h-12 rounded-xl bg-white shadow-md flex items-center justify-center">
-                            <i data-lucide="hash" class="w-6 h-6 text-brand"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-orange-700 uppercase tracking-wide">Nomor Surat Resmi</p>
-                            <p class="text-xs text-orange-600">Generated automatically</p>
-                        </div>
+        {{-- NOMOR SURAT CARD - Highlight dengan Copy Button (Warm Orange Apple Theme) --}}
+        <div class="simulator-orange-card p-5 sm:p-6">
+            {{-- Header Row: Label & Status Terdaftar --}}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3.5 pb-3 border-b border-orange-200/80">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-white shadow-xs border border-orange-200/80 flex items-center justify-center text-[#FF4D00] flex-shrink-0">
+                        <i data-lucide="hash" class="w-4.5 h-4.5"></i>
                     </div>
-                    <div class="bg-white rounded-xl p-4 shadow-sm border border-orange-100">
-                        <p id="letterNumber" class="text-2xl md:text-3xl font-bold text-gray-900 font-mono tracking-tight">
-                            {{ $letter->letter_number }}
-                        </p>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-xs font-bold text-orange-800 uppercase tracking-wider">Nomor Surat Resmi</h2>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white text-orange-800 border border-orange-200/90 shadow-2xs">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Terdaftar
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-orange-600/80">Diterbitkan secara otomatis oleh sistem</p>
                     </div>
                 </div>
-                <div class="flex flex-col gap-3">
-                    <button onclick="copyLetterNumber()"
-                        class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-orange-300 rounded-xl text-brand font-semibold hover:bg-orange-50 hover:border-orange-400 transition-all duration-200 shadow-md hover:shadow-lg">
-                        <i data-lucide="copy" class="w-5 h-5"></i>
-                        <span>Copy Nomor</span>
-                    </button>
-                    <p id="copyFeedback"
-                        class="text-sm text-center text-green-600 font-medium opacity-0 transition-opacity duration-300">
-                        ✓ Berhasil disalin!
+
+                <div class="text-[11px] text-orange-700/80 font-medium hidden sm:flex items-center gap-1.5">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5 text-orange-500"></i>
+                    <span>Arsip Resmi Fakultas Ekonomi dan Bisnis</span>
+                </div>
+            </div>
+
+            {{-- Main Letter Number Box with Integrated Actions --}}
+            <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-xs border border-orange-200/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex-1 min-w-0">
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Format Nomor Surat</p>
+                    <p id="letterNumber" class="text-xl sm:text-2xl lg:text-3xl font-extrabold font-mono tracking-tight text-[#FF4D00] break-all select-all">
+                        {{ $letter->letter_number }}
                     </p>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {{-- SECTION 1: Informasi Utama --}}
-        <div class="lg:col-span-2 space-y-6">
-            {{-- Card Informasi Dasar --}}
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-brand-lighter flex items-center justify-center">
-                            <span class="text-brand font-bold">1</span>
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-900">Informasi Dasar</h3>
-                    </div>
-                </div>
-                <div class="p-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {{-- Tanggal Surat --}}
-                        <div class="flex items-start gap-4">
-                            <div
-                                class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center">
-                                <i data-lucide="calendar" class="w-6 h-6 text-green-600"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Tanggal Surat</p>
-                                <p class="text-base font-semibold text-gray-900">{{ $letter->letter_date->format('d F Y') }}
-                                </p>
-                            </div>
-                        </div>
-
-                        {{-- Status --}}
-                        <div class="flex items-start gap-4">
-                            <div
-                                class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center">
-                                <i data-lucide="check-circle" class="w-6 h-6 text-blue-600"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Status</p>
-                                <span
-                                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold
-                                    @if ($letter->status == 'final') bg-green-100 text-green-800 border border-green-200
-                                    @elseif($letter->status == 'draft') bg-yellow-100 text-yellow-800 border border-yellow-200
-                                    @else bg-red-100 text-red-800 border border-red-200 @endif">
-                                    @if ($letter->status == 'final')
-                                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
-                                    @elseif($letter->status == 'draft')
-                                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                                    @else
-                                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                                    @endif
-                                    {{ ucfirst($letter->status) }}
-                                </span>
-                            </div>
-                        </div>
-
-                        {{-- Jenis Surat --}}
-                        <div class="flex items-start gap-4">
-                            <div
-                                class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-purple-100 to-violet-100 flex items-center justify-center">
-                                <i data-lucide="file-type" class="w-6 h-6 text-purple-600"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Jenis Surat</p>
-                                <p class="text-base font-semibold text-gray-900">{{ $letter->letterType->name }}</p>
-                            </div>
-                        </div>
-
-                        {{-- Klasifikasi --}}
-                        <div class="flex items-start gap-4">
-                            <div
-                                class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
-                                <i data-lucide="folder" class="w-6 h-6 text-amber-600"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Klasifikasi</p>
-                                <p class="text-base font-semibold text-gray-900">{{ $letter->classification->name }}</p>
-                                <p class="text-sm text-gray-500 font-mono mt-0.5">{{ $letter->classification->code }}</p>
-                            </div>
-                        </div>
-
-                        {{-- Klasifikasi Keamanan --}}
-                         <div class="flex items-start gap-4">
-                            <div
-                                class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-red-100 to-pink-100 flex items-center justify-center">
-                                <i data-lucide="shield" class="w-6 h-6 text-red-600"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Klasifikasi Keamanan</p>
-                                <p class="text-base font-semibold text-gray-900">{{ $letter->security_classification }}</p>
-                                <p class="text-sm text-gray-500 mt-0.5">
-                                    @php
-                                        $labels = [
-                                            'B' => 'Biasa',
-                                            'T' => 'Terbatas',
-                                            'R' => 'Rahasia',
-                                            'SR' => 'Sangat Rahasia'
-                                        ];
-                                    @endphp
-                                    {{ $labels[$letter->security_classification] ?? '-' }}
-                                </p>
-                            </div>
-                        </div>
-
-                        {{-- Sasaran Surat --}}
-                        <div class="flex items-start gap-4">
-                            <div
-                                class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
-                                <i data-lucide="target" class="w-6 h-6 text-indigo-600"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Sasaran Surat</p>
-                                <p class="text-base font-semibold text-gray-900">
-                                    @php
-                                        $targetLabels = [
-                                            'internal' => 'Internal',
-                                            'external' => 'External'
-                                        ];
-                                    @endphp
-                                    {{ $targetLabels[$letter->letter_target] ?? '-' }}
-                                </p>
-                                <p class="text-sm text-gray-500 mt-0.5">
-                                    @if($letter->letter_target === 'internal')
-                                        Kode UN39. tidak ditambahkan ke nomor surat
-                                    @else
-                                        Kode UN39. ditambahkan ke nomor surat
-                                    @endif
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Card Isi Surat --}}
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-brand-lighter flex items-center justify-center">
-                            <span class="text-brand font-bold">2</span>
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-900">Isi Surat</h3>
-                    </div>
-                </div>
-                <div class="p-6 space-y-5">
-                    {{-- Perihal --}}
-                    @if ($letter->subject)
-                        <div>
-                            <div class="flex items-center gap-2 mb-3">
-                                <i data-lucide="align-left" class="w-4 h-4 text-gray-400"></i>
-                                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Perihal / Hal</h4>
-                            </div>
-                            <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
-                                <p class="text-gray-900 leading-relaxed">{{ $letter->subject }}</p>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- Tujuan --}}
-                    @if ($letter->recipient)
-                        <div>
-                            <div class="flex items-center gap-2 mb-3">
-                                <i data-lucide="send" class="w-4 h-4 text-gray-400"></i>
-                                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Ditujukan Kepada
-                                </h4>
-                            </div>
-                            <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
-                                <p class="text-gray-900 leading-relaxed">{{ $letter->recipient }}</p>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- Keperluan Surat --}}
-                    @if ($letter->letterPurpose)
-                        <div>
-                            <div class="flex items-center gap-2 mb-3">
-                                <i data-lucide="clipboard-list" class="w-4 h-4 text-gray-400"></i>
-                                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Keperluan</h4>
-                            </div>
-                            <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
-                                <p class="text-gray-900 leading-relaxed">{{ $letter->letterPurpose->name }}</p>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- Nama Mahasiswa --}}
-                    @if ($letter->student_name)
-                        <div>
-                            <div class="flex items-center gap-2 mb-3">
-                                <i data-lucide="user" class="w-4 h-4 text-gray-400"></i>
-                                <h4 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Nama Mahasiswa</h4>
-                            </div>
-                            <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
-                                <p class="text-gray-900 leading-relaxed font-medium">{{ $letter->student_name }}</p>
-                            </div>
-                        </div>
-                    @endif
+                {{-- Action Buttons: Copy Nomor & Copy Info Surat --}}
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 flex-shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-gray-100">
+                    <button type="button" onclick="copyLetterNumber()"
+                        class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#FF4D00] to-amber-500 hover:from-[#e04400] hover:to-[#d97706] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
+                        title="Salin Nomor Surat Resmi">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                        <span>Copy Nomor</span>
+                    </button>
+                    <button type="button" onclick="copyFullLetterText()"
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-50/90 hover:bg-orange-100/80 border border-orange-200/90 text-orange-800 font-bold text-xs sm:text-sm rounded-xl transition-all active:scale-[0.98] cursor-pointer"
+                        title="Salin Rangkuman Data Surat">
+                        <i data-lucide="clipboard-check" class="w-4 h-4 text-orange-600"></i>
+                        <span>Copy Info Surat</span>
+                    </button>
                 </div>
             </div>
         </div>
 
-        {{-- SECTION 2: Sidebar Info --}}
-        <div class="space-y-6">
-            {{-- Quick Actions Card --}}
-            @if (auth()->user()->isAdmin() || (auth()->user()->isOperator() && $letter->created_by === auth()->id()))
-                <div
-                    class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border border-orange-200 shadow-sm overflow-hidden">
+        {{-- 2-COLUMN GRID LAYOUT --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            {{-- SECTION 1: Informasi Utama (2 Kolom) --}}
+            <div class="lg:col-span-2 space-y-6">
+
+                {{-- CARD 1: Informasi Dasar --}}
+                <div class="mac-card overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="mac-step-badge">1</div>
+                            <h3 class="text-base font-bold text-gray-900 tracking-tight">Informasi Dasar</h3>
+                        </div>
+                        <span class="text-xs text-gray-400">Atribut Surat</span>
+                    </div>
+
                     <div class="p-6">
-                        <h3 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <i data-lucide="zap" class="w-4 h-4 text-orange-600"></i>
-                            Quick Actions
-                        </h3>
-                        <div class="space-y-2">
-                            {{-- Edit Button --}}
-                            <a href="{{ route('letters.edit', $letter) }}"
-                                class="flex items-center gap-3 px-4 py-3 bg-white rounded-lg border border-orange-200 hover:border-orange-300 hover:shadow-md transition-all duration-200 group">
-                                <div
-                                    class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                                    <i data-lucide="edit" class="w-4 h-4 text-blue-600"></i>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            {{-- Tanggal Surat --}}
+                            <div class="flex items-start gap-3.5">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="calendar" class="w-5 h-5"></i>
                                 </div>
-                                <span class="text-sm font-medium text-gray-700">Edit Surat</span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Tanggal Surat</p>
+                                    <p class="text-sm font-bold text-gray-900">{{ $tglFormatted }}</p>
+                                </div>
+                            </div>
+
+                            {{-- Status --}}
+                            <div class="flex items-start gap-3.5">
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/80 text-blue-600 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Status</p>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold
+                                        @if ($letter->status == 'final') bg-emerald-50 text-emerald-800 border border-emerald-200
+                                        @elseif($letter->status == 'draft') bg-amber-50 text-amber-800 border border-amber-200
+                                        @else bg-red-50 text-red-800 border border-red-200 @endif">
+                                        @if ($letter->status == 'final')
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        @elseif($letter->status == 'draft')
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                        @else
+                                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                        @endif
+                                        {{ ucfirst($letter->status) }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {{-- Jenis Surat --}}
+                            <div class="flex items-start gap-3.5">
+                                <div class="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200/80 text-purple-600 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="file-type" class="w-5 h-5"></i>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Jenis Surat</p>
+                                    <p class="text-sm font-bold text-gray-900 truncate">{{ $letter->letterType->name }}</p>
+                                </div>
+                            </div>
+
+                            {{-- Klasifikasi --}}
+                            <div class="flex items-start gap-3.5">
+                                <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="folder" class="w-5 h-5"></i>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Klasifikasi</p>
+                                    <p class="text-sm font-bold text-gray-900 truncate" title="{{ $letter->classification->name }}">{{ $letter->classification->name }}</p>
+                                    <p class="text-xs text-amber-700 font-mono font-bold mt-0.5">{{ $letter->classification->code }}</p>
+                                </div>
+                            </div>
+
+                            {{-- Klasifikasi Keamanan --}}
+                            <div class="flex items-start gap-3.5">
+                                <div class="w-10 h-10 rounded-xl bg-red-50 border border-red-200/80 text-red-600 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="shield" class="w-5 h-5"></i>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Klasifikasi Keamanan</p>
+                                    <p class="text-sm font-bold text-gray-900">{{ $letter->security_classification }} - {{ $securityLabels[$letter->security_classification] ?? 'Biasa' }}</p>
+                                </div>
+                            </div>
+
+                            {{-- Sasaran Surat --}}
+                            <div class="flex items-start gap-3.5">
+                                <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200/80 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="target" class="w-5 h-5"></i>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Sasaran Surat</p>
+                                    <p class="text-sm font-bold text-gray-900">{{ ucfirst($letter->letter_target) }}</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">
+                                        {{ $letter->letter_target === 'internal' ? 'Sirkulasi internal FEB UNJ' : 'Tujuan instansi eksternal' }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- CARD 2: Isi Surat (Apple Clean Inspector Layout) --}}
+                <div class="mac-card overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="mac-step-badge">2</div>
+                            <h3 class="text-base font-bold text-gray-900 tracking-tight">Isi Surat</h3>
+                        </div>
+                        <span class="text-xs text-gray-400 font-medium">Substansi &amp; Penerima</span>
+                    </div>
+
+                    <div class="p-6 space-y-5">
+                        {{-- Perihal / Hal --}}
+                        @if ($letter->subject)
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="align-left" class="w-4 h-4 text-orange-500"></i>
+                                        <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Perihal / Hal</h4>
+                                    </div>
+                                    <button type="button" onclick="copyToClipboard('{{ addslashes($letter->subject) }}', 'Perihal surat berhasil disalin!')"
+                                        class="inline-flex items-center gap-1 text-[11px] font-medium text-gray-400 hover:text-orange-600 transition-colors cursor-pointer"
+                                        title="Salin Perihal">
+                                        <i data-lucide="copy" class="w-3 h-3"></i>
+                                        <span>Salin</span>
+                                    </button>
+                                </div>
+                                <div class="bg-gray-50/80 hover:bg-gray-50/95 rounded-2xl p-4.5 border border-gray-200/80 shadow-2xs transition-colors">
+                                    <p class="text-sm sm:text-base font-semibold text-gray-900 leading-relaxed">{{ $letter->subject }}</p>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Ditujukan Kepada --}}
+                        @if ($letter->recipient)
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="send" class="w-4 h-4 text-blue-500"></i>
+                                        <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Ditujukan Kepada</h4>
+                                    </div>
+                                    @if ($letter->letter_target)
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ $letter->letter_target === 'internal' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200' }}">
+                                            {{ ucfirst($letter->letter_target) }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="bg-gray-50/80 hover:bg-gray-50/95 rounded-2xl p-4.5 border border-gray-200/80 shadow-2xs transition-colors">
+                                    <p class="text-sm sm:text-base font-semibold text-gray-900 leading-relaxed">{{ $letter->recipient }}</p>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Keperluan Surat --}}
+                        @if ($letter->letterPurpose)
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <i data-lucide="clipboard-list" class="w-4 h-4 text-purple-500"></i>
+                                    <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Keperluan</h4>
+                                </div>
+                                <div class="bg-gray-50/80 hover:bg-gray-50/95 rounded-2xl p-4 border border-gray-200/80 shadow-2xs transition-colors">
+                                    <p class="text-sm font-medium text-gray-900 leading-relaxed">{{ $letter->letterPurpose->name }}</p>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Nama Mahasiswa --}}
+                        @if ($letter->student_name)
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <i data-lucide="user" class="w-4 h-4 text-emerald-500"></i>
+                                    <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Mahasiswa</h4>
+                                </div>
+                                <div class="bg-gray-50/80 hover:bg-gray-50/95 rounded-2xl p-4 border border-gray-200/80 shadow-2xs transition-colors">
+                                    <p class="text-sm font-semibold text-gray-900 leading-relaxed">{{ $letter->student_name }}</p>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- SECTION 2: Sidebar Info (1 Kolom) --}}
+            <div class="space-y-6">
+
+                {{-- Quick Actions Card --}}
+                @if ($canManage)
+                    <div class="mac-card p-5">
+                        <h3 class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                            <i data-lucide="zap" class="w-4 h-4 text-[#FF4D00]"></i>
+                            Aksi Cepat
+                        </h3>
+                        <div class="space-y-2.5">
+                            {{-- Edit Button (Soft Tinted Amber Theme - Apple Style) --}}
+                            <a href="{{ route('letters.edit', $letter) }}"
+                                class="flex items-center gap-3.5 px-4 py-3 bg-amber-50 hover:bg-amber-100/80 border border-amber-200/90 text-amber-950 rounded-xl shadow-2xs hover:shadow-xs transition-all active:scale-[0.98] group">
+                                <div class="w-9 h-9 rounded-xl bg-amber-100 border border-amber-200/80 text-amber-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                                    <i data-lucide="edit-3" class="w-4.5 h-4.5"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs sm:text-sm font-bold text-amber-950 tracking-tight">Edit Surat</p>
+                                    <p class="text-[11px] text-amber-700/80 truncate">Perbarui rincian data surat</p>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-amber-400 group-hover:text-amber-600 group-hover:translate-x-0.5 transition-all"></i>
                             </a>
 
-                            {{-- Nonaktifkan Button --}}
+                            {{-- Nonaktifkan Button (Soft Tinted Red Theme - Apple Danger Style) --}}
                             <form id="deleteForm" method="POST" action="{{ route('letters.destroy', $letter) }}">
                                 @csrf
                                 @method('DELETE')
                                 <button type="button" onclick="showDeleteModal()"
-                                    class="w-full flex items-center gap-3 px-4 py-3 bg-white rounded-lg border border-orange-200 hover:border-red-300 hover:shadow-md transition-all duration-200 group">
-                                    <div
-                                        class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center group-hover:bg-red-200 transition-colors">
-                                        <i data-lucide="trash-2" class="w-4 h-4 text-red-600"></i>
+                                    class="w-full flex items-center gap-3.5 px-4 py-3 bg-red-50 hover:bg-red-100/80 border border-red-200/90 text-red-950 rounded-xl shadow-2xs hover:shadow-xs transition-all active:scale-[0.98] group cursor-pointer text-left">
+                                    <div class="w-9 h-9 rounded-xl bg-red-100 border border-red-200/80 text-red-600 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                                        <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
                                     </div>
-                                    <span class="text-sm font-medium text-gray-700">Nonaktifkan Surat</span>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs sm:text-sm font-bold text-red-950 tracking-tight">Nonaktifkan Surat</p>
+                                        <p class="text-[11px] text-red-700/80 truncate">Arsipkan &amp; nonaktifkan nomor</p>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-4 h-4 text-red-400 group-hover:text-red-600 group-hover:translate-x-0.5 transition-all"></i>
                                 </button>
                             </form>
                         </div>
                     </div>
-                </div>
-            @endif
+                @endif
 
-            {{-- Card Penandatangan --}}
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="bg-gradient-to-r from-cyan-50 to-blue-50 px-6 py-4 border-b border-cyan-100">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center">
-                            <i data-lucide="user-check" class="w-5 h-5 text-cyan-600"></i>
+                {{-- Card Penandatangan --}}
+                <div class="mac-card overflow-hidden">
+                    <div class="px-5 py-3.5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2.5">
+                        <i data-lucide="user-check" class="w-4.5 h-4.5 text-cyan-600"></i>
+                        <h3 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Penandatangan</h3>
+                    </div>
+
+                    <div class="p-6 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-100 to-blue-200 flex items-center justify-center mx-auto mb-3.5 shadow-sm text-cyan-700">
+                            <i data-lucide="pen-tool" class="w-8 h-8"></i>
                         </div>
-                        <h3 class="text-base font-semibold text-gray-900">Penandatangan</h3>
+                        <p class="text-base font-bold text-gray-900">{{ $letter->signatory->name ?? '-' }}</p>
+                        <p class="text-xs text-gray-600 mt-0.5">{{ $letter->signatory->position ?? '-' }}</p>
+                        @if ($letter->signatory && $letter->signatory->nip)
+                            <p class="text-[11px] font-mono text-gray-400 mt-1">NIP. {{ $letter->signatory->nip }}</p>
+                        @endif
+
+                        <div class="mt-4 pt-3 border-t border-gray-100">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-cyan-50 rounded-full border border-cyan-200 text-cyan-700 text-xs font-semibold">
+                                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-cyan-600"></i>
+                                Verified
+                            </span>
+                        </div>
                     </div>
                 </div>
-                <div class="p-6">
-                    <div class="text-center">
-                        <div
-                            class="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-100 to-blue-200 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <i data-lucide="pen-tool" class="w-10 h-10 text-cyan-700"></i>
+
+                {{-- Card Informasi Lainnya --}}
+                <div class="mac-card overflow-hidden">
+                    <div class="px-5 py-3.5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2.5">
+                        <i data-lucide="info" class="w-4.5 h-4.5 text-gray-500"></i>
+                        <h3 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Informasi Lainnya</h3>
+                    </div>
+
+                    <div class="p-5 space-y-4">
+                        {{-- Dibuat oleh --}}
+                        <div class="flex items-start gap-3 pb-3 border-b border-gray-100">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200/70 text-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i data-lucide="user" class="w-4 h-4"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Dibuat Oleh</p>
+                                <p class="text-xs sm:text-sm font-bold text-gray-900 truncate">{{ $letter->creator->name ?? 'Administrator' }}</p>
+                            </div>
                         </div>
-                        <p class="text-lg font-bold text-gray-900 mb-1">{{ $letter->signatory->name }}</p>
-                        <p class="text-sm text-gray-600 mb-3">{{ $letter->signatory->position }}</p>
-                        <div
-                            class="inline-flex items-center gap-2 px-3 py-1.5 bg-cyan-50 rounded-lg border border-cyan-200">
-                            <i data-lucide="shield-check" class="w-4 h-4 text-cyan-600"></i>
-                            <span class="text-xs font-semibold text-cyan-700 uppercase">Verified</span>
+
+                        {{-- Tanggal dibuat --}}
+                        <div class="flex items-start gap-3 pb-3 border-b border-gray-100">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200/70 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i data-lucide="clock" class="w-4 h-4"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Tanggal Dibuat</p>
+                                <p class="text-xs sm:text-sm font-bold text-gray-900">{{ $letter->created_at->format('d/m/Y') }}</p>
+                                <p class="text-[11px] text-gray-500 mt-0.5">{{ $letter->created_at->format('H:i') }} WIB</p>
+                            </div>
+                        </div>
+
+                        {{-- Terakhir diupdate --}}
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200/70 text-amber-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i data-lucide="history" class="w-4 h-4"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Terakhir Diupdate</p>
+                                <p class="text-xs sm:text-sm font-bold text-gray-900">{{ $letter->updated_at->format('d/m/Y') }}</p>
+                                <p class="text-[11px] text-gray-500 mt-0.5">{{ $letter->updated_at->format('H:i') }} WIB</p>
+                            </div>
                         </div>
                     </div>
                 </div>
+
             </div>
 
-            {{-- Card Metadata --}}
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center">
-                            <i data-lucide="info" class="w-5 h-5 text-gray-600"></i>
-                        </div>
-                        <h3 class="text-base font-semibold text-gray-900">Informasi Lainnya</h3>
-                    </div>
-                </div>
-                <div class="p-6 space-y-4">
-                    {{-- Dibuat oleh --}}
-                    <div class="flex items-start gap-3 pb-4 border-b border-gray-100">
-                        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                            <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Dibuat Oleh</p>
-                            <p class="text-sm font-semibold text-gray-900">{{ $letter->creator->name }}</p>
-                        </div>
-                    </div>
-
-                    {{-- Tanggal dibuat --}}
-                    <div class="flex items-start gap-3 pb-4 border-b border-gray-100">
-                        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                            <i data-lucide="clock" class="w-5 h-5 text-green-600"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Tanggal Dibuat</p>
-                            <p class="text-sm font-semibold text-gray-900">{{ $letter->created_at->format('d/m/Y') }}</p>
-                            <p class="text-xs text-gray-500 mt-0.5">{{ $letter->created_at->format('H:i') }} WIB</p>
-                        </div>
-                    </div>
-
-                    {{-- Terakhir diupdate --}}
-                    <div class="flex items-start gap-3">
-                        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                            <i data-lucide="edit" class="w-5 h-5 text-amber-600"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Terakhir Diupdate</p>
-                            <p class="text-sm font-semibold text-gray-900">{{ $letter->updated_at->format('d/m/Y') }}</p>
-                            <p class="text-xs text-gray-500 mt-0.5">{{ $letter->updated_at->format('H:i') }} WIB</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
+
     </div>
 
-    {{-- Delete Confirmation Modal --}}
+    {{-- Delete Confirmation Modal (Apple Style Dialog) --}}
     <div id="deleteModal"
-        class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all scale-95 opacity-0"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-md">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full border border-gray-200 overflow-hidden transform transition-all scale-95 opacity-0"
             id="deleteModalContent">
-            {{-- Modal Header --}}
-            <div class="bg-gradient-to-r from-red-500 to-red-600 px-6 py-5 rounded-t-2xl">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                        <i data-lucide="alert-triangle" class="w-6 h-6 text-white"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-bold text-white">Konfirmasi Nonaktifkan</h3>
-                        <p class="text-red-100 text-sm mt-0.5">Tindakan ini tidak dapat dibatalkan</p>
-                    </div>
-                </div>
-            </div>
-
             {{-- Modal Body --}}
-            <div class="p-6">
-                <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-5">
-                    <p class="text-gray-800 leading-relaxed">
-                        Apakah Anda yakin ingin <span class="font-bold text-red-600">menonaktifkan</span> surat ini?
+            <div class="p-6 text-center space-y-4">
+                <div class="w-14 h-14 rounded-2xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center mx-auto shadow-2xs">
+                    <i data-lucide="alert-triangle" class="w-7 h-7"></i>
+                </div>
+
+                <div class="space-y-1">
+                    <h3 class="text-lg font-bold text-gray-900">Konfirmasi Nonaktifkan Surat</h3>
+                    <p class="text-xs text-gray-500 leading-relaxed">
+                        Apakah Anda yakin ingin menonaktifkan surat ini? Data nomor surat tetap tersimpan di dalam arsip.
                     </p>
-                    <div class="mt-3 pt-3 border-t border-red-200">
-                        <p class="text-sm text-gray-600 flex items-center gap-2">
-                            <i data-lucide="info" class="w-4 h-4 text-red-500"></i>
-                            <span>Nomor Surat: <span
-                                    class="font-mono font-semibold text-gray-900">{{ $letter->letter_number }}</span></span>
-                        </p>
-                    </div>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-200/90 rounded-2xl p-3.5 text-left">
+                    <p class="text-xs text-gray-600 flex items-center gap-2">
+                        <i data-lucide="hash" class="w-3.5 h-3.5 text-orange-500 flex-shrink-0"></i>
+                        <span>Nomor Surat: <strong class="font-mono text-gray-900">{{ $letter->letter_number }}</strong></span>
+                    </p>
                 </div>
 
                 {{-- Action Buttons --}}
-                <div class="flex gap-3">
+                <div class="flex items-center gap-3 pt-2">
                     <button type="button" onclick="hideDeleteModal()"
-                        class="flex-1 px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all duration-200 border border-gray-300">
+                        class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200/80 text-gray-700 font-semibold text-xs rounded-xl transition-all active:scale-[0.98] border border-gray-200 cursor-pointer">
                         <span>Batal</span>
                     </button>
                     <button type="button" onclick="confirmDelete()"
-                        class="flex-1 px-5 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
+                        class="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-red-600/20 active:scale-[0.98] cursor-pointer">
                         <span>Ya, Nonaktifkan</span>
                     </button>
                 </div>
@@ -431,48 +511,109 @@
 
     @push('scripts')
         <script>
-            // Copy letter number to clipboard
-            function copyLetterNumber() {
-                const letterNumber = document.getElementById('letterNumber').textContent.trim();
-                const feedback = document.getElementById('copyFeedback');
+            // Toast Notification Manager
+            let toastTimer = null;
 
-                navigator.clipboard.writeText(letterNumber).then(function() {
-                    // Show success feedback
-                    feedback.classList.remove('opacity-0');
-                    feedback.classList.add('opacity-100');
+            function showToast(message, type = 'success') {
+                const toast = document.getElementById('toastPopup');
+                const toastMsg = document.getElementById('toastMessage');
+                const toastIconWrap = document.getElementById('toastIconWrap');
+                const toastIcon = document.getElementById('toastIcon');
 
-                    // Hide after 2 seconds
-                    setTimeout(function() {
-                        feedback.classList.remove('opacity-100');
-                        feedback.classList.add('opacity-0');
-                    }, 2000);
-                }).catch(function(err) {
-                    console.error('Failed to copy:', err);
-                    alert('Gagal menyalin nomor surat');
-                });
+                if (!toast || !toastMsg) return;
+
+                toastMsg.textContent = message;
+
+                if (type === 'error') {
+                    toast.className = 'toast-popup show fixed top-5 left-1/2 z-[9999] flex items-center gap-3 px-4.5 py-3 rounded-2xl bg-white/95 backdrop-blur-md border border-red-200/90 text-gray-800 shadow-xl shadow-red-500/10 text-xs sm:text-sm font-medium';
+                    toastIconWrap.className = 'w-7 h-7 rounded-xl bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0';
+                    toastIcon.setAttribute('data-lucide', 'alert-circle');
+                } else {
+                    toast.className = 'toast-popup show fixed top-5 left-1/2 z-[9999] flex items-center gap-3 px-4.5 py-3 rounded-2xl bg-white/95 backdrop-blur-md border border-emerald-200/90 text-gray-800 shadow-xl shadow-emerald-500/10 text-xs sm:text-sm font-medium';
+                    toastIconWrap.className = 'w-7 h-7 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0';
+                    toastIcon.setAttribute('data-lucide', 'check');
+                }
+
+                lucide.createIcons();
+
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => {
+                    hideToast();
+                }, 4000);
             }
 
-            // Show delete modal with animation
+            function hideToast() {
+                const toast = document.getElementById('toastPopup');
+                if (toast) {
+                    toast.classList.remove('show');
+                }
+            }
+
+            function copyToClipboard(text, successMessage) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        showToast(successMessage, 'success');
+                    }).catch(function() {
+                        fallbackCopyText(text, successMessage);
+                    });
+                } else {
+                    fallbackCopyText(text, successMessage);
+                }
+            }
+
+            function fallbackCopyText(text, successMessage) {
+                try {
+                    const temp = document.createElement('textarea');
+                    temp.value = text;
+                    temp.style.position = 'fixed';
+                    temp.style.top = '-9999px';
+                    temp.style.left = '-9999px';
+                    document.body.appendChild(temp);
+                    temp.focus();
+                    temp.select();
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(temp);
+                    if (successful) {
+                        showToast(successMessage, 'success');
+                    } else {
+                        showToast('Gagal menyalin ke clipboard.', 'error');
+                    }
+                } catch (e) {
+                    showToast('Gagal menyalin ke clipboard.', 'error');
+                }
+            }
+
+            // Copy Letter Number to Clipboard
+            function copyLetterNumber() {
+                const letterNumber = document.getElementById('letterNumber').textContent.trim();
+                copyToClipboard(letterNumber, 'Nomor surat berhasil disalin ke clipboard!');
+            }
+
+            // Copy Full Letter Information
+            function copyFullLetterText() {
+                const text = `Nomor: {{ $letter->letter_number }}\nTanggal: {{ $tglFormatted }}\nPerihal: {{ $letter->subject }}\nKepada: {{ $letter->recipient }}\nPenandatangan: {{ $letter->signatory->name ?? '-' }}`;
+                copyToClipboard(text, 'Informasi surat berhasil disalin ke clipboard!');
+            }
+
+            // Show delete modal with smooth scale animation
             function showDeleteModal() {
                 const modal = document.getElementById('deleteModal');
                 const modalContent = document.getElementById('deleteModalContent');
+                if (!modal || !modalContent) return;
 
                 modal.classList.remove('hidden');
-
-                // Trigger animation
                 setTimeout(() => {
                     modalContent.classList.remove('scale-95', 'opacity-0');
                     modalContent.classList.add('scale-100', 'opacity-100');
                 }, 10);
-
-                // Re-initialize Lucide icons in modal
                 lucide.createIcons();
             }
 
-            // Hide delete modal with animation
+            // Hide delete modal
             function hideDeleteModal() {
                 const modal = document.getElementById('deleteModal');
                 const modalContent = document.getElementById('deleteModalContent');
+                if (!modal || !modalContent) return;
 
                 modalContent.classList.remove('scale-100', 'opacity-100');
                 modalContent.classList.add('scale-95', 'opacity-0');
@@ -501,8 +642,16 @@
                 }
             });
 
-            // Re-initialize Lucide icons
-            lucide.createIcons();
+            // Trigger session toast on page load
+            $(document).ready(function() {
+                @if (session('success'))
+                    showToast("{{ session('success') }}", 'success');
+                @elseif (session('error'))
+                    showToast("{{ session('error') }}", 'error');
+                @elseif ($errors->any())
+                    showToast("{{ $errors->first() }}", 'error');
+                @endif
+            });
         </script>
     @endpush
 @endsection

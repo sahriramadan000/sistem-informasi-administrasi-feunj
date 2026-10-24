@@ -364,6 +364,427 @@
             word-break: break-word;
             line-height: 1.4;
         }
+
+        /* ── Apple iOS / macOS Style Sidebar (Pure White Modern Edition) ── */
+        .ios-sidebar-aside {
+            width: 260px !important;
+            flex-shrink: 0 !important;
+            transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ios-sidebar-inner {
+            width: 260px !important;
+            height: 100vh !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            bottom: 0 !important;
+            background-color: #ffffff !important; /* Pure White Sidebar */
+            border-right: 1px solid #e5e7eb !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            z-index: 20 !important;
+            box-sizing: border-box !important;
+            transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ios-mobile-sidebar {
+            width: 280px !important;
+            height: 100vh !important;
+            background-color: #ffffff !important; /* Pure White Mobile Sidebar */
+            border-right: 1px solid #e5e7eb !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Collapsed sidebar mode */
+        #sidebar.sidebar-collapsed {
+            width: 68px !important;
+        }
+        #sidebar.sidebar-collapsed .ios-sidebar-inner {
+            width: 68px !important;
+        }
+        #sidebar.sidebar-collapsed .sidebar-hide-on-collapsed {
+            display: none !important;
+        }
+        #sidebar.sidebar-collapsed .ios-nav-item {
+            justify-content: center !important;
+            padding: 9px 0 !important;
+        }
+        #sidebar.sidebar-collapsed .ios-nav-item .ios-menu-icon {
+            margin-right: 0 !important;
+        }
+        #sidebar.sidebar-collapsed .ios-item-label {
+            justify-content: center !important;
+        }
+
+        /* Workspace Header Button */
+        .ios-workspace-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 6px 8px;
+            border-radius: 12px;
+            background: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: left;
+        }
+        .ios-workspace-btn:hover {
+            background-color: #f8fafc;
+            border-color: #e5e7eb;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        /* Search Bar (Contrasting Light Grey Pill inside White Sidebar) */
+        .ios-search-wrapper {
+            display: flex;
+            align-items: center;
+            background-color: #f3f4f6;
+            border-radius: 12px;
+            padding: 6px 10px;
+            transition: all 0.15s ease;
+            border: 1px solid #e5e7eb;
+        }
+        .ios-search-wrapper:focus-within {
+            background-color: #ffffff;
+            border-color: #ea580c;
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.12);
+        }
+        .ios-search-icon {
+            width: 15px !important;
+            height: 15px !important;
+            min-width: 15px !important;
+            min-height: 15px !important;
+            color: #94a3b8 !important;
+            flex-shrink: 0 !important;
+        }
+        .ios-search-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 13px;
+            color: #1e293b;
+            margin-left: 8px;
+        }
+        .ios-search-input::placeholder {
+            color: #94a3b8;
+        }
+        .ios-kbd-badge {
+            font-size: 10px;
+            font-weight: 600;
+            color: #64748b;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1px 5px;
+            line-height: 1.2;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+            margin-left: 2px;
+            flex-shrink: 0;
+        }
+
+        /* Section Headings */
+        .ios-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 10px 10px 4px 10px;
+        }
+
+        /* Nav Items */
+        .ios-nav-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 10px;
+            margin-bottom: 3px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #475569;
+            text-decoration: none;
+            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid transparent;
+            outline: none;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .ios-nav-item:hover {
+            background-color: #f8fafc;
+            color: #0f172a;
+            border-color: #f1f5f9;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        /* ACTIVE ITEM: Warm Brand Tint Capsule on White Canvas */
+        .ios-nav-item.active {
+            background-color: #fff7ed !important;
+            color: #9a3412 !important;
+            font-weight: 600 !important;
+            border-color: #ffedd5 !important;
+            box-shadow: 0 1px 3px rgba(255, 77, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+        }
+        .ios-nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: -2px;
+            top: 6px;
+            bottom: 6px;
+            width: 3.5px;
+            border-radius: 4px;
+            background: linear-gradient(to bottom, #FF4D00, #ea580c);
+            box-shadow: 0 0 6px rgba(255, 77, 0, 0.4);
+        }
+        .ios-nav-item.active .ios-menu-icon {
+            color: #ea580c !important;
+        }
+
+        .ios-item-label {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            flex: 1;
+        }
+
+        /* Menu Icons */
+        .ios-menu-icon {
+            width: 18px !important;
+            height: 18px !important;
+            min-width: 18px !important;
+            min-height: 18px !important;
+            margin-right: 10px !important;
+            stroke-width: 1.9 !important;
+            color: #64748b;
+            flex-shrink: 0 !important;
+            transition: color 0.15s ease;
+        }
+        .ios-nav-item:hover .ios-menu-icon {
+            color: #0f172a;
+        }
+
+        /* Right Chevrons */
+        .ios-right-chevron {
+            width: 14px !important;
+            height: 14px !important;
+            min-width: 14px !important;
+            min-height: 14px !important;
+            stroke-width: 2 !important;
+            color: #cbd5e1;
+            flex-shrink: 0 !important;
+            transition: transform 0.15s ease, color 0.15s ease;
+        }
+        .ios-nav-item:hover .ios-right-chevron {
+            color: #94a3b8;
+        }
+
+        /* Pinned Section */
+        .ios-pinned-badge {
+            width: 24px !important;
+            height: 24px !important;
+            min-width: 24px !important;
+            min-height: 24px !important;
+            border-radius: 7px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11.5px;
+            font-weight: 700;
+            margin-right: 10px;
+            flex-shrink: 0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+        .ios-pin-icon {
+            width: 13px !important;
+            height: 13px !important;
+            min-width: 13px !important;
+            min-height: 13px !important;
+            stroke-width: 1.8 !important;
+            color: #cbd5e1;
+            flex-shrink: 0 !important;
+            transform: rotate(35deg);
+            transition: color 0.15s ease;
+        }
+        .ios-nav-item:hover .ios-pin-icon {
+            color: #94a3b8;
+        }
+
+        /* User Profile Capsule */
+        .ios-user-capsule {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: left;
+        }
+        .ios-user-capsule:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        /* ── Top Header / Navbar (Pure White Apple macOS Style) ── */
+        .ios-header {
+            background-color: #ffffff !important;
+            border-bottom: 1px solid #e5e7eb !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02) !important;
+        }
+
+        /* macOS Spotlight Quick Command Capsule */
+        .ios-spotlight-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 260px;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            background-color: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            color: #64748b;
+            font-size: 12px;
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .ios-spotlight-btn:hover {
+            background-color: #ffffff;
+            border-color: #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            color: #1e293b;
+        }
+
+        /* macOS Status / Live Capsule */
+        .ios-status-capsule {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 9999px;
+            background-color: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+            font-size: 11.5px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            box-shadow: 0 1px 2px rgba(16, 185, 129, 0.04);
+        }
+
+        /* macOS Clock Capsule */
+        .ios-clock-capsule {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 12px;
+            border-radius: 9999px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 500;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            transition: all 0.15s ease;
+        }
+        .ios-clock-capsule:hover {
+            background-color: #ffffff;
+            border-color: #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        /* macOS Round Action Button */
+        .ios-header-icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 9999px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            text-decoration: none;
+            position: relative;
+        }
+        .ios-header-icon-btn:hover {
+            background-color: #ffffff;
+            border-color: #cbd5e1;
+            color: #0f172a;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .ios-header-icon-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* macOS User Profile Capsule */
+        .ios-header-user-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px 4px 4px;
+            border-radius: 9999px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .ios-header-user-btn:hover {
+            background-color: #ffffff;
+            border-color: #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        /* macOS Flyout Dropdown Card */
+        .ios-flyout-card {
+            border-radius: 18px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+            animation: iosDropdownFade 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes iosDropdownFade {
+            from {
+                opacity: 0;
+                transform: translateY(-6px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Custom Scrollbar */
+        .ios-sidebar-scroll {
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .ios-sidebar-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .ios-sidebar-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .ios-sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 4px;
+        }
+        .ios-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.16);
+        }
     </style>
 
     @stack('styles')
@@ -371,569 +792,150 @@
 
 <body class="h-full">
     @auth
-        <div class="min-h-screen flex bg-gray-50">
-            {{-- Sidebar --}}
-            <aside id="sidebar" class="hidden lg:flex lg:flex-shrink-0 lg:w-64">
-                <div class="flex flex-col w-64 border-r border-gray-200 bg-white fixed h-full">
-                    {{-- Sidebar Header (With Switcher Link) --}}
-                    <div class="flex h-16 items-center justify-between px-6 border-b border-gray-200 flex-shrink-0">
-                        <div class="flex items-center space-x-2">
-                            <a href="{{ route('switcher') }}"
-                                class="flex h-10 w-10 items-center justify-center hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-                                title="Kembali ke Pilihan Modul">
-                                <img src="{{ asset('logo-unj.png') }}" alt="Logo UNJ" class="h-8 w-8 object-contain">
-                            </a>
-                            <span class="text-lg font-semibold text-gray-900">
-                                @if (request()->routeIs('admin.*', 'master.users.*'))
-                                    Pengaturan
-                                @elseif(request()->routeIs('legalizations.*', 'master.education-levels.*'))
-                                    Legalisir FEB
-                                @elseif(request()->routeIs('room-reservations.*', 'master.rooms.*'))
-                                    Ruangan FEB
-                                @else
-                                    Surat FEB
-                                @endif
-                            </span>
-                        </div>
-                    </div>
-
-                    {{-- Sidebar Navigation --}}
-                    <nav class="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-                        @if (request()->routeIs('admin.*', 'master.users.*'))
-                            {{-- ========================================== --}}
-                            {{-- NAVIGASI MODUL PENGATURAN --}}
-                            {{-- ========================================== --}}
-
-                            {{-- Dashboard Pengaturan --}}
-                            <a href="{{ route('admin.dashboard') }}"
-                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
-                                Dashboard
-                            </a>
-
-                            {{-- Akses & Pengguna Section --}}
-                            <div class="pt-4">
-                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Akses &
-                                    Pengguna</h3>
-                                <div class="mt-2 space-y-1">
-                                    <a href="{{ route('master.users.index') }}"
-                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.users.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="users" class="mr-3 h-5 w-5"></i>
-                                        Pengguna
-                                    </a>
-                                </div>
-                            </div>
-
-                            {{-- System Monitoring Section --}}
-                            <div class="pt-4">
-                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System
-                                    Monitoring</h3>
-                                <div class="mt-2 space-y-1">
-                                    <a href="{{ route('admin.error-logs.index') }}"
-                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.error-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="alert-triangle" class="mr-3 h-5 w-5"></i>
-                                        Error Logs
-                                    </a>
-                                    <a href="{{ route('admin.activity-logs.index') }}"
-                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.activity-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="activity" class="mr-3 h-5 w-5"></i>
-                                        Activity Logs
-                                    </a>
-                                </div>
-                            </div>
-                        @elseif(request()->routeIs('legalizations.*', 'master.education-levels.*'))
-                            {{-- ========================================== --}}
-                            {{-- NAVIGASI MODUL LEGALISIR --}}
-                            {{-- ========================================== --}}
-
-                            {{-- Dashboard Legalisir --}}
-                            <a href="{{ route('legalizations.dashboard') }}"
-                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('legalizations.dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
-                                Dashboard
-                            </a>
-
-                            {{-- Legalisir Section --}}
-                            <div class="pt-2">
-                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Transaksi</h3>
-                                <div class="mt-2 space-y-1">
-                                    @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
-                                        <a href="{{ route('legalizations.create') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('legalizations.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
-                                            Buat Legalisir
-                                        </a>
-                                    @endif
-                                    <a href="{{ route('legalizations.index') }}"
-                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('legalizations.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="files" class="mr-3 h-5 w-5"></i>
-                                        Daftar Legalisir
-                                    </a>
-                                </div>
-                            </div>
-
-                            @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
-                                <div class="pt-4">
-                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master
-                                        Data</h3>
-                                    <div class="mt-2 space-y-1">
-                                        <a href="{{ route('master.education-levels.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.education-levels.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="graduation-cap" class="mr-3 h-5 w-5"></i>
-                                            Jenjang Pendidikan
-                                        </a>
-                                    </div>
-                                </div>
-                            @endif
-                        @elseif(request()->routeIs('room-reservations.*', 'master.rooms.*', 'master.room-groups.*'))
-                            @if(auth()->user()->can_access_room_reservations || auth()->user()->isAdmin())
-                                {{-- ========================================== --}}
-                                {{-- NAVIGASI MODUL PEMINJAMAN RUANG --}}
-                                {{-- ========================================== --}}
-
-                                {{-- Dashboard Peminjaman --}}
-                                <a href="{{ route('room-reservations.dashboard') }}"
-                                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('room-reservations.dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                    <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
-                                    Dashboard
-                                </a>
-
-                                {{-- Peminjaman Section --}}
-                                <div class="pt-2">
-                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Transaksi</h3>
-                                    <div class="mt-2 space-y-1">
-                                        <a href="{{ route('room-reservations.create') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('room-reservations.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
-                                            Buat Peminjaman
-                                        </a>
-                                        <a href="{{ route('room-reservations.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('room-reservations.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="list" class="mr-3 h-5 w-5"></i>
-                                            Daftar Peminjaman
-                                        </a>
-                                    </div>
-                                </div>
-
-                                @if (auth()->user()->isAdmin())
-                                    <div class="pt-4">
-                                        <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master Data</h3>
-                                        <div class="mt-2 space-y-1">
-                                        <a href="{{ route('master.rooms.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.rooms.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="box" class="mr-3 h-5 w-5"></i>
-                                            Master Ruangan
-                                        </a>
-                                        <a href="{{ route('master.room-groups.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.room-groups.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="folder" class="mr-3 h-5 w-5"></i>
-                                            Master Grup Ruangan
-                                        </a>
-                                    </div>
-                                </div>
-                                @endif
-                            @endif
-                        @else
-                            {{-- ========================================== --}}
-                            {{-- NAVIGASI MODUL PERSURATAN --}}
-                            {{-- ========================================== --}}
-
-                            {{-- Dashboard Surat --}}
-                            <a href="{{ route('dashboard') }}"
-                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
-                                Dashboard
-                            </a>
-
-                            {{-- Letters Section --}}
-                            <div class="pt-2">
-                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Surat</h3>
-                                <div class="mt-2 space-y-1">
-                                    @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
-                                        <a href="{{ route('letters.create') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('letters.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
-                                            Buat Surat Baru
-                                        </a>
-                                    @endif
-                                    <a href="{{ route('letters.index') }}"
-                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('letters.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="mail" class="mr-3 h-5 w-5"></i>
-                                        Daftar Surat
-                                    </a>
-                                </div>
-                            </div>
-
-                            {{-- Master Data Section --}}
-                            @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
-                                <div class="pt-4">
-                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master
-                                        Data</h3>
-                                    <div class="mt-2 space-y-1">
-                                        <a href="{{ route('master.classification-letters.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.classification-letters.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="tags" class="mr-3 h-5 w-5"></i>
-                                            Klasifikasi Surat
-                                        </a>
-                                        <a href="{{ route('master.letter-types.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.letter-types.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="file-text" class="mr-3 h-5 w-5"></i>
-                                            Jenis Surat
-                                        </a>
-                                        <a href="{{ route('master.letter-purposes.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.letter-purposes.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="bookmark" class="mr-3 h-5 w-5"></i>
-                                            Keperluan Surat
-                                        </a>
-                                        <a href="{{ route('master.signatories.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.signatories.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="user-check" class="mr-3 h-5 w-5"></i>
-                                            Penandatangan
-                                        </a>
-                                    </div>
-                                </div>
-                            @endif
-                        @endif
-                    </nav>
-
-                    {{-- User Menu at Bottom --}}
-                    <div class="border-t border-gray-200 p-3 flex-shrink-0">
-                        <div class="relative">
-                            <button onclick="toggleUserMenu()"
-                                class="w-full flex items-center rounded-lg px-3 py-2 text-sm transition-colors hover:bg-gray-100">
-                                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-brand">
-                                    <span
-                                        class="text-xs font-semibold text-white">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</span>
-                                </div>
-                                <div class="ml-3 flex-1 text-left">
-                                    <p class="text-sm font-medium text-gray-900 user-name-display">
-                                        {{ Auth::user()->name }}</p>
-                                    <p class="text-xs text-gray-500 capitalize">{{ Auth::user()->role }}</p>
-                                </div>
-                                <i data-lucide="chevron-up"
-                                    class="h-4 w-4 text-gray-400 transition-transform duration-200"
-                                    id="user-menu-icon"></i>
-                            </button>
-
-                            {{-- Dropdown Menu --}}
-                            <div id="user-menu-dropdown"
-                                class="hidden absolute bottom-full left-0 right-0 mb-2 rounded-lg border border-gray-200 bg-white shadow-lg z-50">
-                                <div class="p-2 space-y-1">
-                                    <div class="px-3 py-2 border-b border-gray-100">
-                                        <p class="text-xs font-medium text-gray-500">Akun</p>
-                                        <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->email }}
-                                        </p>
-                                    </div>
-
-                                    {{-- Edit Profile --}}
-                                    <a href="{{ route('profile.edit') }}"
-                                        class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                                        <i data-lucide="user" class="mr-2 h-4 w-4"></i>
-                                        Edit Profile
-                                    </a>
-
-                                    @if (auth()->user()->hasMultipleModules())
-                                        <div class="border-t border-gray-100 my-1"></div>
-                                        <a href="{{ route('switcher') }}"
-                                            class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                                            <i data-lucide="arrow-left-right" class="mr-2 h-4 w-4"></i>
-                                            Pindah Modul
-                                        </a>
-                                    @endif
-
-                                    <div class="border-t border-gray-100 my-1"></div>
-
-                                    {{-- Logout --}}
-                                    <form method="POST" action="{{ route('logout') }}">
-                                        @csrf
-                                        <button type="submit"
-                                            class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 transition-colors">
-                                            <i data-lucide="log-out" class="mr-2 h-4 w-4"></i>
-                                            Logout
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <div class="min-h-screen flex bg-gray-50/50">
+            {{-- Desktop Sidebar (iOS / macOS Style) --}}
+            <aside id="sidebar" class="hidden lg:flex ios-sidebar-aside">
+                <div class="ios-sidebar-inner">
+                    @include('layouts.sidebar-content', ['isMobile' => false])
                 </div>
             </aside>
 
             {{-- Mobile Sidebar Overlay --}}
-            <div id="sidebar-overlay" class="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden hidden"></div>
+            <div id="sidebar-overlay" class="fixed inset-0 z-40 bg-gray-900/40 lg:hidden hidden transition-opacity"></div>
 
-            {{-- Mobile Sidebar --}}
+            {{-- Mobile Sidebar (Slide-over with iOS Style) --}}
             <aside id="mobile-sidebar"
-                class="fixed inset-y-0 left-0 z-50 w-64 transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden bg-white border-r border-gray-200">
-                <div class="flex h-full flex-col">
-                    {{-- Mobile Sidebar Header --}}
-                    <div class="flex h-16 items-center justify-between px-6 border-b border-gray-200">
-                        <div class="flex items-center space-x-2">
-                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand">
-                                <i data-lucide="building" class="h-5 w-5 text-white"></i>
-                            </div>
-                            <span class="text-lg font-semibold text-gray-900">
-                                @if (request()->routeIs('admin.*', 'master.users.*'))
-                                    Pengaturan
-                                @elseif(request()->routeIs('legalizations.*', 'master.education-levels.*'))
-                                    Legalisir FEB
-                                @elseif(request()->routeIs('room-reservations.*'))
-                                    Peminjaman Ruang
-                                @else
-                                    Surat FEB
-                                @endif
-                            </span>
-                        </div>
-                        <button onclick="toggleMobileSidebar()" class="text-gray-400 hover:text-gray-500">
-                            <i data-lucide="x" class="h-6 w-6"></i>
-                        </button>
-                    </div>
+                class="fixed inset-y-0 left-0 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden ios-mobile-sidebar">
+                @include('layouts.sidebar-content', ['isMobile' => true])
+            </aside>
 
-                    {{-- Mobile Navigation (Same as desktop) --}}
-                    <nav class="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-                        @if (request()->routeIs('admin.*', 'master.users.*'))
-                            {{-- ========================================== --}}
-                            {{-- NAVIGASI MODUL PENGATURAN --}}
-                            {{-- ========================================== --}}
-
-                            {{-- Dashboard Pengaturan --}}
-                            <a href="{{ route('admin.dashboard') }}"
-                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
-                                Dashboard
-                            </a>
-
-                            {{-- Akses & Pengguna Section --}}
-                            <div class="pt-4">
-                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Akses &
-                                    Pengguna</h3>
-                                <div class="mt-2 space-y-1">
-                                    <a href="{{ route('master.users.index') }}"
-                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.users.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="users" class="mr-3 h-5 w-5"></i>
-                                        Pengguna
-                                    </a>
-                                </div>
-                            </div>
-
-                            {{-- System Monitoring Section --}}
-                            <div class="pt-4">
-                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">System
-                                    Monitoring</h3>
-                                <div class="mt-2 space-y-1">
-                                    <a href="{{ route('admin.error-logs.index') }}"
-                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.error-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="alert-triangle" class="mr-3 h-5 w-5"></i>
-                                        Error Logs
-                                    </a>
-                                    <a href="{{ route('admin.activity-logs.index') }}"
-                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('admin.activity-logs.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="activity" class="mr-3 h-5 w-5"></i>
-                                        Activity Logs
-                                    </a>
-                                </div>
-                            </div>
-                        @elseif(request()->routeIs('legalizations.*', 'master.education-levels.*'))
-                            {{-- ========================================== --}}
-                            {{-- NAVIGASI MODUL LEGALISIR --}}
-                            {{-- ========================================== --}}
-
-                            {{-- Dashboard Legalisir --}}
-                            <a href="{{ route('legalizations.dashboard') }}"
-                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('legalizations.dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
-                                Dashboard
-                            </a>
-
-                            {{-- Legalisir Section --}}
-                            <div class="pt-2">
-                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Transaksi
-                                </h3>
-                                <div class="mt-2 space-y-1">
-                                    @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
-                                        <a href="{{ route('legalizations.create') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('legalizations.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
-                                            Buat Legalisir
-                                        </a>
-                                    @endif
-                                    <a href="{{ route('legalizations.index') }}"
-                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('legalizations.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="files" class="mr-3 h-5 w-5"></i>
-                                        Daftar Legalisir
-                                    </a>
-                                </div>
-                            </div>
-
-                            @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
-                                <div class="pt-4">
-                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master
-                                        Data</h3>
-                                    <div class="mt-2 space-y-1">
-                                        <a href="{{ route('master.education-levels.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.education-levels.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="graduation-cap" class="mr-3 h-5 w-5"></i>
-                                            Jenjang Pendidikan
-                                        </a>
-                                    </div>
-                                </div>
-                            @endif
-                        @elseif(request()->routeIs('room-reservations.*', 'master.rooms.*', 'master.room-groups.*'))
-                            @if(auth()->user()->can_access_room_reservations || auth()->user()->isAdmin())
-                                {{-- ========================================== --}}
-                                {{-- NAVIGASI MODUL PEMINJAMAN RUANG --}}
-                                {{-- ========================================== --}}
-
-                                {{-- Dashboard Peminjaman --}}
-                                <a href="{{ route('room-reservations.dashboard') }}"
-                                    class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('room-reservations.dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                    <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
-                                    Dashboard
-                                </a>
-
-                                {{-- Peminjaman Section --}}
-                                <div class="pt-2">
-                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Transaksi</h3>
-                                    <div class="mt-2 space-y-1">
-                                        <a href="{{ route('room-reservations.create') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('room-reservations.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
-                                            Buat Peminjaman
-                                        </a>
-                                        <a href="{{ route('room-reservations.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('room-reservations.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="list" class="mr-3 h-5 w-5"></i>
-                                            Daftar Peminjaman
-                                        </a>
-                                    </div>
-                                </div>
-
-                                @if (auth()->user()->isAdmin())
-                                    <div class="pt-4">
-                                        <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master Data</h3>
-                                        <div class="mt-2 space-y-1">
-                                            <a href="{{ route('master.rooms.index') }}"
-                                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.rooms.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                                <i data-lucide="box" class="mr-3 h-5 w-5"></i>
-                                                Master Ruangan
-                                            </a>
-                                            <a href="{{ route('master.room-groups.index') }}"
-                                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.room-groups.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                                <i data-lucide="folder" class="mr-3 h-5 w-5"></i>
-                                                Master Grup Ruangan
-                                            </a>
-                                        </div>
-                                    </div>
-                                @endif
-                            @endif
-                        @else
-                            {{-- ========================================== --}}
-                            {{-- NAVIGASI MODUL PERSURATAN --}}
-                            {{-- ========================================== --}}
-
-                            {{-- Dashboard Surat --}}
-                            <a href="{{ route('dashboard') }}"
-                                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('dashboard') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
-                                Dashboard
-                            </a>
-
-                            {{-- Letters Section --}}
-                            <div class="pt-2">
-                                <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Surat</h3>
-                                <div class="mt-2 space-y-1">
-                                    @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
-                                        <a href="{{ route('letters.create') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('letters.create') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="plus-circle" class="mr-3 h-5 w-5"></i>
-                                            Buat Surat Baru
-                                        </a>
-                                    @endif
-                                    <a href="{{ route('letters.index') }}"
-                                        class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('letters.index') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                        <i data-lucide="mail" class="mr-3 h-5 w-5"></i>
-                                        Daftar Surat
-                                    </a>
-                                </div>
-                            </div>
-
-                            {{-- Master Data Section --}}
-                            @if (auth()->user()->isAdmin() || auth()->user()->isOperator())
-                                <div class="pt-4">
-                                    <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Master
-                                        Data</h3>
-                                    <div class="mt-2 space-y-1">
-                                        <a href="{{ route('master.classification-letters.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.classification-letters.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="tags" class="mr-3 h-5 w-5"></i>
-                                            Klasifikasi Surat
-                                        </a>
-                                        <a href="{{ route('master.letter-types.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.letter-types.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="file-text" class="mr-3 h-5 w-5"></i>
-                                            Jenis Surat
-                                        </a>
-                                        <a href="{{ route('master.letter-purposes.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.letter-purposes.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="bookmark" class="mr-3 h-5 w-5"></i>
-                                            Keperluan Surat
-                                        </a>
-                                        <a href="{{ route('master.signatories.index') }}"
-                                            class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs('master.signatories.*') ? 'bg-brand text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
-                                            <i data-lucide="user-check" class="mr-3 h-5 w-5"></i>
-                                            Penandatangan
-                                        </a>
-                                    </div>
-                                </div>
-                            @endif
-                        @endif
-                    </nav>
-
-                    {{-- Mobile User Menu --}}
-                    <div class="border-t border-gray-200 p-3">
-                        <div class="relative">
-                            <button onclick="toggleMobileUserMenu()"
-                                class="w-full flex items-center rounded-lg px-3 py-2 text-sm transition-colors hover:bg-gray-100">
-                                <div
-                                    class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                                    <span
-                                        class="text-xs font-semibold">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</span>
-                                </div>
-                                <div class="ml-3 flex-1 text-left">
-                                    <p class="text-sm font-medium text-gray-900 user-name-display">
-                                        {{ Auth::user()->name }}</p>
-                                    <p class="text-xs text-gray-500 capitalize">{{ Auth::user()->role }}</p>
-                                </div>
-                                <i data-lucide="chevron-up"
-                                    class="h-4 w-4 text-gray-400 transition-transform duration-200"
-                                    id="mobile-user-menu-icon"></i>
+            {{-- Main Content --}}
+            <div class="flex flex-1 flex-col min-w-0">
+                {{-- Top Header (Minimal Apple macOS Toolbar) --}}
+                <header class="sticky top-0 z-10 flex h-16 flex-shrink-0 items-center ios-header">
+                    <div class="flex flex-1 justify-between items-center px-4 sm:px-6 lg:px-6">
+                        {{-- Left: macOS Sidebar Controls + Apple Two-Tier Page Header --}}
+                        <div class="flex items-center min-w-0 space-x-2 sm:space-x-2.5">
+                            {{-- Mobile Sidebar Toggle --}}
+                            <button type="button" onclick="toggleMobileSidebar()"
+                                class="lg:hidden p-2 text-gray-500 hover:text-gray-900 rounded-xl hover:bg-gray-100 transition-colors"
+                                title="Buka Navigasi">
+                                <i data-lucide="menu" class="h-5 w-5"></i>
                             </button>
 
-                            {{-- Mobile Dropdown Menu --}}
-                            <div id="mobile-user-menu-dropdown"
-                                class="hidden absolute bottom-full left-0 right-0 mb-2 rounded-lg border border-gray-200 bg-white shadow-lg">
-                                <div class="p-2 space-y-1">
-                                    <div class="px-3 py-2 border-b border-gray-100">
-                                        <p class="text-xs font-medium text-gray-500">Akun</p>
-                                        <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->email }}
-                                        </p>
+                            {{-- Desktop Sidebar Toggle (macOS Window Control Style) --}}
+                            <button type="button" onclick="toggleSidebarCollapse()"
+                                class="hidden lg:inline-flex items-center justify-center w-8 h-8 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all"
+                                title="Perluas / Sembunyikan Sidebar (⌘B)">
+                                <i data-lucide="panel-left" class="w-4 h-4"></i>
+                            </button>
+
+                            @php
+                                $modName = 'Persuratan';
+                                if (request()->routeIs('legalizations.*', 'master.education-levels.*')) {
+                                    $modName = 'Legalisir';
+                                } elseif (request()->routeIs('room-reservations.*', 'master.rooms.*', 'master.room-groups.*')) {
+                                    $modName = 'Ruangan';
+                                } elseif (request()->routeIs('admin.*', 'master.users.*')) {
+                                    $modName = 'Pengaturan';
+                                }
+                            @endphp
+
+                            {{-- Clean Inline Context & Page Title (13px matching sidebar typography) --}}
+                            <div class="flex items-center space-x-1.5 min-w-0">
+                                <span class="hidden sm:inline text-[13px] font-medium text-gray-500 truncate">{{ $modName }}</span>
+                                <span class="hidden sm:inline text-gray-300 text-[13px] font-light">/</span>
+                                <h1 class="text-[13px] sm:text-[13.5px] font-bold text-gray-900 truncate tracking-tight">@yield('title', 'Dashboard')</h1>
+                            </div>
+                        </div>
+
+                        {{-- Right: Essential Apple macOS Toolbar Controls (NO Module Switcher) --}}
+                        <div class="flex items-center space-x-2.5 flex-shrink-0">
+                            {{-- Apple macOS Menu Bar Date & Live Clock --}}
+                            <div class="hidden sm:inline-flex ios-clock-capsule" title="Waktu Sistem">
+                                <i data-lucide="calendar" style="width: 13px; height: 13px; color: #94a3b8;"></i>
+                                <span class="text-[11.5px] font-medium text-gray-700">{{ now()->format('d M Y') }}</span>
+                                <span style="width: 3px; height: 3px; border-radius: 50%; background: #cbd5e1;"></span>
+                                <i data-lucide="clock" style="width: 13px; height: 13px; color: #ea580c;"></i>
+                                <span id="current-time" class="text-[11.5px] font-bold text-gray-900 tracking-wide font-mono">{{ now()->format('H:i') }}</span>
+                            </div>
+
+                            {{-- 3. Apple Notification Center Button with iOS Dropdown --}}
+                            <div class="relative">
+                                <button type="button" onclick="toggleNotificationDropdown()" class="ios-header-icon-btn" title="Pusat Pemberitahuan">
+                                    <i data-lucide="bell" style="width: 15px; height: 15px; color: #475569;"></i>
+                                    <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-orange-500 ring-2 ring-white"></span>
+                                </button>
+
+                                {{-- Notification Flyout Card --}}
+                                <div id="notification-dropdown"
+                                    class="hidden absolute right-0 mt-2 w-80 ios-flyout-card z-50 p-3 space-y-2">
+                                    <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+                                        <div class="flex items-center gap-1.5">
+                                            <i data-lucide="bell" style="width: 14px; height: 14px; color: #ea580c;"></i>
+                                            <span class="text-xs font-bold text-gray-900">Pusat Pemberitahuan</span>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold">1 Baru</span>
+                                    </div>
+                                    <div class="p-2.5 rounded-xl bg-orange-50/70 border border-orange-100/90 flex items-start space-x-2.5">
+                                        <div class="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0 text-orange-600 mt-0.5">
+                                            <i data-lucide="check-circle-2" style="width: 15px; height: 15px;"></i>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-xs font-semibold text-gray-900">Sistem Berjalan Optimal</p>
+                                            <p class="text-[11px] text-gray-500 mt-0.5 leading-snug">Semua layanan persuratan, legalisir, dan ruangan siap digunakan.</p>
+                                            <p class="text-[10px] text-orange-600 font-medium mt-1">Hari ini • {{ now()->format('H:i') }} WIB</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="toggleNotificationDropdown()"
+                                        class="w-full text-center py-1.5 text-[11px] font-semibold text-gray-500 hover:text-gray-900 rounded-lg hover:bg-gray-50 transition-colors">
+                                        Tutup
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- 4. Apple User Profile Capsule with Control Center Dropdown (NO MODULE SWITCHER) --}}
+                            <div class="relative">
+                                <button type="button" onclick="toggleHeaderUserMenu()"
+                                    class="ios-header-user-btn group"
+                                    title="Menu Akun ({{ Auth::user()->name }})">
+                                    <div class="w-7 h-7 rounded-full text-white flex items-center justify-center font-bold text-[10px] shadow-xs mr-2 ring-1 ring-orange-500/20"
+                                        style="background: linear-gradient(135deg, #FF4D00, #F59E0B);">
+                                        {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                                    </div>
+                                    <div class="text-left hidden md:block mr-1">
+                                        <span class="text-xs font-bold text-gray-800 block leading-tight max-w-[100px] truncate">
+                                            {{ explode(' ', Auth::user()->name)[0] }}
+                                        </span>
+                                        <span class="text-[10px] text-gray-500 block leading-none capitalize">
+                                            {{ Auth::user()->role }}
+                                        </span>
+                                    </div>
+                                    <i data-lucide="chevron-down" style="width: 14px; height: 14px; color: #94a3b8;" class="group-hover:text-gray-700 transition-transform duration-200" id="header-user-chevron"></i>
+                                </button>
+
+                                {{-- macOS Control Center Style User Card --}}
+                                <div id="header-user-dropdown"
+                                    class="hidden absolute right-0 mt-2 w-64 ios-flyout-card z-50 p-2 space-y-1">
+                                    <div class="p-2.5 rounded-xl bg-gray-50 border border-gray-100 mb-1">
+                                        <div class="flex items-center space-x-2.5">
+                                            <div class="w-9 h-9 rounded-full text-white flex items-center justify-center font-bold text-xs shadow-xs flex-shrink-0"
+                                                style="background: linear-gradient(135deg, #FF4D00, #F59E0B);">
+                                                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-xs font-bold text-gray-900 truncate">{{ Auth::user()->name }}</p>
+                                                <p class="text-[11px] text-gray-500 truncate">{{ Auth::user()->email }}</p>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     {{-- Edit Profile --}}
                                     <a href="{{ route('profile.edit') }}"
-                                        class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                                        <i data-lucide="user" class="mr-2 h-4 w-4"></i>
-                                        Edit Profile
+                                        class="flex items-center px-3 py-2 text-xs font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors">
+                                        <i data-lucide="user" style="width: 15px; height: 15px; margin-right: 8px; color: #64748b;"></i>
+                                        Pengaturan Profil
                                     </a>
-
-                                    @if (auth()->user()->hasMultipleModules())
-                                        <div class="border-t border-gray-100 my-1"></div>
-                                        <a href="{{ route('switcher') }}"
-                                            class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-orange-600 hover:bg-orange-50 transition-colors">
-                                            <i data-lucide="arrow-left-right" class="mr-2 h-4 w-4"></i>
-                                            Ganti Modul
-                                        </a>
-                                    @endif
 
                                     <div class="border-t border-gray-100 my-1"></div>
 
@@ -941,38 +943,12 @@
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <button type="submit"
-                                            class="w-full flex items-center rounded-md px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 transition-colors">
-                                            <i data-lucide="log-out" class="mr-2 h-4 w-4"></i>
-                                            Logout
+                                            class="w-full flex items-center px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors">
+                                            <i data-lucide="log-out" style="width: 15px; height: 15px; margin-right: 8px; color: #ef4444;"></i>
+                                            Keluar
                                         </button>
                                     </form>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            {{-- Main Content --}}
-            <div class="flex flex-1 flex-col min-w-0">
-                {{-- Top Header --}}
-                <header class="sticky top-0 z-10 flex h-16 flex-shrink-0 items-center border-b border-gray-200 bg-white">
-                    <div class="flex flex-1 justify-between px-4 sm:px-6 lg:px-8">
-                        <div class="flex flex-1 items-center">
-                            <button onclick="toggleMobileSidebar()"
-                                class="lg:hidden p-2 text-gray-400 hover:text-gray-500">
-                                <i data-lucide="menu" class="h-6 w-6"></i>
-                            </button>
-                            <h1 class="ml-4 lg:ml-0 text-lg font-semibold text-gray-900">@yield('title', 'Dashboard')</h1>
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            <div class="hidden sm:flex items-center text-sm text-gray-500">
-                                <i data-lucide="calendar" class="mr-2 h-4 w-4"></i>
-                                <span>{{ now()->format('d M Y') }}</span>
-                            </div>
-                            <div class="hidden sm:flex items-center text-sm text-gray-500">
-                                <i data-lucide="clock" class="mr-2 h-4 w-4"></i>
-                                <span id="current-time">{{ now()->format('H:i') }}</span>
                             </div>
                         </div>
                     </div>
@@ -981,50 +957,52 @@
                 {{-- Main Content Area --}}
                 <main class="flex-1 overflow-y-auto">
                     {{-- Flash Messages --}}
-                    @if (session('success'))
-                        <div class="mx-4 mt-4 sm:mx-6 lg:mx-8 sm:mt-6 lg:mt-8">
-                            <x-alert type="success" message="{{ session('success') }}" />
-                        </div>
-                    @endif
+                    @if (!View::hasSection('disable_layout_alerts'))
+                        @if (session('success'))
+                            <div class="mx-4 mt-4 sm:mx-6 lg:mx-8 sm:mt-6 lg:mt-8">
+                                <x-alert type="success" message="{{ session('success') }}" />
+                            </div>
+                        @endif
 
-                    @if (session('error'))
-                        <div class="mx-4 mt-4 sm:mx-6 lg:mx-8 sm:mt-6 lg:mt-8">
-                            <x-alert type="error" message="{{ session('error') }}" :errorId="session('last_error_id')" />
-                        </div>
-                    @endif
+                        @if (session('error'))
+                            <div class="mx-4 mt-4 sm:mx-6 lg:mx-8 sm:mt-6 lg:mt-8">
+                                <x-alert type="error" message="{{ session('error') }}" :errorId="session('last_error_id')" />
+                            </div>
+                        @endif
 
-                    @if (session('warning'))
-                        <div class="mx-4 mt-4 sm:mx-6 lg:mx-8 sm:mt-6 lg:mt-8">
-                            <x-alert type="warning" message="{{ session('warning') }}" />
-                        </div>
-                    @endif
+                        @if (session('warning'))
+                            <div class="mx-4 mt-4 sm:mx-6 lg:mx-8 sm:mt-6 lg:mt-8">
+                                <x-alert type="warning" message="{{ session('warning') }}" />
+                            </div>
+                        @endif
 
-                    @if (is_object($errors) && $errors->any())
-                        <div class="mx-4 mt-4 sm:mx-6 lg:mx-8 sm:mt-6 lg:mt-8">
-                            <div class="rounded-lg bg-red-50 p-4 border border-red-200">
-                                <div class="flex">
-                                    <div class="flex-shrink-0">
-                                        <i data-lucide="alert-triangle" class="h-5 w-5 text-red-400"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h3 class="text-sm font-medium text-red-800">Terjadi kesalahan:</h3>
-                                        <ul class="mt-2 list-disc list-inside text-sm text-red-700">
-                                            @foreach ($errors->all() as $error)
-                                                <li>{!! $error !!}</li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                    <div class="ml-auto pl-3">
-                                        <div class="-mx-1.5 -my-1.5">
-                                            <button type="button" onclick="this.closest('.rounded-lg').remove()"
-                                                class="inline-flex rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none">
-                                                <i data-lucide="x" class="h-5 w-5"></i>
-                                            </button>
+                        @if (is_object($errors) && $errors->any())
+                            <div class="mx-4 mt-4 sm:mx-6 lg:mx-8 sm:mt-6 lg:mt-8">
+                                <div class="rounded-lg bg-red-50 p-4 border border-red-200">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i data-lucide="alert-triangle" class="h-5 w-5 text-red-400"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-red-800">Terjadi kesalahan:</h3>
+                                            <ul class="mt-2 list-disc list-inside text-sm text-red-700">
+                                                @foreach ($errors->all() as $error)
+                                                    <li>{!! $error !!}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                        <div class="ml-auto pl-3">
+                                            <div class="-mx-1.5 -my-1.5">
+                                                <button type="button" onclick="this.closest('.rounded-lg').remove()"
+                                                    class="inline-flex rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none">
+                                                    <i data-lucide="x" class="h-5 w-5"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        @endif
                     @endif
 
                     {{-- Page Content --}}
@@ -1102,7 +1080,118 @@
         // Close mobile sidebar when clicking overlay
         document.getElementById('sidebar-overlay')?.addEventListener('click', toggleMobileSidebar);
 
-        // User Menu Toggle (Desktop)
+        // Module Dropdown Toggle (Desktop)
+        function toggleModuleDropdown() {
+            const dropdown = document.getElementById('module-dropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+                lucide.createIcons();
+            }
+        }
+
+        // Module Dropdown Toggle (Mobile)
+        function toggleMobileModuleDropdown() {
+            const dropdown = document.getElementById('mobile-module-dropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+                lucide.createIcons();
+            }
+        }
+
+        // Desktop Sidebar Collapse Toggle (macOS style)
+        function toggleSidebarCollapse() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('sidebar-collapsed');
+                const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
+                localStorage.setItem('feb_sidebar_collapsed', isCollapsed ? '1' : '0');
+            }
+        }
+
+        // Restore sidebar state
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('feb_sidebar_collapsed') === '1') {
+                document.getElementById('sidebar')?.classList.add('sidebar-collapsed');
+            }
+        });
+
+        // Filter Sidebar Menu in Real-Time
+        function filterSidebarMenu(query, prefix = '') {
+            const q = query.toLowerCase().trim();
+            const containerId = prefix ? 'mobile-nav-container' : 'desktop-nav-container';
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const sections = container.querySelectorAll('.ios-nav-section');
+            const pinned = container.querySelector('.pinned-section');
+
+            sections.forEach(section => {
+                const items = section.querySelectorAll('.ios-nav-item');
+                let sectionHasMatch = false;
+
+                items.forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    if (!q || text.includes(q)) {
+                        item.style.display = '';
+                        sectionHasMatch = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                section.style.display = sectionHasMatch || !q ? '' : 'none';
+            });
+
+            if (pinned) {
+                pinned.style.display = q ? 'none' : '';
+            }
+        }
+
+        // Focus search input from header Spotlight button or shortcuts
+        function focusSearch() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar && sidebar.classList.contains('sidebar-collapsed')) {
+                toggleSidebarCollapse();
+            }
+            const search = document.getElementById('sidebar-search') || document.getElementById('mobile-sidebar-search');
+            if (search) {
+                search.focus();
+                search.select();
+            }
+        }
+
+        // Keyboard Shortcut ⌘K or / to Focus Search
+        document.addEventListener('keydown', (e) => {
+            if (((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') || 
+                (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA')) {
+                e.preventDefault();
+                focusSearch();
+            }
+        });
+
+        // Top Header Notification Dropdown Toggle
+        function toggleNotificationDropdown() {
+            const dropdown = document.getElementById('notification-dropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+                lucide.createIcons();
+            }
+        }
+
+        // Top Header User Menu Toggle
+        function toggleHeaderUserMenu() {
+            const dropdown = document.getElementById('header-user-dropdown');
+            const chevron = document.getElementById('header-user-chevron');
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+                if (chevron) {
+                    chevron.style.transform = dropdown.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+                }
+                lucide.createIcons();
+            }
+        }
+
+        // User Menu Toggle (Desktop Sidebar Bottom)
         function toggleUserMenu() {
             const dropdown = document.getElementById('user-menu-dropdown');
             const icon = document.getElementById('user-menu-icon');
@@ -1114,7 +1203,7 @@
             lucide.createIcons();
         }
 
-        // User Menu Toggle (Mobile)
+        // User Menu Toggle (Mobile Sidebar Bottom)
         function toggleMobileUserMenu() {
             const dropdown = document.getElementById('mobile-user-menu-dropdown');
             const icon = document.getElementById('mobile-user-menu-icon');
@@ -1126,8 +1215,25 @@
             lucide.createIcons();
         }
 
-        // Close user menu when clicking outside
+        // Close dropdowns when clicking outside
         document.addEventListener('click', function(event) {
+            // Header User Dropdown
+            const headerUserBtn = event.target.closest('button[onclick*="toggleHeaderUserMenu"]');
+            const headerUserDropdown = document.getElementById('header-user-dropdown');
+            if (!headerUserBtn && headerUserDropdown && !headerUserDropdown.contains(event.target)) {
+                headerUserDropdown.classList.add('hidden');
+                const chevron = document.getElementById('header-user-chevron');
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+            }
+
+            // Header Notification Dropdown
+            const notifBtn = event.target.closest('button[onclick*="toggleNotificationDropdown"]');
+            const notifDropdown = document.getElementById('notification-dropdown');
+            if (!notifBtn && notifDropdown && !notifDropdown.contains(event.target)) {
+                notifDropdown.classList.add('hidden');
+            }
+
+            // Sidebar User dropdowns
             const userMenuButton = event.target.closest('button[onclick="toggleUserMenu()"]');
             const userMenuDropdown = document.getElementById('user-menu-dropdown');
             const mobileUserMenuButton = event.target.closest('button[onclick="toggleMobileUserMenu()"]');
@@ -1135,16 +1241,31 @@
 
             if (!userMenuButton && userMenuDropdown && !userMenuDropdown.contains(event.target)) {
                 userMenuDropdown.classList.add('hidden');
-                document.getElementById('user-menu-icon').style.transform = 'rotate(0deg)';
+                const icon = document.getElementById('user-menu-icon');
+                if (icon) icon.style.transform = 'rotate(0deg)';
             }
 
             if (!mobileUserMenuButton && mobileUserMenuDropdown && !mobileUserMenuDropdown.contains(event.target)) {
                 mobileUserMenuDropdown.classList.add('hidden');
-                document.getElementById('mobile-user-menu-icon').style.transform = 'rotate(0deg)';
+                const icon = document.getElementById('mobile-user-menu-icon');
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            }
+
+            // Module dropdowns (Sidebar Workspace)
+            const moduleBtn = event.target.closest('button[onclick*="toggleModuleDropdown"]');
+            const moduleDropdown = document.getElementById('module-dropdown');
+            const mobileModuleBtn = event.target.closest('button[onclick*="toggleMobileModuleDropdown"]');
+            const mobileModuleDropdown = document.getElementById('mobile-module-dropdown');
+
+            if (!moduleBtn && moduleDropdown && !moduleDropdown.contains(event.target)) {
+                moduleDropdown.classList.add('hidden');
+            }
+            if (!mobileModuleBtn && mobileModuleDropdown && !mobileModuleDropdown.contains(event.target)) {
+                mobileModuleDropdown.classList.add('hidden');
             }
         });
 
-        // Update time every minute
+        // Update time every 10 seconds for live accuracy
         setInterval(() => {
             const timeElement = document.getElementById('current-time');
             if (timeElement) {
@@ -1153,7 +1274,7 @@
                 const minutes = String(now.getMinutes()).padStart(2, '0');
                 timeElement.textContent = `${hours}:${minutes}`;
             }
-        }, 60000);
+        }, 10000);
 
         // Re-initialize Lucide icons after any dynamic content changes
         document.addEventListener('DOMContentLoaded', () => {

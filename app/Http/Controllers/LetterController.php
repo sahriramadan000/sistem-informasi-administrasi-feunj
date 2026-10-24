@@ -135,13 +135,24 @@ class LetterController extends Controller
         $letterTypes = LetterType::active()->orderBy('name')->get();
         $letterPurposes = LetterPurpose::active()->orderBy('name')->get();
 
+        // Ambil running number berikutnya per jenis surat untuk tahun berjalan
+        $currentYear = now()->year;
+        $sequences = LetterSequence::where('year', $currentYear)->pluck('next_number', 'letter_type_id')->toArray();
+        foreach ($letterTypes as $type) {
+            if (!isset($sequences[$type->id])) {
+                $maxLetter = \App\Models\Letter::where('letter_type_id', $type->id)->where('year', $currentYear)->max('running_number');
+                $sequences[$type->id] = $maxLetter ? ((int) $maxLetter + 1) : 1;
+            }
+        }
+
         return view('letters.create', compact(
             'signatories',
             'classifications',
             'securityClassifications',
             'letterTargets',
             'letterTypes',
-            'letterPurposes'
+            'letterPurposes',
+            'sequences'
         ));
     }
 
@@ -332,19 +343,19 @@ class LetterController extends Controller
             if ($e->getCode() === '23000' || str_contains($e->getMessage(), 'Duplicate entry') || str_contains($e->getMessage(), 'UNIQUE')) {
                 return back()
                     ->withInput()
-                    ->withErrors(['error' => 'Nomor surat sudah ada. Silakan coba lagi.']);
+                    ->withErrors(['error' => 'Nomor surat sudah terdaftar di sistem. Silakan muat ulang halaman untuk memperbarui urutan.']);
             }
 
             // Check untuk lock timeout
             if (str_contains($e->getMessage(), 'Lock wait timeout exceeded') || $e->getCode() === '1205') {
                 return back()
                     ->withInput()
-                    ->withErrors(['error' => 'Sistem terlalu sibuk. Silakan coba lagi dalam beberapa detik.']);
+                    ->withErrors(['error' => 'Layanan sedang memproses banyak permintaan. Silakan tunggu sesaat dan coba kembali.']);
             }
 
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Kesalahan database: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Gagal memproses data surat. Terjadi kendala saat menyimpan ke sistem. Silakan periksa isian atau coba kembali.']);
         } catch (\Throwable $e) {
             Log::error('Error creating letter', [
                 'error' => $e->getMessage(),
@@ -354,7 +365,7 @@ class LetterController extends Controller
 
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Terjadi kesalahan saat membuat surat. Silakan coba lagi.']);
+                ->withErrors(['error' => 'Terjadi kendala saat memproses pembuatan surat. Silakan coba beberapa saat lagi.']);
         }
     }
 
