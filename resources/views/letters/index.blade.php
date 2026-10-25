@@ -46,6 +46,15 @@
             background: rgba(255, 255, 255, 0.6);
         }
 
+        /* Hide Scrollbar Utility */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
         /* Line Clamp Utilities */
         .line-clamp-2 {
             display: -webkit-box;
@@ -119,22 +128,39 @@
             @endif
         </div>
 
-        {{-- Apple Segmented Pill Tabs (Letter Types Filter) --}}
-        <div class="bg-gray-100/70 p-1.5 rounded-2xl border border-gray-200/60 backdrop-blur-xs">
-            <nav class="flex items-center gap-1.5 overflow-x-auto scrollbar-none" aria-label="Tabs Jenis Surat">
-                <a href="{{ route('letters.index', array_merge(request()->except(['letter_type_id', 'page']))) }}"
-                   class="whitespace-nowrap px-4 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 {{ !request('letter_type_id') ? 'mac-tab-active text-[#FF4D00]' : 'mac-tab-inactive' }}">
-                    <i data-lucide="layers" class="w-4 h-4"></i>
-                    <span>Semua Jenis</span>
-                </a>
-                @foreach($letterTypes as $type)
-                    <a href="{{ route('letters.index', array_merge(request()->except(['letter_type_id', 'page']), ['letter_type_id' => $type->id])) }}"
-                       class="whitespace-nowrap px-4 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 {{ request('letter_type_id') == $type->id ? 'mac-tab-active text-[#FF4D00]' : 'mac-tab-inactive' }}">
-                        <i data-lucide="file-text" class="w-4 h-4"></i>
-                        <span>{{ $type->name }}</span>
+        {{-- Apple Segmented Pill Tabs with Navigation Arrows (Letter Types Filter) --}}
+        <div class="flex items-center gap-2 w-full">
+            {{-- Left Navigation Button --}}
+            <button type="button" id="tabScrollLeft" onclick="scrollLetterTabs('left')"
+                class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center rounded-2xl bg-white hover:bg-orange-50 text-gray-700 hover:text-[#FF4D00] border border-gray-200 shadow-2xs hover:shadow-xs transition-all active:scale-95 cursor-pointer"
+                title="Geser tab ke kiri" aria-label="Geser tab ke kiri">
+                <i data-lucide="chevron-left" class="w-5 h-5"></i>
+            </button>
+
+            {{-- Tab List Container (No Scrollbar, Draggable, Smooth Scroll) --}}
+            <div class="flex-1 min-w-0 bg-gray-100/70 p-1.5 rounded-2xl border border-gray-200/60 backdrop-blur-xs relative overflow-hidden">
+                <nav id="letter-tab-nav" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth w-full px-0.5 cursor-grab select-none" aria-label="Tabs Jenis Surat">
+                    <a href="{{ route('letters.index', array_merge(request()->except(['letter_type_id', 'page']))) }}"
+                       class="tab-item shrink-0 whitespace-nowrap px-4 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 {{ !request('letter_type_id') ? 'mac-tab-active text-[#FF4D00]' : 'mac-tab-inactive' }}">
+                        <i data-lucide="layers" class="w-4 h-4"></i>
+                        <span>Semua Jenis</span>
                     </a>
-                @endforeach
-            </nav>
+                    @foreach($letterTypes as $type)
+                        <a href="{{ route('letters.index', array_merge(request()->except(['letter_type_id', 'page']), ['letter_type_id' => $type->id])) }}"
+                           class="tab-item shrink-0 whitespace-nowrap px-4 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2 {{ request('letter_type_id') == $type->id ? 'mac-tab-active text-[#FF4D00]' : 'mac-tab-inactive' }}">
+                            <i data-lucide="file-text" class="w-4 h-4"></i>
+                            <span>{{ $type->name }}</span>
+                        </a>
+                    @endforeach
+                </nav>
+            </div>
+
+            {{-- Right Navigation Button --}}
+            <button type="button" id="tabScrollRight" onclick="scrollLetterTabs('right')"
+                class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center rounded-2xl bg-white hover:bg-orange-50 text-gray-700 hover:text-[#FF4D00] border border-gray-200 shadow-2xs hover:shadow-xs transition-all active:scale-95 cursor-pointer"
+                title="Geser tab ke kanan" aria-label="Geser tab ke kanan">
+                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            </button>
         </div>
 
         {{-- MAIN DATA CONTAINER (Filter + Toolbar + Table) --}}
@@ -298,9 +324,24 @@
                                 <th scope="col" class="px-3.5 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[100px]">Tanggal</th>
                                 <th scope="col" class="px-3.5 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[115px] hidden md:table-cell">Jenis</th>
                                 <th scope="col" class="px-3.5 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[125px] hidden lg:table-cell">Penandatangan</th>
-                                <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[260px]">Perihal</th>
-                                <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[220px]">Tujuan</th>
-                                <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[200px]">Mahasiswa</th>
+                                <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[260px]">
+                                    <div class="flex items-center gap-1.5" title="Klik isi perihal untuk menyalin teks">
+                                        <span>Perihal</span>
+                                        <i data-lucide="copy" class="w-3 h-3 text-gray-400"></i>
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[220px]">
+                                    <div class="flex items-center gap-1.5" title="Klik isi tujuan untuk menyalin teks">
+                                        <span>Tujuan</span>
+                                        <i data-lucide="copy" class="w-3 h-3 text-gray-400"></i>
+                                    </div>
+                                </th>
+                                <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[200px]">
+                                    <div class="flex items-center gap-1.5" title="Klik nama mahasiswa untuk menyalin">
+                                        <span>Mahasiswa</span>
+                                        <i data-lucide="copy" class="w-3 h-3 text-gray-400"></i>
+                                    </div>
+                                </th>
                                 <th scope="col" class="px-3.5 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[110px] hidden xl:table-cell">Dibuat Oleh</th>
                                 <th scope="col" class="px-3.5 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-center w-24">Aksi</th>
                             </tr>
@@ -380,33 +421,59 @@
                                         </div>
                                     </td>
 
-                                    {{-- Perihal (Full Text Tanpa Batasan Truncate) --}}
+                                    {{-- Perihal (Klik untuk Salin ke Clipboard) --}}
                                     <td class="px-4 py-4">
-                                        <a href="{{ route('letters.show', $letter) }}"
-                                            class="text-xs sm:text-[13px] font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors leading-relaxed block break-words"
-                                            title="Klik untuk melihat detail surat">
-                                            {{ $letter->subject ?: '-' }}
-                                        </a>
+                                        @if ($letter->subject)
+                                            <div role="button" tabindex="0"
+                                                data-copy="{{ $letter->subject }}"
+                                                onclick="copyToClipboard(this.dataset.copy, 'Perihal surat berhasil disalin!')"
+                                                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"
+                                                class="group/copy flex items-start justify-between gap-2 text-xs sm:text-[13px] font-semibold text-gray-900 hover:text-[#FF4D00] transition-colors leading-relaxed cursor-pointer break-words rounded-xl p-1 -m-1 hover:bg-orange-50/60 active:scale-[0.99]"
+                                                title="Klik untuk menyalin perihal">
+                                                <span class="break-words flex-1">{{ $letter->subject }}</span>
+                                                <span class="opacity-0 group-hover/copy:opacity-100 transition-opacity p-0.5 text-gray-400 group-hover/copy:text-[#FF4D00] flex-shrink-0 mt-0.5">
+                                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                                </span>
+                                            </div>
+                                        @else
+                                            <span class="text-xs text-gray-300 font-mono">-</span>
+                                        @endif
                                     </td>
 
-                                    {{-- Tujuan / Penerima (Dilebarkan) --}}
+                                    {{-- Tujuan / Penerima (Klik untuk Salin ke Clipboard) --}}
                                     <td class="px-4 py-4">
                                         @if ($letter->recipient)
-                                            <div class="flex items-start gap-2 text-xs sm:text-[13px] font-medium text-gray-800">
-                                                <i data-lucide="send" class="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mt-0.5"></i>
-                                                <span class="break-words leading-relaxed">{{ $letter->recipient }}</span>
+                                            <div role="button" tabindex="0"
+                                                data-copy="{{ $letter->recipient }}"
+                                                onclick="copyToClipboard(this.dataset.copy, 'Tujuan surat berhasil disalin!')"
+                                                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"
+                                                class="group/copy flex items-start justify-between gap-2 text-xs sm:text-[13px] font-medium text-gray-800 hover:text-blue-600 transition-colors cursor-pointer rounded-xl p-1 -m-1 hover:bg-blue-50/60 active:scale-[0.99]"
+                                                title="Klik untuk menyalin tujuan">
+                                                <div class="flex items-start gap-2 flex-1 min-w-0">
+                                                    <i data-lucide="send" class="w-3.5 h-3.5 text-blue-500 flex-shrink-0 mt-0.5 group-hover/copy:scale-110 transition-transform"></i>
+                                                    <span class="break-words leading-relaxed flex-1">{{ $letter->recipient }}</span>
+                                                </div>
+                                                <span class="opacity-0 group-hover/copy:opacity-100 transition-opacity p-0.5 text-gray-400 group-hover/copy:text-blue-500 flex-shrink-0 mt-0.5">
+                                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                                </span>
                                             </div>
                                         @else
                                             <span class="text-xs text-gray-300 font-mono pl-3">-</span>
                                         @endif
                                     </td>
 
-                                    {{-- Mahasiswa Terkait (Dilebarkan) --}}
+                                    {{-- Mahasiswa Terkait (Klik untuk Salin ke Clipboard) --}}
                                     <td class="px-4 py-4">
                                         @if ($letter->student_name)
-                                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs sm:text-[12.5px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs max-w-full">
+                                            <div role="button" tabindex="0"
+                                                data-copy="{{ $letter->student_name }}"
+                                                onclick="copyToClipboard(this.dataset.copy, 'Nama mahasiswa berhasil disalin!')"
+                                                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"
+                                                class="group/copy inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs sm:text-[12.5px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs max-w-full hover:bg-emerald-100 hover:border-emerald-300 transition-all cursor-pointer active:scale-[0.98]"
+                                                title="Klik untuk menyalin nama mahasiswa">
                                                 <i data-lucide="graduation-cap" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
-                                                <span class="break-words leading-snug">{{ $letter->student_name }}</span>
+                                                <span class="break-words leading-snug flex-1">{{ $letter->student_name }}</span>
+                                                <i data-lucide="copy" class="w-3.5 h-3.5 opacity-0 group-hover/copy:opacity-100 transition-opacity text-emerald-700 flex-shrink-0"></i>
                                             </div>
                                         @else
                                             <span class="text-xs text-gray-300 font-mono pl-3">-</span>
@@ -681,8 +748,118 @@
                 }, 200);
             }
 
+            // Letter Tabs Scroll & Drag Manager
+            function scrollLetterTabs(direction) {
+                const nav = document.getElementById('letter-tab-nav');
+                if (!nav) return;
+                const scrollAmount = 280;
+                nav.scrollBy({
+                    left: direction === 'left' ? -scrollAmount : scrollAmount,
+                    behavior: 'smooth'
+                });
+            }
+
+            function updateTabScrollState() {
+                const nav = document.getElementById('letter-tab-nav');
+                const btnLeft = document.getElementById('tabScrollLeft');
+                const btnRight = document.getElementById('tabScrollRight');
+
+                if (!nav) return;
+
+                const { scrollLeft, scrollWidth, clientWidth } = nav;
+                const canScroll = scrollWidth > clientWidth;
+
+                if (!canScroll) {
+                    if (btnLeft) {
+                        btnLeft.classList.add('opacity-40', 'cursor-not-allowed');
+                        btnLeft.classList.remove('cursor-pointer');
+                    }
+                    if (btnRight) {
+                        btnRight.classList.add('opacity-40', 'cursor-not-allowed');
+                        btnRight.classList.remove('cursor-pointer');
+                    }
+                    return;
+                }
+
+                // Left arrow state
+                const atStart = scrollLeft <= 4;
+                if (btnLeft) {
+                    btnLeft.classList.toggle('opacity-40', atStart);
+                    btnLeft.classList.toggle('cursor-not-allowed', atStart);
+                    btnLeft.classList.toggle('cursor-pointer', !atStart);
+                }
+
+                // Right arrow state
+                const atEnd = scrollLeft >= (scrollWidth - clientWidth - 4);
+                if (btnRight) {
+                    btnRight.classList.toggle('opacity-40', atEnd);
+                    btnRight.classList.toggle('cursor-not-allowed', atEnd);
+                    btnRight.classList.toggle('cursor-pointer', !atEnd);
+                }
+            }
+
+            function initTabDragToScroll() {
+                const nav = document.getElementById('letter-tab-nav');
+                if (!nav) return;
+
+                let isDown = false;
+                let startX = 0;
+                let scrollStart = 0;
+                let isDragging = false;
+
+                nav.addEventListener('mousedown', (e) => {
+                    if (e.button !== 0) return;
+                    isDown = true;
+                    isDragging = false;
+                    nav.classList.add('cursor-grabbing');
+                    nav.classList.remove('cursor-grab');
+                    startX = e.pageX - nav.offsetLeft;
+                    scrollStart = nav.scrollLeft;
+                });
+
+                window.addEventListener('mouseup', () => {
+                    if (!isDown) return;
+                    isDown = false;
+                    nav.classList.remove('cursor-grabbing');
+                    nav.classList.add('cursor-grab');
+                    setTimeout(() => { isDragging = false; }, 60);
+                });
+
+                nav.addEventListener('mousemove', (e) => {
+                    if (!isDown) return;
+                    const x = e.pageX - nav.offsetLeft;
+                    const walk = (x - startX) * 1.5;
+                    if (Math.abs(walk) > 4) {
+                        isDragging = true;
+                    }
+                    nav.scrollLeft = scrollStart - walk;
+                });
+
+                // Prevent link navigation if user was dragging
+                nav.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        if (isDragging) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                    });
+                });
+
+                nav.addEventListener('scroll', updateTabScrollState, { passive: true });
+                window.addEventListener('resize', updateTabScrollState);
+
+                const activeTab = nav.querySelector('.mac-tab-active');
+                if (activeTab) {
+                    activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+
+                setTimeout(updateTabScrollState, 50);
+            }
+
             // On Page Ready
             document.addEventListener('DOMContentLoaded', function () {
+                initTabDragToScroll();
+
                 @if ($activeFiltersCount > 0)
                     const content = document.getElementById('filter-content');
                     const icon = document.getElementById('filter-icon');

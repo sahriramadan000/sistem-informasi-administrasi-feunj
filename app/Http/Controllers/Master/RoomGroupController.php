@@ -24,10 +24,15 @@ class RoomGroupController extends Controller
                   ->orWhere('description', 'like', "%{$search}%");
         }
 
-        $perPage = $request->input('per_page', 10);
-        $roomGroups = $query->orderBy('name')->paginate($perPage);
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active');
+        }
 
-        return view('master.room-groups.index', compact('roomGroups'));
+        $perPage = $request->input('per_page', 10);
+        $roomGroups = $query->withCount('rooms')->orderBy('name')->paginate($perPage);
+        $totalGroupsCount = RoomGroup::count();
+
+        return view('master.room-groups.index', compact('roomGroups', 'totalGroupsCount'));
     }
 
     public function create()
@@ -50,6 +55,7 @@ class RoomGroupController extends Controller
 
     public function edit(RoomGroup $roomGroup)
     {
+        $roomGroup->loadCount('rooms');
         return view('master.room-groups.edit', compact('roomGroup'));
     }
 
@@ -69,7 +75,7 @@ class RoomGroupController extends Controller
     public function destroy(RoomGroup $roomGroup)
     {
         if ($roomGroup->rooms()->exists()) {
-            return back()->withErrors(['error' => 'Grup ruangan tidak dapat dihapus karena sudah memiliki ruangan yang terkait. Silakan nonaktifkan grup ruangan tersebut.']);
+            return back()->with('error', 'Grup ruangan "' . $roomGroup->name . '" tidak dapat dihapus karena masih menaungi ' . $roomGroup->rooms()->count() . ' ruangan. Silakan pindahkan ruangan terlebih dahulu atau ubah status menjadi Nonaktif.');
         }
 
         $roomGroup->delete();

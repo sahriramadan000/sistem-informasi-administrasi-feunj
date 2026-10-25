@@ -249,8 +249,8 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
-            {{-- Public Display Timegrid --}}
-            <a href="{{ route('room-reservations.public-display.timegrid') }}" target="_blank"
+            {{-- Public Display --}}
+            <a href="{{ route('room-reservations.public-display') }}" target="_blank"
                 class="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-full shadow-2xs hover:shadow-xs transition-all active:scale-[0.98]">
                 <i data-lucide="monitor" class="w-4 h-4 text-blue-500"></i>
                 <span>Public Display</span>

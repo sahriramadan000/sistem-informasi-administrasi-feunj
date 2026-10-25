@@ -16,18 +16,30 @@ class RoomController extends Controller
 
     public function index(Request $request)
     {
-        $query = Room::with('roomGroup');
+        $query = Room::with('roomGroup')->withCount('reservations');
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('name', 'like', "%{$search}%")
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('room_group_id')) {
+            $query->where('room_group_id', $request->room_group_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active');
         }
 
         $perPage = $request->input('per_page', 10);
         $rooms = $query->orderBy('name')->paginate($perPage);
+        $roomGroups = \App\Models\RoomGroup::where('is_active', true)->withCount('rooms')->orderBy('name')->get();
+        $totalRoomsCount = Room::count();
 
-        return view('master.rooms.index', compact('rooms'));
+        return view('master.rooms.index', compact('rooms', 'roomGroups', 'totalRoomsCount'));
     }
 
     public function create()
@@ -76,7 +88,7 @@ class RoomController extends Controller
     {
         // Check if room is used in reservations
         if ($room->reservations()->exists()) {
-            return back()->withErrors(['error' => 'Ruangan tidak dapat dihapus karena sudah memiliki histori peminjaman. Silakan nonaktifkan ruangan tersebut.']);
+            return redirect()->route('master.rooms.index')->with('error', 'Ruangan tidak dapat dihapus karena sudah memiliki histori peminjaman. Silakan nonaktifkan status ruangan.');
         }
 
         $room->delete();

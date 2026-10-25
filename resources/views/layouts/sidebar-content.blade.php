@@ -240,10 +240,10 @@
                     </span>
                     <i data-lucide="chevron-right" class="ios-right-chevron sidebar-hide-on-collapsed"></i>
                 </a>
-                <a href="{{ route('room-reservations.public-display.timegrid') }}" class="ios-nav-item {{ request()->routeIs('room-reservations.public-display*') ? 'active' : '' }}" target="_blank" title="Kalender Jadwal">
+                <a href="{{ route('room-reservations.public-display') }}" class="ios-nav-item {{ request()->routeIs('room-reservations.public-display*') ? 'active' : '' }}" target="_blank" title="Public Display">
                     <span class="ios-item-label">
-                        <i data-lucide="calendar" class="ios-menu-icon"></i>
-                        <span class="truncate sidebar-hide-on-collapsed">Kalender Jadwal</span>
+                        <i data-lucide="monitor" class="ios-menu-icon"></i>
+                        <span class="truncate sidebar-hide-on-collapsed">Public Display</span>
                     </span>
                     <i data-lucide="external-link" class="ios-right-chevron sidebar-hide-on-collapsed"></i>
                 </a>

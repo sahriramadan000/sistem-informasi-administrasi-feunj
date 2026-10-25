@@ -10,13 +10,13 @@ class RoomReservationController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth')->except(['publicDisplay', 'publicDisplayTimeGrid']);
+        $this->middleware('auth')->except('publicDisplay');
         $this->middleware(function ($request, $next) {
             if (!auth()->user()->can_access_room_reservations && !auth()->user()->isAdmin()) {
                 abort(403, 'Anda tidak memiliki akses ke Modul Peminjaman Ruang.');
             }
             return $next($request);
-        })->except(['publicDisplay', 'publicDisplayTimeGrid']);
+        })->except('publicDisplay');
     }
 
     public function dashboard()
@@ -214,34 +214,6 @@ class RoomReservationController extends Controller
         ));
     }
 
-    public function publicDisplayTimeGrid(Request $request)
-    {
-        $date = $request->input('date', today()->toDateString());
-        $parsedDate = \Carbon\Carbon::parse($date);
-        
-        $query = RoomReservation::with(['room', 'creator'])
-            ->whereDate('reservation_date', $parsedDate)
-            ->where('status', '!=', 'rejected')
-            ->where('status', '!=', 'cancelled');
-            
-        $selectedRoom = null;
-        if ($request->filled('room_id')) {
-            try {
-                $selectedRoomId = decrypt($request->room_id);
-                $query->where('room_id', $selectedRoomId);
-                $selectedRoom = \App\Models\Room::find($selectedRoomId);
-            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-                // Invalid encrypted payload, ignore
-            }
-        }
-            
-        $reservations = $query->orderBy('start_time')->get();
-            
-        $rooms = \App\Models\Room::where('is_active', true)->orderBy('name')->get();
-        
-        return view('room_reservations.partials.timegrid', compact('reservations', 'rooms', 'parsedDate', 'selectedRoom'));
-    }
-
     public function index(Request $request)
     {
         $rooms = Room::where('is_active', true)->orderBy('name')->get();
@@ -258,6 +230,10 @@ class RoomReservationController extends Controller
 
         // Always filter by date (default: today)
         $query->whereDate('reservation_date', $activeDate);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;

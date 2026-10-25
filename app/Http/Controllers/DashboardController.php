@@ -57,7 +57,6 @@ class DashboardController extends Controller
                 ->active()
                 ->groupBy('year')
                 ->orderBy('year', 'desc')
-                ->limit(5)
                 ->get();
 
             // Statistik surat per jenis (untuk semua waktu) - hanya surat aktif
@@ -80,13 +79,10 @@ class DashboardController extends Controller
             // Hitung total surat untuk percentage
             $totalLettersThisYear = $lettersByTypeThisYear->sum('count');
 
-            // Data performa user (hanya untuk admin)
-            $lettersByUser = [];
-            if (auth()->user()->isAdmin()) {
-                $lettersByUser = \App\Models\User::withCount('letters')
-                    ->orderBy('letters_count', 'desc')
-                    ->get();
-            }
+            // Data performa seluruh kontributor
+            $lettersByUser = \App\Models\User::withCount('letters')
+                ->orderBy('letters_count', 'desc')
+                ->get();
 
             return view('dashboard.index', compact(
                 'totalLetters',
