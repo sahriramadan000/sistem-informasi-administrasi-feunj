@@ -35,6 +35,9 @@ class Letter extends Model
         'status',
         'is_active',
         'created_by',
+        'drive_url',
+        'archived_at',
+        'archived_by',
     ];
 
     /**
@@ -46,6 +49,7 @@ class Letter extends Model
         'letter_date' => 'date',
         'running_number' => 'integer',
         'year' => 'integer',
+        'archived_at' => 'datetime',
     ];
 
     /**
@@ -86,6 +90,61 @@ class Letter extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Relasi ke user yang mengarsipkan surat
+     */
+    public function archivedBy()
+    {
+        return $this->belongsTo(User::class, 'archived_by');
+    }
+
+    /**
+     * Check apakah surat sudah diarsipkan di Google Drive
+     */
+    public function getIsArchivedAttribute(): bool
+    {
+        return !empty($this->drive_url);
+    }
+
+    /**
+     * Ekstrak Google Drive File ID dari berbagai format link
+     */
+    public function getDriveFileIdAttribute(): ?string
+    {
+        if (empty($this->drive_url)) {
+            return null;
+        }
+
+        // Format: /file/d/{FILE_ID}/view atau /file/d/{FILE_ID}
+        if (preg_match('/\/file\/d\/([a-zA-Z0-9_-]+)/', $this->drive_url, $matches)) {
+            return $matches[1];
+        }
+
+        // Format: id={FILE_ID}
+        if (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $this->drive_url, $matches)) {
+            return $matches[1];
+        }
+
+        // Format: /folders/{FILE_ID}
+        if (preg_match('/\/folders\/([a-zA-Z0-9_-]+)/', $this->drive_url, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * URL pratinjau embed (Iframe) Google Drive
+     */
+    public function getDrivePreviewUrlAttribute(): ?string
+    {
+        $fileId = $this->drive_file_id;
+        if ($fileId) {
+            return "https://drive.google.com/file/d/{$fileId}/preview";
+        }
+        return $this->drive_url;
     }
 
     /**
@@ -164,12 +223,12 @@ class Letter extends Model
         });
     }
 
-     /**
-      * Scope untuk filter berdasarkan tahun
+    /**
+     * Scope untuk filter berdasarkan tahun
      */
     public function scopeYear($query, $year)
     {
-        return $query->where('year', $year);
+        return $query->where($this->getTable() . '.year', $year);
     }
 
     /**
@@ -177,7 +236,7 @@ class Letter extends Model
      */
     public function scopeSignatory($query, $signatoryId)
     {
-        return $query->where('signatory_id', $signatoryId);
+        return $query->where($this->getTable() . '.signatory_id', $signatoryId);
     }
 
     /**
@@ -185,7 +244,7 @@ class Letter extends Model
      */
     public function scopeClassification($query, $classificationId)
     {
-        return $query->where('classification_id', $classificationId);
+        return $query->where($this->getTable() . '.classification_id', $classificationId);
     }
 
     /**
@@ -193,7 +252,7 @@ class Letter extends Model
      */
     public function scopeLetterType($query, $letterTypeId)
     {
-        return $query->where('letter_type_id', $letterTypeId);
+        return $query->where($this->getTable() . '.letter_type_id', $letterTypeId);
     }
 
     /**
@@ -201,11 +260,12 @@ class Letter extends Model
      */
     public function scopeSearch($query, $search)
     {
-        return $query->where(function ($q) use ($search) {
-            $q->where('letter_number', 'like', "%{$search}%")
-                ->orWhere('subject', 'like', "%{$search}%")
-                ->orWhere('student_name', 'like', "%{$search}%")
-                ->orWhere('recipient', 'like', "%{$search}%");
+        $table = $this->getTable();
+        return $query->where(function ($q) use ($search, $table) {
+            $q->where("{$table}.letter_number", 'like', "%{$search}%")
+                ->orWhere("{$table}.subject", 'like', "%{$search}%")
+                ->orWhere("{$table}.student_name", 'like', "%{$search}%")
+                ->orWhere("{$table}.recipient", 'like', "%{$search}%");
         });
     }
 
@@ -214,6 +274,60 @@ class Letter extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where($this->getTable() . '.is_active', true);
+    }
+
+    /**
+     * Scope untuk filter surat yang sudah terarsip
+     */
+    public function scopeArchived($query)
+    {
+        $table = $this->getTable();
+        return $query->whereNotNull("{$table}.drive_url")->where("{$table}.drive_url", '!=', '');
+    }
+
+    /**
+     * Scope untuk filter surat yang belum terarsip (hanya untuk jenis surat yang memerlukan arsip)
+     */
+    public function scopeUnarchived($query)
+    {
+        $table = $this->getTable();
+        return $query->archivable()->where(function ($q) use ($table) {
+            $q->whereNull("{$table}.drive_url")->orWhere("{$table}.drive_url", '');
+        });
+    }
+
+    /**
+     * Scope untuk filter klasifikasi keamanan
+     */
+    public function scopeSecurityClassification($query, $securityClassification)
+    {
+        return $query->where($this->getTable() . '.security_classification', $securityClassification);
+    }
+
+    /**
+     * Scope untuk filter sasaran surat
+     */
+    public function scopeLetterTarget($query, $letterTarget)
+    {
+        return $query->where($this->getTable() . '.letter_target', $letterTarget);
+    }
+
+    /**
+     * Scope untuk filter hanya surat yang jenis suratnya mewajibkan/memerlukan arsip Google Drive
+     */
+    public function scopeArchivable($query)
+    {
+        return $query->whereHas('letterType', function ($q) {
+            $q->where('requires_drive_archive', true);
+        });
+    }
+
+    /**
+     * Cek apakah surat ini memerlukan arsip Google Drive berdasarkan jenis suratnya
+     */
+    public function getRequiresDriveArchiveAttribute(): bool
+    {
+        return (bool) ($this->letterType?->requires_drive_archive ?? false);
     }
 }

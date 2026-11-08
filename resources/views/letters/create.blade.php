@@ -645,6 +645,47 @@
                         </div>
                     </div>
 
+                    {{-- STEP ARSIP: Tautan Arsip Google Drive (Opsional - Muncul jika jenis surat mewajibkan arsip) --}}
+                    <div id="drive_archive_section" style="display: none;" class="mac-card p-6 sm:p-7 border-emerald-200/80 bg-gradient-to-br from-white to-emerald-50/20">
+                        <div class="flex items-center gap-3.5 mb-4 pb-3 border-b border-emerald-100">
+                            <div class="mac-step-badge bg-emerald-100 border-emerald-300 text-emerald-700">
+                                <i data-lucide="cloud" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-gray-900 tracking-tight flex items-center gap-2">
+                                    Tautan Berkas Google Drive
+                                    <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Opsional</span>
+                                </h3>
+                                <p class="text-xs text-gray-500 mt-0.5">Jika surat digital/scan sudah tersedia di Google Drive, Anda dapat langsung menautkan link-nya di sini atau mengisi nanti.</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="drive_url" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                                <i data-lucide="link" class="w-3.5 h-3.5 text-gray-400"></i>
+                                Link Berbagi Google Drive (Shareable Link)
+                            </label>
+                            <div class="relative">
+                                <input type="url" id="drive_url" name="drive_url" value="{{ old('drive_url') }}"
+                                    class="input @error('drive_url') !border-red-500 @enderror text-sm font-medium pl-10"
+                                    placeholder="Contoh: https://drive.google.com/file/d/1a2b3c4d5e/view?usp=sharing">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-600">
+                                    <i data-lucide="folder-symlink" class="w-4 h-4"></i>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-gray-500 flex items-center gap-1 mt-1">
+                                <i data-lucide="info" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
+                                <span>Pastikan pengaturan berbagi di Google Drive telah disetel agar dapat dibuka oleh akun yang berwenang di FEB UNJ.</span>
+                            </p>
+                            @error('drive_url')
+                                <p class="text-xs text-destructive flex items-center gap-1 mt-1">
+                                    <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+                    </div>
+
                     {{-- macOS Bottom Action Dock --}}
                     <div class="mac-card p-5 flex flex-col-reverse sm:flex-row items-center justify-between gap-3 bg-gradient-to-r from-gray-50/70 to-white">
                         <a href="{{ route('letters.index') }}"
@@ -867,11 +908,12 @@
                 @endforeach
             };
 
-            // Letter types data with requires_purpose flag
+            // Letter types data with requires_purpose and requires_drive_archive flags
             const letterTypesData = {
                 @foreach ($letterTypes as $type)
                     {{ $type->id }}: {
-                        requires_purpose: {{ $type->requires_purpose ? 'true' : 'false' }}
+                        requires_purpose: {{ $type->requires_purpose ? 'true' : 'false' }},
+                        requires_drive_archive: {{ $type->requires_drive_archive ? 'true' : 'false' }}
                     },
                 @endforeach
             };
@@ -1089,6 +1131,17 @@
                     letterPurposeSelect.value = '';
                     studentNameInput.value = '';
                 }
+
+                // Toggle Google Drive Archive Section (hanya jenis surat yang requires_drive_archive)
+                const driveArchiveSection = document.getElementById('drive_archive_section');
+                const driveUrlInput = document.getElementById('drive_url');
+                if (letterTypeId && letterTypesData[letterTypeId] && letterTypesData[letterTypeId].requires_drive_archive) {
+                    if (driveArchiveSection) driveArchiveSection.style.display = 'block';
+                } else {
+                    if (driveArchiveSection) driveArchiveSection.style.display = 'none';
+                    if (driveUrlInput) driveUrlInput.value = '';
+                }
+
                 updateSimulator();
             }
 

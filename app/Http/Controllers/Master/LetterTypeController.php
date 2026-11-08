@@ -29,7 +29,8 @@ class LetterTypeController extends Controller
             'edit',
             'update',
             'destroy',
-            'toggleRequiresPurpose'
+            'toggleRequiresPurpose',
+            'toggleRequiresDriveArchive'
         ]);
     }
 
@@ -102,12 +103,14 @@ class LetterTypeController extends Controller
             'description' => 'nullable|string',
             'is_active' => 'boolean',
             'requires_purpose' => 'boolean',
+            'requires_drive_archive' => 'boolean',
         ]);
 
         try {
             // Handle checkbox values safely
             $validated['is_active'] = $request->boolean('is_active');
             $validated['requires_purpose'] = $request->boolean('requires_purpose');
+            $validated['requires_drive_archive'] = $request->boolean('requires_drive_archive');
 
             // Simpan data menggunakan transaction
             DB::transaction(function () use ($validated) {
@@ -165,12 +168,14 @@ class LetterTypeController extends Controller
             'description' => 'nullable|string',
             'is_active' => 'boolean',
             'requires_purpose' => 'boolean',
+            'requires_drive_archive' => 'boolean',
         ]);
 
         try {
             // Handle checkbox values safely
             $validated['is_active'] = $request->boolean('is_active');
             $validated['requires_purpose'] = $request->boolean('requires_purpose');
+            $validated['requires_drive_archive'] = $request->boolean('requires_drive_archive');
 
             // Update data menggunakan transaction
             DB::transaction(function () use ($letterType, $validated) {
@@ -276,6 +281,54 @@ class LetterTypeController extends Controller
             throw $e;
         } catch (\Throwable $e) {
             Log::error('Error toggling requires_purpose', [
+                'id' => $letterType->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui status.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Toggle requires_drive_archive field via AJAX
+     * 
+     * @param Request $request
+     * @param LetterType $letterType
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function toggleRequiresDriveArchive(Request $request, LetterType $letterType)
+    {
+        try {
+            $validated = $request->validate([
+                'requires_drive_archive' => 'required|boolean',
+            ]);
+            
+            DB::transaction(function () use ($letterType, $validated) {
+                $letterType->update([
+                    'requires_drive_archive' => $validated['requires_drive_archive']
+                ]);
+            });
+
+            Log::info('Letter type requires_drive_archive toggled', [
+                'id' => $letterType->id,
+                'requires_drive_archive' => $validated['requires_drive_archive'],
+                'user_id' => auth()->id()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'requires_drive_archive' => $letterType->requires_drive_archive,
+                'message' => 'Status arsip Google Drive berhasil diperbarui.'
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            Log::error('Error toggling requires_drive_archive', [
                 'id' => $letterType->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()

@@ -17,6 +17,8 @@
                         <span class="text-xs font-bold text-gray-900 truncate tracking-tight" style="font-size: 13px;">
                             @if (request()->routeIs('admin.*', 'master.users.*'))
                                 Pengaturan Sistem
+                            @elseif(request()->routeIs('archives.*') || (request()->routeIs('letter-archives.*') && ($isReadOnlyPortal ?? false)))
+                                Modul Arsip Digital
                             @elseif(request()->routeIs('legalizations.*', 'master.education-levels.*'))
                                 Layanan Legalisir
                             @elseif(request()->routeIs('room-reservations.*', 'master.rooms.*', 'master.room-groups.*'))
@@ -38,12 +40,12 @@
             <div class="px-2.5 py-1.5 text-gray-400 font-bold uppercase tracking-wider" style="font-size: 10px;">Pilih Modul Aktif</div>
 
             <a href="{{ route('dashboard') }}"
-                class="flex items-center justify-between px-2.5 py-2 text-xs font-semibold rounded-xl transition-colors {{ request()->routeIs('dashboard', 'letters.*', 'master.classification-letters.*', 'master.letter-types.*', 'master.letter-purposes.*', 'master.signatories.*') ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-700 hover:bg-gray-100' }}">
+                class="flex items-center justify-between px-2.5 py-2 text-xs font-semibold rounded-xl transition-colors {{ request()->routeIs('dashboard', 'letters.*', 'letter-archives.*', 'master.classification-letters.*', 'master.letter-types.*', 'master.letter-purposes.*', 'master.signatories.*') ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-700 hover:bg-gray-100' }}">
                 <span class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full {{ request()->routeIs('dashboard', 'letters.*') ? 'bg-orange-500' : 'bg-gray-300' }}"></span>
+                    <span class="w-2 h-2 rounded-full {{ request()->routeIs('dashboard', 'letters.*', 'letter-archives.*') ? 'bg-orange-500' : 'bg-gray-300' }}"></span>
                     Persuratan &amp; Arsip
                 </span>
-                @if(request()->routeIs('dashboard', 'letters.*'))
+                @if(request()->routeIs('dashboard', 'letters.*', 'letter-archives.*'))
                     <i data-lucide="check" style="width: 14px; height: 14px; color: #ea580c;"></i>
                 @endif
             </a>
@@ -69,6 +71,19 @@
                         Peminjaman Ruang
                     </span>
                     @if(request()->routeIs('room-reservations.*'))
+                        <i data-lucide="check" style="width: 14px; height: 14px; color: #ea580c;"></i>
+                    @endif
+                </a>
+            @endif
+
+            @if(auth()->user()->can_access_archives || auth()->user()->isAdmin())
+                <a href="{{ route('archives.index') }}"
+                    class="flex items-center justify-between px-2.5 py-2 text-xs font-semibold rounded-xl transition-colors {{ request()->routeIs('archives.*') ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-700 hover:bg-gray-100' }}">
+                    <span class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full {{ request()->routeIs('archives.*') ? 'bg-orange-500' : 'bg-gray-300' }}"></span>
+                        Modul Arsip Digital
+                    </span>
+                    @if(request()->routeIs('archives.*'))
                         <i data-lucide="check" style="width: 14px; height: 14px; color: #ea580c;"></i>
                     @endif
                 </a>
@@ -270,6 +285,21 @@
             @endif
         @endif
 
+    @elseif(request()->routeIs('archives.*') || (request()->routeIs('letter-archives.*') && ($isReadOnlyPortal ?? false)))
+        {{-- ========================================== --}}
+        {{-- NAVIGASI MODUL ARSIP DIGITAL (PORTAL READ-ONLY) --}}
+        {{-- ========================================== --}}
+        <div class="ios-nav-section">
+            <div class="ios-section-title sidebar-hide-on-collapsed">E-Arsip Digital</div>
+            <a href="{{ route('archives.index') }}" class="ios-nav-item active" title="Penjelajahan Berkas Arsip Digital">
+                <span class="ios-item-label">
+                    <i data-lucide="folder-archive" class="ios-menu-icon text-emerald-600"></i>
+                    <span class="truncate sidebar-hide-on-collapsed font-bold text-gray-900">Arsip Digital</span>
+                </span>
+                <span class="ios-right-pill sidebar-hide-on-collapsed text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Aktif</span>
+            </a>
+        </div>
+
     @else
         {{-- ========================================== --}}
         {{-- NAVIGASI MODUL PERSURATAN --}}
@@ -298,6 +328,13 @@
                 <span class="ios-item-label">
                     <i data-lucide="mail" class="ios-menu-icon"></i>
                     <span class="truncate sidebar-hide-on-collapsed">Daftar Surat</span>
+                </span>
+                <i data-lucide="chevron-right" class="ios-right-chevron sidebar-hide-on-collapsed"></i>
+            </a>
+            <a href="{{ route('letter-archives.index') }}" class="ios-nav-item {{ request()->routeIs('letter-archives.*') ? 'active' : '' }}" title="Arsip Digital">
+                <span class="ios-item-label">
+                    <i data-lucide="folder-archive" class="ios-menu-icon"></i>
+                    <span class="truncate sidebar-hide-on-collapsed">Arsip Digital</span>
                 </span>
                 <i data-lucide="chevron-right" class="ios-right-chevron sidebar-hide-on-collapsed"></i>
             </a>
@@ -348,11 +385,22 @@
         </div>
         <div class="space-y-0.5">
             {{-- Modul Persuratan --}}
-            @if(!request()->routeIs('dashboard', 'letters.*', 'master.classification-letters.*', 'master.letter-types.*', 'master.letter-purposes.*', 'master.signatories.*'))
+            @if(!request()->routeIs('dashboard', 'letters.*', 'master.classification-letters.*', 'master.letter-types.*', 'master.letter-purposes.*', 'master.signatories.*') && (auth()->user()->can_access_letters || auth()->user()->isAdmin()))
                 <a href="{{ route('dashboard') }}" class="ios-nav-item group" title="Buka Modul Persuratan">
                     <span class="ios-item-label">
                         <span class="ios-pinned-badge" style="background-color: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;">S</span>
                         <span class="truncate font-medium" style="font-size: 13px;">Modul Persuratan</span>
+                    </span>
+                    <i data-lucide="pin" class="ios-pin-icon sidebar-hide-on-collapsed"></i>
+                </a>
+            @endif
+
+            {{-- Modul Arsip Digital --}}
+            @if(!request()->routeIs('archives.*') && (auth()->user()->can_access_archives || auth()->user()->isAdmin()))
+                <a href="{{ route('archives.index') }}" class="ios-nav-item group" title="Buka Modul Arsip Digital">
+                    <span class="ios-item-label">
+                        <span class="ios-pinned-badge" style="background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">A</span>
+                        <span class="truncate font-medium" style="font-size: 13px;">Modul Arsip Digital</span>
                     </span>
                     <i data-lucide="pin" class="ios-pin-icon sidebar-hide-on-collapsed"></i>
                 </a>

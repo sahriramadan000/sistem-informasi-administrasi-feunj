@@ -42,7 +42,7 @@
     </div>
 
     {{-- Right: Apple iOS / macOS Compact Segmented Pill Pagination --}}
-    @if ($paginator->hasPages())
+    @if ($paginator->total() > 0)
         <div>
             <div class="inline-flex items-center gap-1 p-1 bg-gray-100/70 rounded-xl border border-gray-200/60 shadow-2xs">
                 {{-- Previous Page Link --}}

@@ -25,6 +25,7 @@ class User extends Authenticatable
         'role',
         'is_active',
         'can_access_letters',
+        'can_access_archives',
         'can_access_legalizations',
         'can_access_room_reservations',
     ];
@@ -49,6 +50,7 @@ class User extends Authenticatable
         'is_active' => 'boolean',
         'password' => 'hashed',
         'can_access_letters' => 'boolean',
+        'can_access_archives' => 'boolean',
         'can_access_legalizations' => 'boolean',
         'can_access_room_reservations' => 'boolean',
     ];
@@ -92,6 +94,7 @@ class User extends Authenticatable
     {
         $count = 0;
         if ($this->can_access_letters) $count++;
+        if ($this->can_access_archives) $count++;
         if ($this->can_access_legalizations) $count++;
         if ($this->can_access_room_reservations) $count++;
         if ($this->isAdmin()) $count++;

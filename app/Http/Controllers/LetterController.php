@@ -29,6 +29,16 @@ class LetterController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware(function ($request, $next) {
+            $user = auth()->user();
+            if ($user && !$user->isAdmin() && !$user->can_access_letters) {
+                if ($user->can_access_archives) {
+                    return redirect()->route('archives.index');
+                }
+                abort(403, 'Anda tidak memiliki akses ke Modul Persuratan.');
+            }
+            return $next($request);
+        });
         // Semua role bisa melihat index dan show
         // $this->middleware('role:admin,operator,viewer')->only(['index', 'show']);
         // // Hanya admin dan operator yang bisa create, store, edit, update, destroy
@@ -83,6 +93,14 @@ class LetterController extends Controller
 
             if ($request->filled('created_by')) {
                 $query->where('created_by', $request->created_by);
+            }
+
+            if ($request->filled('archive_status')) {
+                if ($request->archive_status === 'archived') {
+                    $query->archived();
+                } elseif ($request->archive_status === 'unarchived') {
+                    $query->unarchived();
+                }
             }
 
             // Pagination dengan mempertahankan query string, diurutkan berdasarkan running_number terbesar
@@ -186,6 +204,7 @@ class LetterController extends Controller
                 'letter_date' => 'required|date',
                 'quantity' => 'nullable|integer|min:1|max:50',
                 'multiple_mode' => 'nullable|in:same,different',
+                'drive_url' => 'nullable|string|max:1000',
             ];
 
             // Validasi subjects dan recipients berdasarkan mode
@@ -248,6 +267,17 @@ class LetterController extends Controller
             }
 
             $validated = $request->validate($rules, $messages);
+
+            // Handle optional drive_url archive metadata
+            if (!empty($validated['drive_url'])) {
+                $validated['drive_url'] = trim($validated['drive_url']);
+                $validated['archived_at'] = now();
+                $validated['archived_by'] = auth()->id();
+            } else {
+                $validated['drive_url'] = null;
+                $validated['archived_at'] = null;
+                $validated['archived_by'] = null;
+            }
 
             // Hapus quantity dan multiple_mode dari validated data
             unset($validated['quantity']);
@@ -438,6 +468,7 @@ class LetterController extends Controller
                 'classification_id' => 'required|exists:classification_letters,id',
                 'signatory_id' => 'required|exists:signatories,id',
                 'security_classification' => 'required|in:B,T,R,SR',
+                'drive_url' => 'nullable|string|max:1000',
             ];
 
             // Jika jenis surat memerlukan keperluan, tambahkan validasi
@@ -450,6 +481,19 @@ class LetterController extends Controller
             }
 
             $validated = $request->validate($rules);
+
+            // Handle drive_url archive metadata
+            if (!empty($validated['drive_url'])) {
+                $validated['drive_url'] = trim($validated['drive_url']);
+                if (!$letter->archived_at) {
+                    $validated['archived_at'] = now();
+                }
+                $validated['archived_by'] = auth()->id();
+            } else {
+                $validated['drive_url'] = null;
+                $validated['archived_at'] = null;
+                $validated['archived_by'] = null;
+            }
 
             // Update field dan regenerate nomor surat jika ada komponen nomor surat yang berubah
             $numberComponentChanged = false;
@@ -566,6 +610,80 @@ class LetterController extends Controller
 
             return back()
                 ->withErrors(['error' => 'Terjadi kesalahan saat menonaktifkan surat. Silakan coba lagi.']);
+        }
+    }
+
+    /**
+     * Update link arsip Google Drive (AJAX / Form)
+     *
+     * @param Request $request
+     * @param Letter $letter
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
+    public function updateArchiveLink(Request $request, Letter $letter)
+    {
+        try {
+            $request->validate([
+                'drive_url' => 'nullable|string|max:1000',
+            ]);
+
+            $driveUrl = trim((string) $request->input('drive_url', ''));
+
+            if (!empty($driveUrl)) {
+                $letter->update([
+                    'drive_url' => $driveUrl,
+                    'archived_at' => $letter->archived_at ?? now(),
+                    'archived_by' => auth()->id(),
+                ]);
+
+                AuditLogService::log('update', 'Letter', $letter->id, [
+                    'letter_number' => $letter->letter_number,
+                    'action' => 'archive_link_updated',
+                    'drive_url' => $driveUrl,
+                ]);
+            } else {
+                $letter->update([
+                    'drive_url' => null,
+                    'archived_at' => null,
+                    'archived_by' => null,
+                ]);
+
+                AuditLogService::log('update', 'Letter', $letter->id, [
+                    'letter_number' => $letter->letter_number,
+                    'action' => 'archive_link_removed',
+                ]);
+            }
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => !empty($driveUrl) ? 'Tautan arsip Google Drive berhasil disimpan.' : 'Tautan arsip berhasil dihapus.',
+                    'data' => [
+                        'id' => $letter->id,
+                        'letter_number' => $letter->letter_number,
+                        'drive_url' => $letter->drive_url,
+                        'drive_preview_url' => $letter->drive_preview_url,
+                        'is_archived' => $letter->is_archived,
+                        'archived_at' => $letter->archived_at?->format('d/m/Y H:i'),
+                    ],
+                ]);
+            }
+
+            return back()->with('success', !empty($driveUrl) ? 'Tautan arsip Google Drive berhasil disimpan.' : 'Tautan arsip berhasil dihapus.');
+        } catch (\Throwable $e) {
+            Log::error('Error updating archive link', [
+                'letter_id' => $letter->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memperbarui tautan arsip: ' . $e->getMessage(),
+                ], 422);
+            }
+
+            return back()->withErrors(['error' => 'Gagal memperbarui tautan arsip: ' . $e->getMessage()]);
         }
     }
 }

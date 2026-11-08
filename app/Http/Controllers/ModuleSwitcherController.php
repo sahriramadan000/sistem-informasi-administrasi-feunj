@@ -24,6 +24,9 @@ class ModuleSwitcherController extends Controller
         if ($user->can_access_letters) {
             return redirect()->route('dashboard'); // Dashboard Persuratan
         }
+        if ($user->can_access_archives) {
+            return redirect()->route('archives.index'); // Portal Arsip Digital (Read-only)
+        }
         if ($user->can_access_legalizations) {
             return redirect()->route('legalizations.dashboard'); // Dashboard Legalisir
         }

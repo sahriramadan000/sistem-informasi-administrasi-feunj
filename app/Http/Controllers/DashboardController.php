@@ -16,6 +16,22 @@ class DashboardController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware(function ($request, $next) {
+            $user = auth()->user();
+            if ($user && !$user->isAdmin() && !$user->can_access_letters) {
+                if ($user->can_access_archives) {
+                    return redirect()->route('archives.index');
+                }
+                if ($user->can_access_legalizations) {
+                    return redirect()->route('legalizations.dashboard');
+                }
+                if ($user->can_access_room_reservations) {
+                    return redirect()->route('room-reservations.dashboard');
+                }
+                abort(403, 'Anda tidak memiliki akses ke Modul Persuratan.');
+            }
+            return $next($request);
+        });
     }
 
     /**

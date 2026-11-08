@@ -24,6 +24,7 @@ class LetterType extends Model
         'is_active',
         'requires_subject',
         'requires_purpose',
+        'requires_drive_archive',
     ];
 
     /**
@@ -35,6 +36,7 @@ class LetterType extends Model
         'is_active' => 'boolean',
         'requires_subject' => 'boolean',
         'requires_purpose' => 'boolean',
+        'requires_drive_archive' => 'boolean',
     ];
 
     /**
@@ -51,5 +53,13 @@ class LetterType extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope untuk mendapatkan jenis surat yang memerlukan arsip Google Drive
+     */
+    public function scopeRequiresDriveArchive($query)
+    {
+        return $query->where('requires_drive_archive', true);
     }
 }

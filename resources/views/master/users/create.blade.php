@@ -190,6 +190,20 @@
                             <div class="flex items-start">
                                 <div class="flex items-center h-5">
                                     <input type="checkbox" 
+                                           id="can_access_archives" 
+                                           name="can_access_archives" 
+                                           value="1" 
+                                           {{ old('can_access_archives', true) ? 'checked' : '' }}
+                                           class="w-4 h-4 text-brand border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
+                                </div>
+                                <div class="ml-3">
+                                    <label for="can_access_archives" class="font-medium text-gray-700">Modul Arsip Digital</label>
+                                    <p class="text-sm text-muted-foreground">Berikan akses melihat dan pratinjau arsip digital surat (read-only)</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input type="checkbox" 
                                            id="can_access_legalizations" 
                                            name="can_access_legalizations" 
                                            value="1" 

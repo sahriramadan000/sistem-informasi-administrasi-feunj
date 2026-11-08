@@ -240,6 +240,7 @@
                                 <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[240px] hidden md:table-cell">Deskripsi</th>
                                 @if (auth()->user()->isAdmin())
                                     <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[150px] text-center">Keperluan Surat</th>
+                                    <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[130px] text-center">Arsip Drive</th>
                                 @endif
                                 <th scope="col" class="px-4 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider min-w-[100px] text-center">Status</th>
                                 @if (auth()->user()->isAdmin())
@@ -301,6 +302,23 @@
                                                 </label>
                                                 <span class="text-xs font-semibold {{ $letterType->requires_purpose ? 'text-emerald-700' : 'text-gray-400' }} label-requires-purpose min-w-[32px] text-left">
                                                     {{ $letterType->requires_purpose ? 'Ya' : 'Tidak' }}
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        {{-- Arsip Google Drive (Apple iOS Toggle Switch with AJAX) --}}
+                                        <td class="px-4 py-4 whitespace-nowrap text-center">
+                                            <div class="inline-flex items-center justify-center gap-2">
+                                                <label class="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" 
+                                                           class="sr-only peer toggle-requires-drive" 
+                                                           data-id="{{ $letterType->id }}"
+                                                           data-name="{{ $letterType->name }}"
+                                                           {{ $letterType->requires_drive_archive ? 'checked' : '' }}>
+                                                    <div class="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div>
+                                                </label>
+                                                <span class="text-xs font-semibold {{ $letterType->requires_drive_archive ? 'text-emerald-700' : 'text-gray-400' }} label-requires-drive min-w-[32px] text-left">
+                                                    {{ $letterType->requires_drive_archive ? 'Ya' : 'Tidak' }}
                                                 </span>
                                             </div>
                                         </td>
@@ -468,6 +486,61 @@
                     if (label) {
                         label.textContent = !isChecked ? 'Ya' : 'Tidak';
                         label.className = `text-xs font-semibold ${!isChecked ? 'text-emerald-700' : 'text-gray-400'} label-requires-purpose min-w-[32px] text-left`;
+                    }
+                    showToast('Terjadi kesalahan jaringan saat memperbarui status.', 'error');
+                });
+            });
+        });
+
+        // Handle AJAX toggle for requires_drive_archive
+        const driveToggles = document.querySelectorAll('.toggle-requires-drive');
+        driveToggles.forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const letterTypeId = this.dataset.id;
+                const letterTypeName = this.dataset.name || 'Jenis surat';
+                const isChecked = this.checked;
+                const label = this.closest('td').querySelector('.label-requires-drive');
+                
+                // Update label text and color immediately
+                if (label) {
+                    label.textContent = isChecked ? 'Ya' : 'Tidak';
+                    label.className = `text-xs font-semibold ${isChecked ? 'text-emerald-700' : 'text-gray-400'} label-requires-drive min-w-[32px] text-left`;
+                }
+
+                // AJAX Request
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                
+                fetch(`/master/letter-types/${letterTypeId}/toggle-requires-drive-archive`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken || ''
+                    },
+                    body: JSON.stringify({
+                        requires_drive_archive: isChecked
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const statusText = isChecked ? 'diwajibkan' : 'dinonaktifkan';
+                        showToast(`Pengarsipan Google Drive untuk "${letterTypeName}" ${statusText}`, 'success');
+                    } else {
+                        // Revert on error
+                        toggle.checked = !isChecked;
+                        if (label) {
+                            label.textContent = !isChecked ? 'Ya' : 'Tidak';
+                            label.className = `text-xs font-semibold ${!isChecked ? 'text-emerald-700' : 'text-gray-400'} label-requires-drive min-w-[32px] text-left`;
+                        }
+                        showToast(data.message || 'Gagal mengubah status pengarsipan Drive.', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error toggling requires_drive_archive:', err);
+                    toggle.checked = !isChecked;
+                    if (label) {
+                        label.textContent = !isChecked ? 'Ya' : 'Tidak';
+                        label.className = `text-xs font-semibold ${!isChecked ? 'text-emerald-700' : 'text-gray-400'} label-requires-drive min-w-[32px] text-left`;
                     }
                     showToast('Terjadi kesalahan jaringan saat memperbarui status.', 'error');
                 });

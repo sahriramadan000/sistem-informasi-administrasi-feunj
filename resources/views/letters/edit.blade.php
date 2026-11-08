@@ -449,6 +449,55 @@
                         </div>
                     @endif
 
+                    {{-- STEP ARSIP: Tautan Berkas Google Drive (Opsional - Hanya jika jenis surat memerlukan arsip) --}}
+                    @if ($letter->requires_drive_archive)
+                    <div class="mac-card p-6 sm:p-7 border-emerald-200/80 bg-gradient-to-br from-white to-emerald-50/20">
+                        <div class="flex items-center gap-3.5 mb-4 pb-3 border-b border-emerald-100">
+                            <div class="mac-step-badge bg-emerald-100 border-emerald-300 text-emerald-700">
+                                <i data-lucide="cloud" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-gray-900 tracking-tight flex items-center gap-2">
+                                    Tautan Berkas Google Drive
+                                    <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Opsional</span>
+                                </h3>
+                                <p class="text-xs text-gray-500 mt-0.5">Perbarui link berkas digital yang tersimpan di Google Drive.</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="drive_url" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                                <i data-lucide="link" class="w-3.5 h-3.5 text-gray-400"></i>
+                                Link Berbagi Google Drive (Shareable Link)
+                            </label>
+                            <div class="relative">
+                                <input type="url" id="drive_url" name="drive_url" value="{{ old('drive_url', $letter->drive_url) }}"
+                                    class="input @error('drive_url') !border-red-500 @enderror text-sm font-medium pl-10"
+                                    placeholder="Contoh: https://drive.google.com/file/d/1a2b3c4d5e/view?usp=sharing">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-emerald-600">
+                                    <i data-lucide="folder-symlink" class="w-4 h-4"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-gray-500 pt-1">
+                                <span>Kosongkan jika ingin menghapus tautan arsip digital.</span>
+                                @if ($letter->is_archived)
+                                    <a href="{{ $letter->drive_url }}" target="_blank" rel="noopener noreferrer"
+                                        class="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-700 font-semibold underline">
+                                        <i data-lucide="external-link" class="w-3 h-3"></i>
+                                        Uji Buka Tautan Saat Ini
+                                    </a>
+                                @endif
+                            </div>
+                            @error('drive_url')
+                                <p class="text-xs text-destructive flex items-center gap-1 mt-1">
+                                    <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+                    </div>
+                    @endif
+
                     {{-- macOS Bottom Action Dock --}}
                     <div class="mac-card p-5 flex flex-col-reverse sm:flex-row items-center justify-between gap-3 bg-gradient-to-r from-gray-50/70 to-white">
                         <a href="{{ route('letters.show', $letter) }}"

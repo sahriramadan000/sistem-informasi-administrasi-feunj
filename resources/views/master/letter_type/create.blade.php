@@ -280,6 +280,39 @@
                                 </div>
                             </div>
 
+                            {{-- Field: Tautan Pengarsipan Google Drive (Apple iOS Style Toggle Switch) --}}
+                            <div>
+                                <div class="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/80 hover:bg-gray-50 transition-colors">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="space-y-1">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs font-bold text-gray-900">Pengarsipan Google Drive</span>
+                                                <span id="driveIndicatorBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold {{ old('requires_drive_archive', false) ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-gray-100 text-gray-700 border border-gray-300' }}">
+                                                    <span class="w-1.5 h-1.5 rounded-full {{ old('requires_drive_archive', false) ? 'bg-emerald-500' : 'bg-gray-400' }}"></span>
+                                                    {{ old('requires_drive_archive', false) ? 'Diwajibkan' : 'Tidak Diperlukan' }}
+                                                </span>
+                                            </div>
+                                            <p id="driveDescriptionText" class="text-xs text-gray-500 leading-relaxed">
+                                                {{ old('requires_drive_archive', false) ? 'Surat dengan jenis ini mewajibkan / menyediakan tautan Google Drive dan otomatis dikelola pada menu Arsip Digital.' : 'Surat dengan jenis ini tidak memerlukan arsip Google Drive dan tidak masuk ke menu Arsip Digital.' }}
+                                            </p>
+                                        </div>
+
+                                        {{-- iOS Switch Control --}}
+                                        <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-0.5">
+                                            <input type="hidden" name="requires_drive_archive" value="0">
+                                            <input type="checkbox" 
+                                                   id="requires_drive_archive" 
+                                                   name="requires_drive_archive" 
+                                                   value="1" 
+                                                   {{ old('requires_drive_archive', false) ? 'checked' : '' }} 
+                                                   class="sr-only peer"
+                                                   onchange="handleDriveToggle(this)">
+                                            <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
                             {{-- Field: Status Aktif (Apple iOS Style Toggle Switch) --}}
                             <div>
                                 <div class="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/80 hover:bg-gray-50 transition-colors">
@@ -551,6 +584,23 @@
 
             simTokenPurposeBadge.className = 'font-semibold text-gray-600 px-2 py-0.5 rounded-md bg-gray-100 border border-gray-300';
             simTokenPurposeBadge.textContent = 'Tidak Diperlukan';
+        }
+    }
+
+    // iOS Drive Toggle Handler
+    function handleDriveToggle(checkbox) {
+        const isChecked = checkbox.checked;
+        const driveIndicatorBadge = document.getElementById('driveIndicatorBadge');
+        const driveDescriptionText = document.getElementById('driveDescriptionText');
+
+        if (isChecked) {
+            driveIndicatorBadge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+            driveIndicatorBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Diwajibkan';
+            driveDescriptionText.textContent = 'Surat dengan jenis ini mewajibkan / menyediakan tautan Google Drive dan otomatis dikelola pada menu Arsip Digital.';
+        } else {
+            driveIndicatorBadge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-300';
+            driveIndicatorBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Tidak Diperlukan';
+            driveDescriptionText.textContent = 'Surat dengan jenis ini tidak memerlukan arsip Google Drive dan tidak masuk ke menu Arsip Digital.';
         }
     }
 

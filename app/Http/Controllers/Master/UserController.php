@@ -81,6 +81,7 @@ class UserController extends Controller
             'role' => ['required', Rule::in(['admin', 'operator', 'viewer'])],
             'is_active' => 'boolean',
             'can_access_letters' => 'boolean',
+            'can_access_archives' => 'boolean',
             'can_access_legalizations' => 'boolean',
             'can_access_room_reservations' => 'boolean',
         ]);
@@ -89,6 +90,7 @@ class UserController extends Controller
             // Handle checkbox values
             $validated['is_active'] = $request->has('is_active');
             $validated['can_access_letters'] = $request->has('can_access_letters');
+            $validated['can_access_archives'] = $request->has('can_access_archives');
             $validated['can_access_legalizations'] = $request->has('can_access_legalizations');
             $validated['can_access_room_reservations'] = $request->has('can_access_room_reservations');
             $validated['password'] = Hash::make($validated['password']);
@@ -164,6 +166,7 @@ class UserController extends Controller
             'role' => ['required', Rule::in(['admin', 'operator', 'viewer'])],
             'is_active' => 'boolean',
             'can_access_letters' => 'boolean',
+            'can_access_archives' => 'boolean',
             'can_access_legalizations' => 'boolean',
             'can_access_room_reservations' => 'boolean',
         ]);
@@ -172,6 +175,7 @@ class UserController extends Controller
             // Handle checkbox values
             $validated['is_active'] = $request->has('is_active');
             $validated['can_access_letters'] = $request->has('can_access_letters');
+            $validated['can_access_archives'] = $request->has('can_access_archives');
             $validated['can_access_legalizations'] = $request->has('can_access_legalizations');
             $validated['can_access_room_reservations'] = $request->has('can_access_room_reservations');
             

@@ -21,6 +21,7 @@ use App\Http\Controllers\LegalizationController;
 use App\Http\Controllers\LegalizationImportController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\RoomReservationController;
+use App\Http\Controllers\LetterArchiveController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,6 +72,7 @@ Route::prefix('master')->name('master.')->group(function () {
     
     Route::resource('letter-types', LetterTypeController::class);
     Route::post('letter-types/{letterType}/toggle-requires-purpose', [LetterTypeController::class, 'toggleRequiresPurpose'])->name('letter-types.toggle-requires-purpose');
+    Route::post('letter-types/{letterType}/toggle-requires-drive-archive', [LetterTypeController::class, 'toggleRequiresDriveArchive'])->name('letter-types.toggle-requires-drive-archive');
     
     Route::resource('signatories', SignatoryController::class);
     Route::resource('letter-purposes', LetterPurposeController::class);
@@ -82,7 +84,18 @@ Route::prefix('master')->name('master.')->group(function () {
 // Letter Routes (Middleware di Controller)
 Route::get('letters/import/template', [LetterImportController::class, 'template'])->name('letters.import.template')->middleware(['auth', 'role:admin,operator']);
 Route::post('letters/import', [LetterImportController::class, 'import'])->name('letters.import')->middleware(['auth', 'role:admin,operator']);
+Route::post('letters/{letter}/archive-link', [LetterController::class, 'updateArchiveLink'])->name('letters.update-archive-link')->middleware(['auth', 'role:admin,operator']);
 Route::resource('letters', LetterController::class);
+
+// Arsip Digital Routes
+Route::prefix('letter-archives')->name('letter-archives.')->middleware(['auth'])->group(function () {
+    Route::get('/', [LetterArchiveController::class, 'index'])->name('index');
+});
+
+// Modul Arsip Digital (Dedicated Read-Only Portal)
+Route::prefix('archives')->name('archives.')->middleware(['auth'])->group(function () {
+    Route::get('/', [LetterArchiveController::class, 'portal'])->name('index');
+});
 
 // Profile Routes (All authenticated users)
 Route::middleware('auth')->group(function () {
