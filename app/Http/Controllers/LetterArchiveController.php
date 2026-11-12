@@ -155,7 +155,7 @@ class LetterArchiveController extends Controller
         $totalArchivedLetters = (clone $baseStats)->archived()->count();
         $totalUnarchivedLetters = (clone $baseStats)->unarchived()->count();
 
-        // ── Hierarchical Explorer Navigation (Level 0: Tahun -> Level 1: Jenis Surat -> Level 2: Klasifikasi -> Level 3: Berkas) ──
+        // ── Hierarchical Explorer Navigation (Level 0: Tahun -> Level 1: Jenis Surat -> Level 2: Berkas Dokumen) ──
         $currentYear = $request->input('year');
         $currentLetterTypeId = $request->input('letter_type_id');
         $currentClassificationId = $request->input('classification_id');
@@ -171,7 +171,7 @@ class LetterArchiveController extends Controller
             $subfolderBase->unarchived();
         }
 
-        $folderLevel = 'root'; // 'root' | 'year' | 'type' | 'classification'
+        $folderLevel = 'root'; // 'root' | 'year' | 'type'
         $explorerFolders = collect();
         $parentUrl = null;
         $parentName = null;
@@ -197,7 +197,7 @@ class LetterArchiveController extends Controller
         } elseif ($currentYear && !$currentLetterTypeId) {
             // Level 1: Di dalam Tahun, tampilkan Folder Jenis Surat yang memerlukan pengarsipan
             $folderLevel = 'year';
-            $parentUrl = route($baseRouteName, request()->except(['year', 'page']));
+            $parentUrl = route($baseRouteName, request()->except(['year', 'page', 'letter_type_id', 'classification_id']));
             $parentName = 'Semua Tahun';
 
             $explorerFolders = LetterType::active()
@@ -234,52 +234,11 @@ class LetterArchiveController extends Controller
                         'url' => route($baseRouteName, array_merge(request()->except(['page', 'classification_id']), ['year' => $currentYear, 'letter_type_id' => $item->id])),
                     ];
                 });
-        } elseif ($currentYear && $currentLetterTypeId && !$currentClassificationId) {
-            // Level 2: Di dalam Jenis Surat, tampilkan Folder Klasifikasi
+        } else {
+            // Level 2: Di dalam Jenis Surat (Level terdalam, langsung menampilkan berkas dokumen)
             $folderLevel = 'type';
             $parentUrl = route($baseRouteName, array_merge(request()->except(['letter_type_id', 'classification_id', 'page']), ['year' => $currentYear]));
             $parentName = 'Tahun ' . $currentYear;
-
-            $explorerFolders = ClassificationLetter::active()
-                ->whereHas('letters', function ($q) use ($currentYear, $currentLetterTypeId, $archiveStatus) {
-                    $q->where('letters.year', $currentYear)
-                        ->where('letters.letter_type_id', $currentLetterTypeId)
-                        ->where('letters.status', 'final')
-                        ->active();
-                    if ($archiveStatus === 'archived') {
-                        $q->archived();
-                    } elseif ($archiveStatus === 'unarchived') {
-                        $q->unarchived();
-                    }
-                })
-                ->withCount(['letters as total' => function ($q) use ($currentYear, $currentLetterTypeId, $archiveStatus) {
-                    $q->where('letters.year', $currentYear)
-                        ->where('letters.letter_type_id', $currentLetterTypeId)
-                        ->where('letters.status', 'final')
-                        ->active();
-                    if ($archiveStatus === 'archived') {
-                        $q->archived();
-                    } elseif ($archiveStatus === 'unarchived') {
-                        $q->unarchived();
-                    }
-                }])
-                ->orderBy('total', 'desc')
-                ->get()
-                ->map(function ($item) use ($currentYear, $currentLetterTypeId, $baseRouteName) {
-                    return [
-                        'type' => 'classification',
-                        'id' => $item->id,
-                        'name' => $item->code . ' - ' . $item->name,
-                        'short_name' => $item->code,
-                        'total' => $item->total,
-                        'url' => route($baseRouteName, array_merge(request()->except(['page']), ['year' => $currentYear, 'letter_type_id' => $currentLetterTypeId, 'classification_id' => $item->id])),
-                    ];
-                });
-        } else {
-            // Level 3: Di dalam Klasifikasi (Level terdalam, hanya berkas dokumen)
-            $folderLevel = 'classification';
-            $parentUrl = route($baseRouteName, array_merge(request()->except(['classification_id', 'page']), ['year' => $currentYear, 'letter_type_id' => $currentLetterTypeId]));
-            $parentName = $activeLetterType?->name ?? ('Tahun ' . $currentYear);
             $explorerFolders = collect();
         }
 
@@ -306,11 +265,12 @@ class LetterArchiveController extends Controller
             ->orderBy('year', 'desc')
             ->pluck('year');
 
-        // Files hanya ditampilkan jika sudah berada di level klasifikasi (terdalam),
+        // Files ditampilkan jika sudah berada di level jenis surat (terdalam),
         // atau jika tidak ada lagi subfolder, atau jika sedang melakukan pencarian / filter spesifik
-        $showFiles = ($folderLevel === 'classification')
+        $showFiles = ($folderLevel === 'type')
             || $explorerFolders->isEmpty()
             || $request->filled('search')
+            || $request->filled('classification_id')
             || $request->filled('signatory_id')
             || $request->filled('security_classification')
             || $request->filled('letter_target');

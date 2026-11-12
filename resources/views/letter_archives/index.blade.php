@@ -150,7 +150,7 @@
         {{-- ── UNIFIED MODERN ARCHIVE CONTAINER CARD ── --}}
         <div class="mac-window overflow-hidden">
             @php
-                if ($activeClassification) {
+                if ($activeClassification && !$activeLetterType) {
                     $currentFolderTitle = $activeClassification->code . ' - ' . $activeClassification->name;
                 } elseif ($activeLetterType) {
                     $currentFolderTitle = $activeLetterType->name;
@@ -217,10 +217,16 @@
 
                             @if ($activeLetterType)
                                 <i data-lucide="chevron-right" class="w-3 h-3 text-slate-300"></i>
-                                <a href="{{ route($baseRouteName, array_merge(request()->except(['page', 'classification_id']), ['year' => $currentYear, 'letter_type_id' => $activeLetterType->id])) }}"
-                                    class="{{ !$activeClassification ? 'text-slate-900 font-semibold' : 'hover:text-slate-700' }} transition-colors">
-                                    {{ $activeLetterType->name }}
-                                </a>
+                                @if ($activeClassification)
+                                    <a href="{{ route($baseRouteName, array_merge(request()->except(['page', 'classification_id']), ['year' => $currentYear, 'letter_type_id' => $activeLetterType->id])) }}"
+                                        class="hover:text-slate-700 transition-colors">
+                                        {{ $activeLetterType->name }}
+                                    </a>
+                                @else
+                                    <span class="text-slate-900 font-semibold">
+                                        {{ $activeLetterType->name }}
+                                    </span>
+                                @endif
                             @endif
 
                             @if ($activeClassification)
@@ -459,7 +465,7 @@
                     </form>
                 </div>
 
-                {{-- ── 4. SECTION: FOLDERS (Hierarchical: Tahun -> Jenis Surat -> Klasifikasi) ── --}}
+                {{-- ── 4. SECTION: FOLDERS (Hierarchical: Tahun -> Jenis Surat) ── --}}
                 @if ($explorerFolders->count() > 0)
                     <div class="space-y-3">
                         <div class="flex items-center justify-between px-0.5">
@@ -470,8 +476,6 @@
                                         (Pilih Tahun Arsip)
                                     @elseif ($folderLevel === 'year')
                                         (Pilih Jenis Surat - Tahun {{ $currentYear }})
-                                    @elseif ($folderLevel === 'type')
-                                        (Pilih Klasifikasi - {{ $activeLetterType->name }})
                                     @endif
                                 </span>
                             </div>
@@ -544,10 +548,10 @@
                         <div class="flex items-center justify-between px-0.5">
                             <div class="flex items-center gap-2">
                                 <h3 class="text-sm font-bold text-slate-800 tracking-tight">Files</h3>
-                                @if ($activeClassification)
+                                @if ($activeClassification && !$activeLetterType)
                                     <span class="text-[11px] text-slate-500 font-medium">dalam {{ $activeClassification->code }} - {{ $activeClassification->name }}</span>
                                 @elseif ($activeLetterType)
-                                    <span class="text-[11px] text-slate-500 font-medium">dalam {{ $activeLetterType->name }}</span>
+                                    <span class="text-[11px] text-slate-500 font-medium">dalam {{ $activeLetterType->name }} (Tahun {{ $currentYear }})</span>
                                 @elseif ($currentYear)
                                     <span class="text-[11px] text-slate-500 font-medium">dalam Tahun {{ $currentYear }}</span>
                                 @elseif (request('search'))
