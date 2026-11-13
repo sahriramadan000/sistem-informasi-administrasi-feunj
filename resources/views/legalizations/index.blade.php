@@ -89,6 +89,14 @@
                     <span>Dashboard</span>
                 </a>
 
+                {{-- Export Excel Rekon --}}
+                <button type="button" onclick="openExportModal()"
+                    class="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-emerald-50 hover:text-emerald-700 border border-gray-200 hover:border-emerald-200 rounded-full shadow-2xs hover:shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+                    title="Export Laporan Rekon Excel (.xlsx)">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
+                    <span>Export Excel</span>
+                </button>
+
                 @if ($canManage)
                     @if (auth()->user()->isAdmin())
                         <a href="{{ route('legalizations.import.template') }}"
@@ -471,6 +479,107 @@
         </div>
     </div>
 
+    {{-- Export Excel Rekon Modal (Apple Sheet Style) --}}
+    <div id="exportModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-md">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full border border-gray-200 overflow-hidden transform transition-all scale-95 opacity-0"
+            id="exportModalContent">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/70">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-2xs">
+                        <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm sm:text-base font-bold text-gray-900 tracking-tight">Export Laporan Rekon Excel</h3>
+                        <p class="text-[11px] text-gray-500">Unduh laporan transaksi legalisir terstruktur (.xlsx)</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeExportModal()" class="text-gray-400 hover:text-gray-600 p-1.5 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <form method="GET" action="{{ route('legalizations.export') }}" onsubmit="handleExportSubmit()" class="p-6 space-y-4">
+                @if (request('search'))
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                @endif
+
+                {{-- Preset Periode Cepat --}}
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-gray-700 block">Pilih Cepat Periode Rekon</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="setExportPreset('current')"
+                            class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 transition-all cursor-pointer">
+                            Sesuai Filter Halaman
+                        </button>
+                        <button type="button" onclick="setExportPreset('this_month')"
+                            class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-gray-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-gray-700 transition-all cursor-pointer">
+                            Bulan Ini
+                        </button>
+                        <button type="button" onclick="setExportPreset('last_month')"
+                            class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-gray-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-gray-700 transition-all cursor-pointer">
+                            Bulan Lalu
+                        </button>
+                        <button type="button" onclick="setExportPreset('all')"
+                            class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 transition-all cursor-pointer">
+                            Semua Periode
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Rentang Tanggal --}}
+                <div class="space-y-1.5">
+                    <label for="export_date_range" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                        <i data-lucide="calendar" class="w-3.5 h-3.5 text-gray-400"></i>
+                        Rentang Tanggal Transaksi
+                    </label>
+                    <input type="text" id="export_date_range" name="date_range" value="{{ request('date_range') }}"
+                        class="w-full px-3.5 py-2.5 text-xs bg-gray-50 hover:bg-white focus:bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all cursor-pointer font-medium text-gray-800"
+                        placeholder="Kosongkan untuk semua periode, atau pilih rentang tanggal...">
+                </div>
+
+                {{-- Jenjang Pendidikan --}}
+                <div class="space-y-1.5">
+                    <label for="export_education_level_id" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                        <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-gray-400"></i>
+                        Filter Jenjang Pendidikan
+                    </label>
+                    <select id="export_education_level_id" name="education_level_id"
+                        class="w-full px-3.5 py-2.5 text-xs bg-gray-50 hover:bg-white focus:bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all cursor-pointer font-medium text-gray-800">
+                        <option value="">Semua Jenjang Pendidikan</option>
+                        @foreach ($educationLevels as $level)
+                            <option value="{{ $level->id }}" {{ request('education_level_id') == $level->id ? 'selected' : '' }}>
+                                {{ $level->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Info Template Rekon --}}
+                <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-[11.5px] text-emerald-900 flex items-start gap-2.5">
+                    <i data-lucide="sparkles" class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5"></i>
+                    <div class="space-y-0.5">
+                        <p class="font-bold">Format Siap Rekonsiliasi (2 Sheet):</p>
+                        <p class="text-emerald-800/90 leading-relaxed">
+                            File otomatis berisi <strong>Rincian Transaksi</strong> (lengkap dengan formula SUM, format Rupiah, kolom cek rekon &amp; tanda tangan) dan <strong>Rekapitulasi per Jenjang</strong>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 pt-2">
+                    <button type="button" onclick="closeExportModal()"
+                        class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200/80 text-gray-700 font-semibold text-xs rounded-xl transition-all border border-gray-200 cursor-pointer">
+                        <span>Batal</span>
+                    </button>
+                    <button type="submit"
+                        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-xs cursor-pointer">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        <span>Unduh Laporan (.xlsx)</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     {{-- Deactivate Confirmation Modal (Apple Sheet Style) --}}
     <div id="deactivateModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-md">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full border border-gray-200 overflow-hidden transform transition-all scale-95 opacity-0"
@@ -738,6 +847,85 @@
         }
     }
 
+    let exportDatePicker = null;
+    const currentPageDateRange = @json(request('date_range', ''));
+
+    function openExportModal() {
+        const modal = document.getElementById('exportModal');
+        const content = document.getElementById('exportModalContent');
+        if (modal && content) {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    }
+
+    function closeExportModal() {
+        const modal = document.getElementById('exportModal');
+        const content = document.getElementById('exportModalContent');
+        if (!modal || !content) return;
+
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 200);
+    }
+
+    function setExportPreset(preset) {
+        const input = document.getElementById('export_date_range');
+        if (!input) return;
+
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const formatYmd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+        if (preset === 'current') {
+            if (exportDatePicker) {
+                if (currentPageDateRange) {
+                    const sep = currentPageDateRange.includes(' to ') ? ' to ' : ' - ';
+                    exportDatePicker.setDate(currentPageDateRange.split(sep).map(s => s.trim()), true);
+                } else {
+                    exportDatePicker.clear();
+                }
+            } else {
+                input.value = currentPageDateRange;
+            }
+        } else if (preset === 'this_month') {
+            const start = new Date(now.getFullYear(), now.getMonth(), 1);
+            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            if (exportDatePicker) {
+                exportDatePicker.setDate([start, end], true);
+            } else {
+                input.value = `${formatYmd(start)} to ${formatYmd(end)}`;
+            }
+        } else if (preset === 'last_month') {
+            const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const end = new Date(now.getFullYear(), now.getMonth(), 0);
+            if (exportDatePicker) {
+                exportDatePicker.setDate([start, end], true);
+            } else {
+                input.value = `${formatYmd(start)} to ${formatYmd(end)}`;
+            }
+        } else if (preset === 'all') {
+            if (exportDatePicker) {
+                exportDatePicker.clear();
+            } else {
+                input.value = '';
+            }
+        }
+    }
+
+    function handleExportSubmit() {
+        showToast('Menyiapkan laporan Excel rekon...', 'info');
+        setTimeout(() => {
+            closeExportModal();
+        }, 600);
+    }
+
     // On Page Ready
     document.addEventListener('DOMContentLoaded', function () {
         @if ($activeFiltersCount > 0)
@@ -757,6 +945,15 @@
                 altFormat: "d M Y",
                 locale: "id",
                 placeholder: "Pilih tanggal start - end"
+            });
+
+            exportDatePicker = flatpickr("#export_date_range", {
+                mode: "range",
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d M Y",
+                locale: "id",
+                placeholder: "Kosongkan untuk semua periode..."
             });
         }
 

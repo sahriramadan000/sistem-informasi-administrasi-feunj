@@ -51,6 +51,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 Route::prefix('legalisir')->name('legalizations.')->middleware(['auth'])->group(function () {
     Route::get('/dashboard', [LegalisirDashboardController::class, 'index'])->name('dashboard');
 });
+Route::get('legalizations/export', [LegalizationController::class, 'export'])->name('legalizations.export')->middleware(['auth']);
 Route::get('legalizations/import/template', [LegalizationImportController::class, 'template'])->name('legalizations.import.template')->middleware(['auth', 'role:admin,operator']);
 Route::post('legalizations/import', [LegalizationImportController::class, 'import'])->name('legalizations.import')->middleware(['auth', 'role:admin,operator']);
 Route::resource('legalizations', LegalizationController::class);

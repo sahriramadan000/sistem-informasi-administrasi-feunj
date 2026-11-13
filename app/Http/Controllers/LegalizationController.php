@@ -9,6 +9,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Services\AuditLogService;
+use App\Exports\LegalizationReconciliationExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LegalizationController extends Controller
 {
@@ -190,6 +192,62 @@ class LegalizationController extends Controller
             return redirect()->route('legalizations.index')->with('success', 'Data legalisir berhasil dinonaktifkan.');
         } catch (\Throwable $e) {
             return $this->handleError($e, 'LegalizationController.destroy', 'Gagal menonaktifkan data legalisir.');
+        }
+    }
+
+    /**
+     * Export laporan rekonsiliasi transaksi legalisir ke format Excel (.xlsx)
+     *
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Illuminate\Http\RedirectResponse
+     */
+    public function export(Request $request)
+    {
+        try {
+            $filters = $request->only(['date_range', 'education_level_id', 'search']);
+
+            // Format label periode & nama file
+            $periodLabel = 'Semua Periode';
+            $fileSuffix = 'Semua_Periode_' . now()->format('Y-m-d');
+
+            if (!empty($filters['date_range'])) {
+                $separator = strpos($filters['date_range'], ' to ') !== false ? ' to ' : ' - ';
+                $dates = explode($separator, $filters['date_range']);
+                if (count($dates) === 2) {
+                    $start = trim($dates[0]);
+                    $end = trim($dates[1]);
+                    $periodLabel = Carbon::parse($start)->format('d/m/Y') . ' s.d. ' . Carbon::parse($end)->format('d/m/Y');
+                    $fileSuffix = $start . '_sd_' . $end;
+                } elseif (count($dates) === 1) {
+                    $single = trim($dates[0]);
+                    $periodLabel = Carbon::parse($single)->format('d/m/Y');
+                    $fileSuffix = $single;
+                }
+            }
+
+            $levelLabel = 'Semua Jenjang';
+            if (!empty($filters['education_level_id'])) {
+                $level = EducationLevel::withTrashed()->find($filters['education_level_id']);
+                if ($level) {
+                    $levelLabel = $level->name;
+                }
+            }
+
+            $exportedBy = auth()->user()->name ?? 'Administrator';
+            $fileName = 'Laporan_Rekon_Legalisir_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $fileSuffix) . '.xlsx';
+
+            AuditLogService::log('export', 'Legalization', null, [
+                'period' => $periodLabel,
+                'education_level' => $levelLabel,
+                'search' => $filters['search'] ?? null,
+            ]);
+
+            return Excel::download(
+                new LegalizationReconciliationExport($filters, $periodLabel, $levelLabel, $exportedBy),
+                $fileName
+            );
+        } catch (\Throwable $e) {
+            return $this->handleError($e, 'LegalizationController.export', 'Gagal mengunduh laporan Excel legalisir.');
         }
     }
 }
