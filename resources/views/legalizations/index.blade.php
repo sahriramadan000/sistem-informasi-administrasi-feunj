@@ -81,38 +81,81 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5">
-                {{-- Shortcut ke Dashboard Legalisir --}}
-                <a href="{{ route('legalizations.dashboard') }}"
-                    class="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-full shadow-2xs hover:shadow-xs transition-all active:scale-[0.98]"
-                    title="Buka Dashboard Legalisir">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-gray-500"></i>
-                    <span>Dashboard</span>
-                </a>
+                {{-- Unified Action Menu Dropdown (Apple Popover Style) --}}
+                <div class="relative" id="headerActionsDropdown">
+                    <button type="button" onclick="toggleHeaderActionsMenu(event)" id="headerActionsBtn"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200/90 rounded-full shadow-2xs hover:shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+                        aria-expanded="false" aria-haspopup="true">
+                        <i data-lucide="layers" class="w-4 h-4 text-gray-500"></i>
+                        <span>Menu &amp; Laporan</span>
+                        <i data-lucide="chevron-down" id="headerActionsChevron" class="w-3.5 h-3.5 text-gray-400 transition-transform duration-200"></i>
+                    </button>
 
-                {{-- Export Excel Rekon --}}
-                <button type="button" onclick="openExportModal()"
-                    class="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-emerald-50 hover:text-emerald-700 border border-gray-200 hover:border-emerald-200 rounded-full shadow-2xs hover:shadow-xs transition-all active:scale-[0.98] cursor-pointer"
-                    title="Export Laporan Rekon Excel (.xlsx)">
-                    <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
-                    <span>Export Excel</span>
-                </button>
+                    {{-- Popover Panel --}}
+                    <div id="headerActionsMenu"
+                        class="hidden absolute right-0 mt-2 w-80 sm:w-[340px] bg-white/95 backdrop-blur-xl rounded-2xl border border-gray-200/90 shadow-2xl p-2 z-40 origin-top-right transition-all duration-150 scale-95 opacity-0">
+                        
+                        {{-- Section 1: Laporan & Rekon --}}
+                        <div class="px-2.5 pt-1.5 pb-1">
+                            <span class="text-[10.5px] font-bold uppercase tracking-wider text-gray-400">Laporan &amp; Analitik</span>
+                        </div>
+
+                        <button type="button" onclick="closeHeaderActionsMenu(); openExportModal();"
+                            class="w-full text-left flex items-start gap-3 p-2.5 rounded-xl hover:bg-emerald-50/70 transition-colors group cursor-pointer">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200/70 text-emerald-600 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-100 transition-colors">
+                                <i data-lucide="file-spreadsheet" class="w-4.5 h-4.5"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-gray-900 group-hover:text-emerald-800 transition-colors">Export Laporan Rekon (.xlsx)</p>
+                                <p class="text-[11px] text-gray-500 leading-snug mt-0.5">Unduh rincian transaksi &amp; rekap jenjang siap pakai untuk rekonsiliasi keuangan.</p>
+                            </div>
+                        </button>
+
+                        <a href="{{ route('legalizations.dashboard') }}"
+                            class="w-full text-left flex items-start gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors group">
+                            <div class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200/70 text-slate-600 flex items-center justify-center flex-shrink-0 group-hover:bg-slate-200/70 transition-colors">
+                                <i data-lucide="layout-dashboard" class="w-4.5 h-4.5"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-gray-900">Dashboard Statistik</p>
+                                <p class="text-[11px] text-gray-500 leading-snug mt-0.5">Pantau ringkasan pendapatan, total lembar, dan grafik layanan legalisir.</p>
+                            </div>
+                        </a>
+
+                        @if ($canManage && auth()->user()->isAdmin())
+                            <div class="my-1.5 border-t border-gray-100"></div>
+
+                            {{-- Section 2: Kelola Data Massal --}}
+                            <div class="px-2.5 pt-1 pb-1">
+                                <span class="text-[10.5px] font-bold uppercase tracking-wider text-gray-400">Import Data Massal</span>
+                            </div>
+
+                            <button type="button" onclick="closeHeaderActionsMenu(); openImportModal();"
+                                class="w-full text-left flex items-start gap-3 p-2.5 rounded-xl hover:bg-blue-50/70 transition-colors group cursor-pointer">
+                                <div class="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200/70 text-blue-600 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition-colors">
+                                    <i data-lucide="upload" class="w-4.5 h-4.5"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-bold text-gray-900 group-hover:text-blue-800 transition-colors">Import Transaksi dari Excel</p>
+                                    <p class="text-[11px] text-gray-500 leading-snug mt-0.5">Unggah banyak data legalisir sekaligus menggunakan berkas Excel.</p>
+                                </div>
+                            </button>
+
+                            <a href="{{ route('legalizations.import.template') }}" onclick="closeHeaderActionsMenu()"
+                                class="w-full text-left flex items-start gap-3 p-2.5 rounded-xl hover:bg-amber-50/60 transition-colors group">
+                                <div class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200/70 text-amber-600 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
+                                    <i data-lucide="download" class="w-4.5 h-4.5"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-bold text-gray-900 group-hover:text-amber-800 transition-colors">Unduh Format Template Excel</p>
+                                    <p class="text-[11px] text-gray-500 leading-snug mt-0.5">Dapatkan format tabel standar (.xlsx) sebelum mengunggah data import.</p>
+                                </div>
+                            </a>
+                        @endif
+                    </div>
+                </div>
 
                 @if ($canManage)
-                    @if (auth()->user()->isAdmin())
-                        <a href="{{ route('legalizations.import.template') }}"
-                            class="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-full shadow-2xs hover:shadow-xs transition-all active:scale-[0.98]"
-                            title="Unduh Template Excel">
-                            <i data-lucide="download" class="w-4 h-4 text-gray-500"></i>
-                            <span>Template</span>
-                        </a>
-                        <button type="button" onclick="openImportModal()"
-                            class="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-full shadow-2xs hover:shadow-xs transition-all active:scale-[0.98] cursor-pointer"
-                            title="Import Transaksi dari Excel">
-                            <i data-lucide="upload" class="w-4 h-4 text-gray-500"></i>
-                            <span>Import Excel</span>
-                        </button>
-                    @endif
-
                     <a href="{{ route('legalizations.create') }}"
                         class="inline-flex items-center gap-2 px-4.5 py-2 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#FF4D00] to-amber-500 hover:from-[#e04400] hover:to-[#d97706] rounded-full shadow-xs hover:shadow-md transition-all active:scale-[0.98]">
                         <i data-lucide="plus" class="w-4 h-4"></i>
@@ -921,6 +964,50 @@
         }
     }
 
+    function toggleHeaderActionsMenu(event) {
+        if (event) event.stopPropagation();
+        const menu = document.getElementById('headerActionsMenu');
+        const chevron = document.getElementById('headerActionsChevron');
+        const btn = document.getElementById('headerActionsBtn');
+        if (!menu) return;
+
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            setTimeout(() => {
+                menu.classList.remove('scale-95', 'opacity-0');
+                menu.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            if (chevron) chevron.style.transform = 'rotate(180deg)';
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } else {
+            closeHeaderActionsMenu();
+        }
+    }
+
+    function closeHeaderActionsMenu() {
+        const menu = document.getElementById('headerActionsMenu');
+        const chevron = document.getElementById('headerActionsChevron');
+        const btn = document.getElementById('headerActionsBtn');
+        if (!menu || menu.classList.contains('hidden')) return;
+
+        menu.classList.remove('scale-100', 'opacity-100');
+        menu.classList.add('scale-95', 'opacity-0');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+        setTimeout(() => {
+            menu.classList.add('hidden');
+        }, 150);
+    }
+
+    document.addEventListener('click', function (e) {
+        const dropdown = document.getElementById('headerActionsDropdown');
+        if (dropdown && !dropdown.contains(e.target)) {
+            closeHeaderActionsMenu();
+        }
+    });
+
     function handleExportSubmit() {
         showToast('Menyiapkan laporan Excel rekon...', 'info');
         setTimeout(() => {
@@ -959,8 +1046,11 @@
             });
         }
 
-        // Keyboard Shortcut: '/' to focus search input
+        // Keyboard Shortcut: '/' to focus search input, 'Escape' to close popover
         window.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeHeaderActionsMenu();
+            }
             if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
                 e.preventDefault();
                 const searchInput = document.getElementById('search');
