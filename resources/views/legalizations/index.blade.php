@@ -519,9 +519,9 @@
                             class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-gray-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-gray-700 transition-all cursor-pointer">
                             Bulan Lalu
                         </button>
-                        <button type="button" onclick="setExportPreset('all')"
-                            class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 transition-all cursor-pointer">
-                            Semua Periode
+                        <button type="button" onclick="setExportPreset('this_year')"
+                            class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-gray-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-gray-700 transition-all cursor-pointer">
+                            Tahun Ini
                         </button>
                     </div>
                 </div>
@@ -910,11 +910,13 @@
             } else {
                 input.value = `${formatYmd(start)} to ${formatYmd(end)}`;
             }
-        } else if (preset === 'all') {
+        } else if (preset === 'this_year') {
+            const start = new Date(now.getFullYear(), 0, 1);
+            const end = new Date(now.getFullYear(), 11, 31);
             if (exportDatePicker) {
-                exportDatePicker.clear();
+                exportDatePicker.setDate([start, end], true);
             } else {
-                input.value = '';
+                input.value = `${formatYmd(start)} to ${formatYmd(end)}`;
             }
         }
     }
