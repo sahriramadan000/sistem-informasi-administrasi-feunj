@@ -137,7 +137,7 @@
 
         .main-container {
             width: 100%;
-            max-width: 960px;
+            max-width: 1120px;
             margin: 0 auto;
         }
 
@@ -146,13 +146,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.85rem 1.5rem;
+            padding: 0.75rem 1.35rem;
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
             border: 1px solid rgba(226, 232, 240, 0.8);
             border-radius: 100px;
-            margin-bottom: 2.75rem;
+            margin-bottom: 1.75rem;
             box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.04);
             animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
@@ -306,7 +306,7 @@
         /* ── Hero Center Header ── */
         .hero-section {
             text-align: center;
-            margin-bottom: 2.5rem;
+            margin-bottom: 1.5rem;
             animation: fadeInDown 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
@@ -321,9 +321,9 @@
             color: var(--brand-primary);
             background: rgba(255, 247, 237, 0.9);
             border: 1px solid var(--brand-100);
-            padding: 5px 14px;
+            padding: 4px 12px;
             border-radius: 100px;
-            margin-bottom: 0.9rem;
+            margin-bottom: 0.65rem;
             box-shadow: 0 2px 6px rgba(234, 88, 12, 0.06);
         }
 
@@ -359,40 +359,273 @@
             line-height: 1.6;
         }
 
-        /* ── Cards Grid ── */
-        .modules-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 1.75rem;
-            margin-bottom: 3rem;
+        /* ── Quick Access Bar (Terakhir Dibuka - Tanpa Card Putih) ── */
+        .quick-access-bar {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 1.15rem;
+            padding: 2px 0;
         }
 
-        /* ── Card Specification (Matching Reference Image) ── */
+        .quick-access-bar.has-items {
+            display: flex;
+        }
+
+        .quick-access-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-right: 2px;
+        }
+
+        .quick-access-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .quick-access-pill:hover {
+            border-color: var(--border-hover);
+            color: var(--brand-primary);
+            background: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px -2px rgba(234, 88, 12, 0.14);
+        }
+
+        /* ── Search, Category Filter & View Mode Toolbar (Menyatu dengan Canvas) ── */
+        .module-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 1.35rem;
+            padding-bottom: 0.9rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+        }
+
+        .category-tabs {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .category-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 13px;
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .category-pill:hover {
+            background: #ffffff;
+            color: var(--text-main);
+            border-color: rgba(203, 213, 225, 0.95);
+        }
+
+        .category-pill.active {
+            background: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.16);
+        }
+
+        .category-count {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 100px;
+            background: rgba(148, 163, 184, 0.18);
+            color: inherit;
+        }
+
+        .category-pill.active .category-count {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1 1 auto;
+            justify-content: flex-end;
+            min-width: 240px;
+        }
+
+        .search-input-wrap {
+            position: relative;
+            flex: 1 1 220px;
+            max-width: 280px;
+        }
+
+        .search-input-wrap svg.search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            color: var(--text-faint);
+            pointer-events: none;
+        }
+
+        .module-search-input {
+            width: 100%;
+            padding: 7px 34px 7px 34px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            font-family: inherit;
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 100px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .module-search-input:focus {
+            background: #ffffff;
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.12);
+        }
+
+        .search-kbd {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-faint);
+            background: #f8fafc;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            border-radius: 5px;
+            padding: 1px 5px;
+            pointer-events: none;
+        }
+
+        .view-toggle {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 100px;
+            padding: 3px;
+            gap: 2px;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+        }
+
+        .view-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 28px;
+            border: none;
+            border-radius: 100px;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.18s ease;
+        }
+
+        .view-toggle-btn.active {
+            background: #0f172a;
+            color: #ffffff;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.15);
+        }
+
+        .view-toggle-btn svg {
+            width: 15px;
+            height: 15px;
+            stroke-width: 2;
+        }
+
+        /* ── Cards Grid (Maksimal 3 Kolom di Desktop) ── */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .modules-grid.is-compact {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.9rem;
+        }
+
+        @media (max-width: 1024px) {
+            .modules-grid,
+            .modules-grid.is-compact {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        /* ── Card Specification (Compact Apple Style) ── */
         .module-card {
             display: flex;
             flex-direction: column;
             background: var(--surface-card);
-            border-radius: 28px;
+            border-radius: 22px;
             border: 1px solid var(--border-light);
-            padding: 14px;
+            padding: 12px;
             text-decoration: none;
             color: inherit;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 14px 30px -6px rgba(15, 23, 42, 0.06);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.25s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 10px 24px -6px rgba(15, 23, 42, 0.05);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.2s ease;
             position: relative;
-            animation: cardEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+            animation: cardEntrance 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
             outline: none;
         }
 
-        .module-card:nth-child(1) { animation-delay: 0.08s; }
-        .module-card:nth-child(2) { animation-delay: 0.16s; }
-        .module-card:nth-child(3) { animation-delay: 0.24s; }
-        .module-card:nth-child(4) { animation-delay: 0.32s; }
-        .module-card:nth-child(5) { animation-delay: 0.40s; }
+        .module-card.is-hidden {
+            display: none !important;
+        }
+
+        .module-card:nth-child(1) { animation-delay: 0.04s; }
+        .module-card:nth-child(2) { animation-delay: 0.08s; }
+        .module-card:nth-child(3) { animation-delay: 0.12s; }
+        .module-card:nth-child(4) { animation-delay: 0.16s; }
+        .module-card:nth-child(5) { animation-delay: 0.20s; }
+        .module-card:nth-child(6) { animation-delay: 0.24s; }
 
         .module-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(0, 0, 0, 0.03);
+            transform: translateY(-5px);
+            box-shadow: 0 14px 30px -8px rgba(15, 23, 42, 0.11), 0 4px 10px rgba(0, 0, 0, 0.03);
             border-color: var(--border-hover);
         }
 
@@ -401,17 +634,18 @@
             box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.18);
         }
 
-        /* Top Visual Area (Isometric Illustration inside rounded container) */
+        /* Top Visual Area (Compact Illustration) */
         .card-visual {
             position: relative;
             width: 100%;
-            height: 200px;
+            height: 148px;
             background-color: var(--surface-subtle);
-            border-radius: 20px;
+            border-radius: 16px;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
 
         .card-visual-img {
@@ -426,13 +660,13 @@
             transform: scale(1.045);
         }
 
-        /* Dark Icon Badge at Top-Right of Visual (As in Reference) */
+        /* Dark Icon Badge at Top-Right of Visual */
         .card-badge-icon {
             position: absolute;
-            top: 14px;
-            right: 14px;
-            width: 36px;
-            height: 36px;
+            top: 10px;
+            right: 10px;
+            width: 34px;
+            height: 34px;
             background-color: #0f172a;
             border-radius: 10px;
             display: flex;
@@ -450,58 +684,124 @@
         }
 
         .card-badge-icon svg {
-            width: 18px;
-            height: 18px;
+            width: 17px;
+            height: 17px;
             stroke-width: 2.2;
         }
 
         /* Card Content Body */
         .card-content {
-            padding: 18px 10px 10px;
+            padding: 14px 8px 6px;
             display: flex;
             flex-direction: column;
             flex-grow: 1;
         }
 
         .card-title {
-            font-size: 1.22rem;
+            font-size: 1.06rem;
             font-weight: 700;
             color: var(--text-main);
             letter-spacing: -0.02em;
-            margin-bottom: 0.45rem;
+            margin-bottom: 0.35rem;
             line-height: 1.3;
         }
 
         .card-desc {
-            font-size: 0.865rem;
+            font-size: 0.82rem;
             color: var(--text-muted);
-            line-height: 1.58;
-            margin-bottom: 1.25rem;
+            line-height: 1.52;
+            margin-bottom: 1rem;
             flex-grow: 1;
         }
 
-        /* Card Footer / Action Bar (Pill button on left, Status info on right) */
+        /* Card Footer / Action Bar */
         .card-footer {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding-top: 14px;
+            padding-top: 11px;
             border-top: 1px solid rgba(241, 245, 249, 1);
-            gap: 12px;
+            gap: 10px;
+        }
+
+        /* Compact List Mode Overrides */
+        .modules-grid.is-compact .module-card {
+            flex-direction: row;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            border-radius: 18px;
+        }
+
+        .modules-grid.is-compact .card-visual {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+            border: 1px solid rgba(234, 88, 12, 0.15);
+        }
+
+        .modules-grid.is-compact .card-visual-img {
+            display: none;
+        }
+
+        .modules-grid.is-compact .card-badge-icon {
+            position: static;
+            width: 34px;
+            height: 34px;
+            box-shadow: none;
+        }
+
+        .modules-grid.is-compact .card-content {
+            padding: 0;
+            min-width: 0;
+        }
+
+        .modules-grid.is-compact .card-title {
+            font-size: 0.96rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .modules-grid.is-compact .card-desc {
+            font-size: 0.78rem;
+            margin-bottom: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .modules-grid.is-compact .card-footer {
+            display: none;
+        }
+
+        .compact-arrow {
+            display: none;
+            color: var(--text-faint);
+            flex-shrink: 0;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .modules-grid.is-compact .compact-arrow {
+            display: inline-flex;
+        }
+
+        .modules-grid.is-compact .module-card:hover .compact-arrow {
+            color: var(--brand-primary);
+            transform: translateX(3px);
         }
 
         /* Action Button */
         .card-action-btn {
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            font-size: 0.82rem;
+            gap: 6px;
+            font-size: 0.78rem;
             font-weight: 600;
             color: #1e293b;
             background: #ffffff;
             border: 1px solid rgba(226, 232, 240, 1);
-            padding: 8px 18px;
-            border-radius: 12px;
+            padding: 7px 14px;
+            border-radius: 11px;
             transition: all 0.25s ease;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
             white-space: nowrap;
@@ -561,6 +861,41 @@
         .no-modules-box p {
             color: var(--text-secondary);
             font-size: 0.92rem;
+        }
+
+        .empty-search-box {
+            display: none;
+            text-align: center;
+            padding: 3rem 1.5rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 24px;
+            border: 1px dashed rgba(203, 213, 225, 0.9);
+            margin-bottom: 2.5rem;
+        }
+
+        .empty-search-box.show {
+            display: block;
+        }
+
+        .empty-search-btn {
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #ffffff;
+            background: #0f172a;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.2s ease;
+        }
+
+        .empty-search-btn:hover {
+            background: var(--brand-primary);
         }
 
         /* ── Footer ── */
@@ -625,12 +960,25 @@
                 justify-content: space-between;
             }
 
-            .modules-grid {
+            .modules-grid,
+            .modules-grid.is-compact {
                 grid-template-columns: 1fr;
             }
 
+            .toolbar-right {
+                width: 100%;
+            }
+
+            .search-input-wrap {
+                max-width: none;
+            }
+
+            .search-kbd {
+                display: none;
+            }
+
             .card-visual {
-                height: 180px;
+                height: 160px;
             }
 
             .card-footer {
@@ -723,11 +1071,66 @@
             @endphp
 
             @if ($hasAny)
-                <main class="modules-grid">
+                {{-- ── Quick Access Bar (Terakhir Dibuka) ── --}}
+                <div id="quickAccessBar" class="quick-access-bar" aria-label="Modul terakhir dibuka">
+                    <span class="quick-access-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Terakhir Dibuka:
+                    </span>
+                    <div id="quickAccessItems" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+                </div>
+
+                {{-- ── Toolbar: Kategori, Pencarian & Mode Tampilan ── --}}
+                <div class="module-toolbar">
+                    <div class="category-tabs" role="tablist" aria-label="Filter kategori modul">
+                        <button type="button" class="category-pill active" data-filter="all">
+                            Semua <span class="category-count" data-count-for="all">0</span>
+                        </button>
+                        <button type="button" class="category-pill" data-filter="persuratan">
+                            Persuratan &amp; Arsip <span class="category-count" data-count-for="persuratan">0</span>
+                        </button>
+                        <button type="button" class="category-pill" data-filter="layanan">
+                            Layanan &amp; Alumni <span class="category-count" data-count-for="layanan">0</span>
+                        </button>
+                        <button type="button" class="category-pill" data-filter="fasilitas">
+                            Fasilitas <span class="category-count" data-count-for="fasilitas">0</span>
+                        </button>
+                        <button type="button" class="category-pill" data-filter="sistem">
+                            Sistem <span class="category-count" data-count-for="sistem">0</span>
+                        </button>
+                    </div>
+
+                    <div class="toolbar-right">
+                        <div class="search-input-wrap">
+                            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                            </svg>
+                            <input type="text" id="moduleSearchInput" class="module-search-input" placeholder="Cari modul layanan..." autocomplete="off">
+                            <span class="search-kbd">/</span>
+                        </div>
+
+                        <div class="view-toggle" role="group" aria-label="Mode tampilan modul">
+                            <button type="button" id="viewGridBtn" class="view-toggle-btn active" title="Tampilan Kartu (Grid)" aria-label="Tampilan Kartu">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                                </svg>
+                            </button>
+                            <button type="button" id="viewCompactBtn" class="view-toggle-btn" title="Tampilan Ringkas (Compact)" aria-label="Tampilan Ringkas">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <main id="modulesGrid" class="modules-grid">
 
                     {{-- ── Card 1: Modul Persuratan & Arsip ── --}}
                     @if (auth()->user()->can_access_letters || auth()->user()->isAdmin())
-                        <a href="{{ route('dashboard') }}" class="module-card" aria-label="Buka Modul Persuratan & Arsip">
+                        <a href="{{ route('dashboard') }}" class="module-card" data-module-id="letters" data-category="persuratan" data-keywords="surat penomoran agenda disposisi arsip dinas" aria-label="Buka Modul Persuratan & Arsip">
                             <div class="card-visual">
                                 <img src="{{ asset('images/modules/letters.jpg') }}" alt="Ilustrasi Modul Surat & Arsip" class="card-visual-img" loading="lazy">
                                 <div class="card-badge-icon" title="Modul Persuratan">
@@ -758,12 +1161,17 @@
                                     </span>
                                 </div>
                             </div>
+                            <span class="compact-arrow" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </span>
                         </a>
                     @endif
 
                     {{-- ── Card 2: Modul Arsip Digital (Read-Only Portal) ── --}}
                     @if (auth()->user()->can_access_archives || auth()->user()->isAdmin())
-                        <a href="{{ route('archives.index') }}" class="module-card" aria-label="Buka Modul Arsip Digital">
+                        <a href="{{ route('archives.index') }}" class="module-card" data-module-id="archives" data-category="persuratan" data-keywords="arsip digital google drive dokumen pdf pratinjau" aria-label="Buka Modul Arsip Digital">
                             <div class="card-visual">
                                 <img src="{{ asset('images/modules/archives.jpg') . '?v=' . (file_exists(public_path('images/modules/archives.jpg')) ? filemtime(public_path('images/modules/archives.jpg')) : time()) }}" alt="Ilustrasi Modul Arsip Digital" class="card-visual-img" loading="lazy">
                                 <div class="card-badge-icon" title="Modul Arsip Digital">
@@ -794,12 +1202,17 @@
                                     </span>
                                 </div>
                             </div>
+                            <span class="compact-arrow" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </span>
                         </a>
                     @endif
 
                     {{-- ── Card 2: Modul Layanan Legalisir ── --}}
                     @if (auth()->user()->can_access_legalizations || auth()->user()->isAdmin())
-                        <a href="{{ route('legalizations.dashboard') }}" class="module-card" aria-label="Buka Modul Layanan Legalisir">
+                        <a href="{{ route('legalizations.dashboard') }}" class="module-card" data-module-id="legalizations" data-category="layanan" data-keywords="legalisir ijazah transkrip alumni rekon keuangan tanda terima" aria-label="Buka Modul Layanan Legalisir">
                             <div class="card-visual">
                                 <img src="{{ asset('images/modules/legalization.jpg') }}" alt="Ilustrasi Modul Layanan Legalisir" class="card-visual-img" loading="lazy">
                                 <div class="card-badge-icon" title="Modul Legalisir">
@@ -830,12 +1243,17 @@
                                     </span>
                                 </div>
                             </div>
+                            <span class="compact-arrow" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </span>
                         </a>
                     @endif
 
                     {{-- ── Card 3: Modul Peminjaman Ruang ── --}}
                     @if (auth()->user()->can_access_room_reservations || auth()->user()->isAdmin())
-                        <a href="{{ route('room-reservations.dashboard') }}" class="module-card" aria-label="Buka Modul Peminjaman Ruang">
+                        <a href="{{ route('room-reservations.dashboard') }}" class="module-card" data-module-id="room-reservations" data-category="fasilitas" data-keywords="ruang sidang aula seminar peminjaman reservasi jadwal fasilitas" aria-label="Buka Modul Peminjaman Ruang">
                             <div class="card-visual">
                                 <img src="{{ asset('images/modules/rooms.jpg') }}" alt="Ilustrasi Modul Peminjaman Ruang" class="card-visual-img" loading="lazy">
                                 <div class="card-badge-icon" title="Peminjaman Fasilitas Ruang">
@@ -866,12 +1284,17 @@
                                     </span>
                                 </div>
                             </div>
+                            <span class="compact-arrow" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </span>
                         </a>
                     @endif
 
                     {{-- ── Card 4: Modul Pengaturan Sistem ── --}}
                     @if (auth()->user()->isAdmin())
-                        <a href="{{ route('admin.dashboard') }}" class="module-card" aria-label="Buka Pengaturan Sistem">
+                        <a href="{{ route('admin.dashboard') }}" class="module-card" data-module-id="admin" data-category="sistem" data-keywords="pengaturan sistem admin user pengguna hak akses audit log" aria-label="Buka Pengaturan Sistem">
                             <div class="card-visual">
                                 <img src="{{ asset('images/modules/admin.jpg') }}" alt="Ilustrasi Pengaturan Sistem" class="card-visual-img" loading="lazy">
                                 <div class="card-badge-icon" title="Pengaturan Administrator">
@@ -902,10 +1325,21 @@
                                     </span>
                                 </div>
                             </div>
+                            <span class="compact-arrow" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </span>
                         </a>
                     @endif
 
                 </main>
+
+                <div id="emptySearchBox" class="empty-search-box">
+                    <p style="font-weight:700; color:var(--text-main); font-size:0.95rem;">Modul tidak ditemukan</p>
+                    <p style="color:var(--text-muted); font-size:0.83rem; margin-top:4px;">Coba kata kunci lain atau ubah filter kategori.</p>
+                    <button type="button" id="resetFilterBtn" class="empty-search-btn">Reset Filter</button>
+                </div>
             @else
                 <div class="no-modules-box">
                     <p>Anda belum memiliki akses ke modul manapun. Silakan hubungi Administrator Sistem untuk verifikasi hak akses.</p>
@@ -919,6 +1353,161 @@
 
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const grid = document.getElementById('modulesGrid');
+            if (!grid) return;
+
+            const cards = Array.from(grid.querySelectorAll('.module-card'));
+            const searchInput = document.getElementById('moduleSearchInput');
+            const categoryTabs = Array.from(document.querySelectorAll('.category-pill'));
+            const emptyBox = document.getElementById('emptySearchBox');
+            const resetBtn = document.getElementById('resetFilterBtn');
+            const viewGridBtn = document.getElementById('viewGridBtn');
+            const viewCompactBtn = document.getElementById('viewCompactBtn');
+            const quickBar = document.getElementById('quickAccessBar');
+            const quickItems = document.getElementById('quickAccessItems');
+
+            let activeCategory = 'all';
+
+            // 1. Hitung jumlah modul per kategori & sembunyikan tab yang kosong
+            const counts = { all: cards.length };
+            cards.forEach((card) => {
+                const cat = card.dataset.category || 'other';
+                counts[cat] = (counts[cat] || 0) + 1;
+            });
+
+            categoryTabs.forEach((tab) => {
+                const filter = tab.dataset.filter;
+                const countEl = tab.querySelector('[data-count-for]');
+                const count = counts[filter] || 0;
+                if (countEl) countEl.textContent = count;
+                if (filter !== 'all' && count === 0) {
+                    tab.style.display = 'none';
+                }
+            });
+
+            // 2. Fungsi filter kategori + pencarian real-time
+            function applyFilters() {
+                const query = (searchInput?.value || '').trim().toLowerCase();
+                let visibleCount = 0;
+
+                cards.forEach((card) => {
+                    const cat = card.dataset.category || '';
+                    const title = (card.querySelector('.card-title')?.textContent || '').toLowerCase();
+                    const desc = (card.querySelector('.card-desc')?.textContent || '').toLowerCase();
+                    const keywords = (card.dataset.keywords || '').toLowerCase();
+
+                    const matchesCat = activeCategory === 'all' || cat === activeCategory;
+                    const matchesQuery = !query || title.includes(query) || desc.includes(query) || keywords.includes(query);
+
+                    if (matchesCat && matchesQuery) {
+                        card.classList.remove('is-hidden');
+                        visibleCount++;
+                    } else {
+                        card.classList.add('is-hidden');
+                    }
+                });
+
+                if (emptyBox) {
+                    emptyBox.classList.toggle('show', visibleCount === 0);
+                }
+            }
+
+            categoryTabs.forEach((tab) => {
+                tab.addEventListener('click', function () {
+                    categoryTabs.forEach((t) => t.classList.remove('active'));
+                    this.classList.add('active');
+                    activeCategory = this.dataset.filter || 'all';
+                    applyFilters();
+                });
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener('input', applyFilters);
+            }
+
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function () {
+                    if (searchInput) searchInput.value = '';
+                    activeCategory = 'all';
+                    categoryTabs.forEach((t) => t.classList.toggle('active', t.dataset.filter === 'all'));
+                    applyFilters();
+                });
+            }
+
+            // Keyboard shortcut '/' untuk fokus pencarian, 'Escape' untuk reset input
+            window.addEventListener('keydown', function (e) {
+                if (e.key === '/' && document.activeElement !== searchInput && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                    e.preventDefault();
+                    searchInput?.focus();
+                } else if (e.key === 'Escape' && document.activeElement === searchInput) {
+                    searchInput.value = '';
+                    searchInput.blur();
+                    applyFilters();
+                }
+            });
+
+            // 3. Toggle Mode Tampilan (Grid vs Ringkas)
+            const VIEW_KEY = 'siadmin_module_view_mode';
+            function setViewMode(mode) {
+                const isCompact = mode === 'compact';
+                grid.classList.toggle('is-compact', isCompact);
+                viewGridBtn?.classList.toggle('active', !isCompact);
+                viewCompactBtn?.classList.toggle('active', isCompact);
+                try {
+                    localStorage.setItem(VIEW_KEY, mode);
+                } catch (err) {}
+            }
+
+            try {
+                const savedView = localStorage.getItem(VIEW_KEY);
+                if (savedView === 'compact') setViewMode('compact');
+            } catch (err) {}
+
+            viewGridBtn?.addEventListener('click', () => setViewMode('grid'));
+            viewCompactBtn?.addEventListener('click', () => setViewMode('compact'));
+
+            // 4. Quick Access: Simpan & tampilkan 3 modul terakhir dibuka (hanya yang masih punya akses)
+            const RECENT_KEY = 'siadmin_recent_modules';
+            const cardMap = new Map();
+            cards.forEach((card) => {
+                const id = card.dataset.moduleId;
+                if (id) {
+                    cardMap.set(id, {
+                        id,
+                        href: card.getAttribute('href'),
+                        title: (card.querySelector('.card-title')?.textContent || '').trim(),
+                    });
+
+                    card.addEventListener('click', function () {
+                        try {
+                            const existing = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+                            const updated = [id, ...existing.filter((item) => item !== id)].slice(0, 3);
+                            localStorage.setItem(RECENT_KEY, JSON.stringify(updated));
+                        } catch (err) {}
+                    });
+                }
+            });
+
+            try {
+                const recentIds = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+                const validRecent = recentIds.map((id) => cardMap.get(id)).filter(Boolean);
+                if (validRecent.length > 0 && quickBar && quickItems) {
+                    quickItems.innerHTML = '';
+                    validRecent.forEach((mod) => {
+                        const pill = document.createElement('a');
+                        pill.href = mod.href;
+                        pill.className = 'quick-access-pill';
+                        pill.textContent = mod.title;
+                        quickItems.appendChild(pill);
+                    });
+                    quickBar.classList.add('has-items');
+                }
+            } catch (err) {}
+        });
+    </script>
 </body>
 
 </html>
