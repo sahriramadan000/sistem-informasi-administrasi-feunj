@@ -154,6 +154,221 @@
         </div>
     </div>
 
+    {{-- ── 2. Rekapitulasi Pendapatan Bulanan (Untuk Rekonsiliasi Keuangan) ── --}}
+    <div class="mac-card overflow-hidden">
+        <div class="p-5 sm:p-6 pb-5">
+        {{-- Header & Filter Form --}}
+        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 pb-4 mb-5 border-b border-gray-100">
+            <div class="flex items-start sm:items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-xs flex-shrink-0">
+                    <i data-lucide="calendar-range" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="text-base font-bold text-gray-900 tracking-tight">Rekapitulasi Pendapatan Bulanan</h3>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        Periode terpilih: <span class="font-semibold text-gray-700">{{ $monthlySummary['period_label'] }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5">
+                {{-- Filter Rentang Bulan --}}
+                <form id="monthlyFilterForm" method="GET" action="{{ route('legalizations.dashboard') }}" class="flex flex-wrap items-center gap-2">
+                    <div class="flex items-center gap-1.5 bg-gray-50 border border-gray-200/90 rounded-xl px-2.5 py-1.5">
+                        <label for="start_month" class="text-[11px] font-semibold text-gray-500">Dari</label>
+                        <input type="month" id="start_month" name="start_month" value="{{ $startMonth }}"
+                            class="bg-transparent text-xs font-semibold text-gray-800 focus:outline-none cursor-pointer">
+                    </div>
+                    <span class="text-xs text-gray-400 font-medium hidden sm:inline">s.d.</span>
+                    <div class="flex items-center gap-1.5 bg-gray-50 border border-gray-200/90 rounded-xl px-2.5 py-1.5">
+                        <label for="end_month" class="text-[11px] font-semibold text-gray-500">Sampai</label>
+                        <input type="month" id="end_month" name="end_month" value="{{ $endMonth }}"
+                            class="bg-transparent text-xs font-semibold text-gray-800 focus:outline-none cursor-pointer">
+                    </div>
+                    <button type="submit"
+                        class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-gray-900 hover:bg-gray-800 rounded-xl shadow-2xs transition-all active:scale-[0.98] cursor-pointer">
+                        <i data-lucide="filter" class="w-3.5 h-3.5"></i>
+                        <span>Terapkan</span>
+                    </button>
+                </form>
+
+                {{-- Export Excel Periode Terpilih --}}
+                <a href="{{ route('legalizations.export', ['date_range' => $monthlySummary['date_range_param']]) }}"
+                    onclick="showToast('Menyiapkan laporan Excel rekon periode terpilih...', 'success')"
+                    class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 rounded-xl shadow-2xs transition-all active:scale-[0.98]">
+                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+                    <span>Export Excel (.xlsx)</span>
+                </a>
+            </div>
+        </div>
+
+        {{-- Preset Cepat --}}
+        <div class="flex flex-wrap items-center gap-1.5 mb-5">
+            <span class="text-[11px] font-semibold text-gray-400 mr-1">Preset Cepat:</span>
+            <button type="button" onclick="setMonthRangePreset('3m')"
+                class="px-2.5 py-1 text-[11px] font-semibold text-gray-600 bg-gray-100/80 hover:bg-gray-200/80 rounded-full transition-colors cursor-pointer">
+                3 Bulan Terakhir
+            </button>
+            <button type="button" onclick="setMonthRangePreset('6m')"
+                class="px-2.5 py-1 text-[11px] font-semibold text-gray-600 bg-gray-100/80 hover:bg-gray-200/80 rounded-full transition-colors cursor-pointer">
+                6 Bulan Terakhir
+            </button>
+            <button type="button" onclick="setMonthRangePreset('ytd')"
+                class="px-2.5 py-1 text-[11px] font-semibold text-gray-600 bg-gray-100/80 hover:bg-gray-200/80 rounded-full transition-colors cursor-pointer">
+                Tahun Ini ({{ now()->year }})
+            </button>
+            <button type="button" onclick="setMonthRangePreset('last_year')"
+                class="px-2.5 py-1 text-[11px] font-semibold text-gray-600 bg-gray-100/80 hover:bg-gray-200/80 rounded-full transition-colors cursor-pointer">
+                Tahun {{ now()->year - 1 }}
+            </button>
+        </div>
+
+        {{-- 4 KPI Ringkasan Periode Terpilih --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+            <div class="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200/70">
+                <p class="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider">Total Pendapatan Periode</p>
+                <p class="text-lg sm:text-xl font-extrabold text-emerald-900 font-mono mt-1">
+                    Rp {{ number_format($monthlySummary['total_revenue'], 0, ',', '.') }}
+                </p>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-gray-50/80 border border-gray-200/70">
+                <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Volume Transaksi &amp; Lembar</p>
+                <p class="text-lg sm:text-xl font-extrabold text-gray-900 mt-1">
+                    {{ number_format($monthlySummary['total_transactions'], 0, ',', '.') }}
+                    <span class="text-xs font-semibold text-gray-500">berkas</span>
+                    <span class="text-gray-300 mx-1">·</span>
+                    {{ number_format($monthlySummary['total_pages'], 0, ',', '.') }}
+                    <span class="text-xs font-semibold text-gray-500">lembar</span>
+                </p>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-gray-50/80 border border-gray-200/70">
+                <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Rata-rata per Bulan</p>
+                <p class="text-lg sm:text-xl font-extrabold text-gray-900 font-mono mt-1">
+                    Rp {{ number_format($monthlySummary['avg_revenue'], 0, ',', '.') }}
+                </p>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-orange-50/60 border border-orange-200/70">
+                <p class="text-[11px] font-semibold text-orange-700 uppercase tracking-wider">Bulan Tertinggi</p>
+                <p class="text-sm sm:text-base font-extrabold text-gray-900 mt-1 truncate" title="{{ $monthlySummary['peak_month_label'] }}">
+                    {{ $monthlySummary['peak_month_label'] }}
+                </p>
+                <p class="text-[11px] font-bold text-orange-700 font-mono">
+                    Rp {{ number_format($monthlySummary['peak_month_revenue'], 0, ',', '.') }}
+                </p>
+            </div>
+        </div>
+        </div>
+
+        {{-- Tabel Rekapitulasi Bulanan (Full-bleed Apple Style ke Card) --}}
+        <div class="overflow-x-auto border-t border-gray-100">
+            <table class="min-w-full divide-y divide-gray-100 text-left">
+                <thead>
+                    <tr class="bg-gray-50/60 border-b border-gray-100">
+                        <th scope="col" class="pl-5 sm:pl-6 pr-3 py-3 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider w-12">No</th>
+                        <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Bulan &amp; Tahun</th>
+                        <th scope="col" class="px-4 py-3 text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider">Transaksi</th>
+                        <th scope="col" class="px-4 py-3 text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider">Total Lembar</th>
+                        <th scope="col" class="px-4 py-3 text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider">Pendapatan (Rp)</th>
+                        <th scope="col" class="px-4 py-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider hidden md:table-cell w-48">Porsi Periode</th>
+                        <th scope="col" class="pl-4 pr-5 sm:pr-6 py-3 text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider w-36">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    @foreach ($monthlyReport as $index => $row)
+                        @php
+                            $isPeak = $monthlySummary['peak_month_revenue'] > 0 && $row['total_revenue'] === $monthlySummary['peak_month_revenue'];
+                            $monthBadge = strtoupper(\Carbon\Carbon::createFromFormat('Y-m', $row['ym'])->locale('id')->translatedFormat('M'));
+                        @endphp
+                        <tr class="hover:bg-emerald-50/30 transition-colors group">
+                            <td class="pl-5 sm:pl-6 pr-3 py-3.5 text-center text-xs font-semibold text-gray-400">
+                                {{ $index + 1 }}
+                            </td>
+                            <td class="px-4 py-3.5 whitespace-nowrap">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-extrabold tracking-tight flex-shrink-0 {{ $row['total_revenue'] > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/70' : 'bg-gray-100 text-gray-400 border border-gray-200/60' }}">
+                                        {{ $monthBadge }}
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-emerald-800 transition-colors">{{ $row['label'] }}</span>
+                                        @if ($isPeak)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 text-orange-700 border border-orange-200/70">
+                                                <i data-lucide="trending-up" class="w-2.5 h-2.5"></i>
+                                                Tertinggi
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3.5 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-gray-700">
+                                {{ number_format($row['tx_count'], 0, ',', '.') }}
+                                <span class="text-[11px] font-normal text-gray-400 ml-0.5">berkas</span>
+                            </td>
+                            <td class="px-4 py-3.5 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-gray-700">
+                                {{ number_format($row['total_pages'], 0, ',', '.') }}
+                                <span class="text-[11px] font-normal text-gray-400 ml-0.5">lembar</span>
+                            </td>
+                            <td class="px-4 py-3.5 whitespace-nowrap text-right">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs sm:text-sm font-extrabold font-mono {{ $row['total_revenue'] > 0 ? 'bg-emerald-50/70 text-emerald-700' : 'text-gray-400' }}">
+                                    Rp {{ number_format($row['total_revenue'], 0, ',', '.') }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3.5 whitespace-nowrap hidden md:table-cell">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                        <div class="h-full rounded-full {{ $isPeak ? 'bg-gradient-to-r from-orange-500 to-amber-500' : 'bg-emerald-500' }} transition-all duration-300"
+                                            style="width: {{ min(100, $row['share_percent']) }}%"></div>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-gray-500 w-11 text-right tabular-nums">{{ $row['share_percent'] }}%</span>
+                                </div>
+                            </td>
+                            <td class="pl-4 pr-5 sm:pr-6 py-3.5 whitespace-nowrap text-right">
+                                <div class="inline-flex items-center gap-1.5">
+                                    <a href="{{ route('legalizations.index', ['date_range' => $row['start_date'] . ' to ' . $row['end_date']]) }}"
+                                        class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold text-gray-700 bg-gray-100/80 hover:bg-gray-200/80 transition-colors"
+                                        title="Lihat daftar transaksi bulan {{ $row['label'] }}">
+                                        <i data-lucide="list" class="w-3 h-3"></i>
+                                        <span>Detail</span>
+                                    </a>
+                                    <a href="{{ route('legalizations.export', ['date_range' => $row['start_date'] . ' to ' . $row['end_date']]) }}"
+                                        onclick="showToast('Mengunduh rekon {{ $row['label'] }}...', 'success')"
+                                        class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/70 transition-colors"
+                                        title="Export Excel rekon bulan {{ $row['label'] }}">
+                                        <i data-lucide="download" class="w-3 h-3"></i>
+                                        <span>Excel</span>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+                <tfoot class="bg-gray-50/80 border-t border-gray-200/80">
+                    <tr>
+                        <td colspan="2" class="pl-5 sm:pl-6 pr-4 py-3.5 text-xs sm:text-sm font-extrabold text-gray-900">
+                            TOTAL ({{ $monthlySummary['month_count'] }} Bulan)
+                        </td>
+                        <td class="px-4 py-3.5 text-right text-xs sm:text-sm font-extrabold text-gray-900 whitespace-nowrap">
+                            {{ number_format($monthlySummary['total_transactions'], 0, ',', '.') }}
+                            <span class="text-[11px] font-semibold text-gray-500 ml-0.5">berkas</span>
+                        </td>
+                        <td class="px-4 py-3.5 text-right text-xs sm:text-sm font-extrabold text-gray-900 whitespace-nowrap">
+                            {{ number_format($monthlySummary['total_pages'], 0, ',', '.') }}
+                            <span class="text-[11px] font-semibold text-gray-500 ml-0.5">lembar</span>
+                        </td>
+                        <td class="px-4 py-3.5 text-right whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-100/80 text-emerald-800 font-extrabold font-mono text-xs sm:text-sm">
+                                Rp {{ number_format($monthlySummary['total_revenue'], 0, ',', '.') }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3.5 hidden md:table-cell text-[11px] font-bold text-gray-500">100%</td>
+                        <td class="pl-4 pr-5 sm:pr-6 py-3.5"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
     {{-- ── 3. Bento Section: Analisis Jenjang Pendidikan & Tren Tahunan ── --}}
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
@@ -486,6 +701,40 @@
             console.error('Failed to copy: ', err);
             showToast('Gagal menyalin teks', 'error');
         });
+    }
+
+    function setMonthRangePreset(preset) {
+        const startInput = document.getElementById('start_month');
+        const endInput = document.getElementById('end_month');
+        const form = document.getElementById('monthlyFilterForm');
+        if (!startInput || !endInput || !form) return;
+
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth(); // 0-indexed
+
+        const formatYM = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+        let startDate, endDate;
+        if (preset === '3m') {
+            startDate = new Date(year, month - 2, 1);
+            endDate = new Date(year, month, 1);
+        } else if (preset === '6m') {
+            startDate = new Date(year, month - 5, 1);
+            endDate = new Date(year, month, 1);
+        } else if (preset === 'ytd') {
+            startDate = new Date(year, 0, 1);
+            endDate = new Date(year, month, 1);
+        } else if (preset === 'last_year') {
+            startDate = new Date(year - 1, 0, 1);
+            endDate = new Date(year - 1, 11, 1);
+        }
+
+        if (startDate && endDate) {
+            startInput.value = formatYM(startDate);
+            endInput.value = formatYM(endDate);
+            form.submit();
+        }
     }
 
     // Toast Notification System

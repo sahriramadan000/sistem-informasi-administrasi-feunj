@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Exports\Sheets\LegalizationDetailSheet;
+use App\Exports\Sheets\LegalizationMonthlySheet;
 use App\Exports\Sheets\LegalizationSummarySheet;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
@@ -31,6 +32,11 @@ class LegalizationReconciliationExport implements WithMultipleSheets
                 $this->exportedBy
             ),
             new LegalizationSummarySheet(
+                $this->filters,
+                $this->periodLabel,
+                $this->levelLabel
+            ),
+            new LegalizationMonthlySheet(
                 $this->filters,
                 $this->periodLabel,
                 $this->levelLabel
