@@ -13,6 +13,7 @@ use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\LetterImportController;
 use App\Http\Controllers\Admin\ErrorLogController;
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\GoogleDriveSettingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ModuleSwitcherController;
 use App\Http\Controllers\Master\EducationLevelController;
@@ -118,6 +119,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
     Route::get('activity-logs/{id}', [ActivityLogController::class, 'show'])->name('activity-logs.show');
+
+    // Google Drive One-Door Integration Settings
+    Route::get('gdrive', [GoogleDriveSettingController::class, 'index'])->name('gdrive.index');
+    Route::get('gdrive/connect', [GoogleDriveSettingController::class, 'connect'])->name('gdrive.connect');
+    Route::get('gdrive/callback', [GoogleDriveSettingController::class, 'callback'])->name('gdrive.callback');
+    Route::post('gdrive/settings', [GoogleDriveSettingController::class, 'updateSettings'])->name('gdrive.settings');
+    Route::post('gdrive/create-root-folder', [GoogleDriveSettingController::class, 'createRootFolder'])->name('gdrive.create-root-folder');
+    Route::post('gdrive/test', [GoogleDriveSettingController::class, 'testConnection'])->name('gdrive.test');
+    Route::post('gdrive/disconnect', [GoogleDriveSettingController::class, 'disconnect'])->name('gdrive.disconnect');
 });
 
 // Debug route untuk testing badge

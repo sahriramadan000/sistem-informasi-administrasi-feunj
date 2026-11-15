@@ -177,6 +177,13 @@
                 </span>
                 <i data-lucide="chevron-right" class="ios-right-chevron sidebar-hide-on-collapsed"></i>
             </a>
+            <a href="{{ route('admin.gdrive.index') }}" class="ios-nav-item {{ request()->routeIs('admin.gdrive.*') ? 'active' : '' }}" title="Google Drive">
+                <span class="ios-item-label">
+                    <i data-lucide="hard-drive" class="ios-menu-icon"></i>
+                    <span class="truncate sidebar-hide-on-collapsed">Google Drive</span>
+                </span>
+                <i data-lucide="chevron-right" class="ios-right-chevron sidebar-hide-on-collapsed"></i>
+            </a>
         </div>
 
     @elseif(request()->routeIs('legalizations.*', 'master.education-levels.*'))

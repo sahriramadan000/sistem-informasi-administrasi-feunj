@@ -8,6 +8,7 @@ use App\Models\ClassificationLetter;
 use App\Models\Signatory;
 use App\Enums\SecurityClassification;
 use App\Enums\LetterTarget;
+use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -275,6 +276,10 @@ class LetterArchiveController extends Controller
             || $request->filled('security_classification')
             || $request->filled('letter_target');
 
+        $driveService = app(GoogleDriveService::class);
+        $gdriveReady = $driveService->isConnected() && !empty($driveService->getRootFolderId());
+        $gdriveLastError = $driveService->getLastError();
+
         return view('letter_archives.index', compact(
             'letters',
             'archiveStatus',
@@ -298,7 +303,9 @@ class LetterArchiveController extends Controller
             'letterTargets',
             'availableYears',
             'isReadOnlyPortal',
-            'baseRouteName'
+            'baseRouteName',
+            'gdriveReady',
+            'gdriveLastError'
         ));
     }
 }

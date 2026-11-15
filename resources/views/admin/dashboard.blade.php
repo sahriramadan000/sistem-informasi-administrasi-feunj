@@ -194,6 +194,18 @@
                     <p class="text-[11px] text-gray-500">Analisis tren &amp; keparahan</p>
                 </div>
             </a>
+
+            <a href="{{ route('admin.gdrive.index') }}"
+                class="flex items-center gap-3 p-3.5 rounded-2xl bg-gray-50/80 hover:bg-blue-50/60 border border-gray-200/70 hover:border-blue-200 transition-all group sm:col-span-2 lg:col-span-4">
+                <div class="w-9 h-9 rounded-xl bg-white border border-gray-200/80 text-blue-600 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
+                    <i data-lucide="hard-drive" class="w-4 h-4"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-xs font-bold text-gray-900">Integrasi Google Drive (Arsip Satu Pintu)</p>
+                    <p class="text-[11px] text-gray-500">Hubungkan akun Google 5 TB, atur Root Folder, cek kuota &amp; koneksi</p>
+                </div>
+                <i data-lucide="arrow-right" class="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform"></i>
+            </a>
         </div>
     </div>
 </div>

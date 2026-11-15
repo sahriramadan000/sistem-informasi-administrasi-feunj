@@ -12,7 +12,10 @@ use App\Models\LetterSequence;
 use App\Models\User;
 use App\Enums\SecurityClassification;
 use App\Enums\LetterTarget;
+use App\Exceptions\GoogleDriveException;
 use App\Services\AuditLogService;
+use App\Services\ErrorTrackingService;
+use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -614,7 +617,7 @@ class LetterController extends Controller
     }
 
     /**
-     * Update link arsip Google Drive (AJAX / Form)
+     * Update arsip Google Drive (Upload File Satu Pintu atau Link Manual)
      *
      * @param Request $request
      * @param Letter $letter
@@ -623,45 +626,104 @@ class LetterController extends Controller
     public function updateArchiveLink(Request $request, Letter $letter)
     {
         try {
+            $maxKb = max(1024, (int) config('services.google_drive.max_file_size_mb', 20) * 1024);
+
             $request->validate([
+                'archive_file' => "nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:{$maxKb}",
                 'drive_url' => 'nullable|string|max:1000',
+                'remove_archive' => 'nullable|boolean',
+            ], [
+                'archive_file.mimes' => 'Format file harus PDF, JPG, PNG, DOC, atau DOCX.',
+                'archive_file.max' => 'Ukuran file maksimal ' . config('services.google_drive.max_file_size_mb', 20) . ' MB.',
             ]);
 
+            $driveService = app(GoogleDriveService::class);
+            $removeArchive = $request->boolean('remove_archive');
             $driveUrl = trim((string) $request->input('drive_url', ''));
 
-            if (!empty($driveUrl)) {
+            if ($request->hasFile('archive_file')) {
+                $oldFileId = $letter->drive_file_id;
+                $uploaded = $driveService->uploadLetterFile($request->file('archive_file'), $letter);
+
                 $letter->update([
-                    'drive_url' => $driveUrl,
+                    'drive_url' => $uploaded['web_view_link'],
+                    'drive_file_id' => $uploaded['file_id'],
+                    'drive_file_name' => $uploaded['file_name'],
                     'archived_at' => $letter->archived_at ?? now(),
                     'archived_by' => auth()->id(),
                 ]);
+
+                if ($oldFileId && $oldFileId !== $uploaded['file_id']) {
+                    $driveService->deleteFile($oldFileId);
+                }
+
+                $actionName = $oldFileId ? 'gdrive_file_replaced' : 'gdrive_file_uploaded';
+                AuditLogService::log('update', 'Letter', $letter->id, [
+                    'letter_number' => $letter->letter_number,
+                    'action' => $actionName,
+                    'drive_file_id' => $uploaded['file_id'],
+                    'drive_file_name' => $uploaded['file_name'],
+                    'folder_path' => $uploaded['folder_path'],
+                    'file_size' => $uploaded['file_size'],
+                    'drive_url' => $uploaded['web_view_link'],
+                ]);
+
+                $message = "Berkas berhasil diunggah ke Google Drive ({$uploaded['folder_path']}).";
+            } elseif (!$removeArchive && !empty($driveUrl)) {
+                $oldFileId = $letter->drive_file_id;
+
+                $letter->update([
+                    'drive_url' => $driveUrl,
+                    'drive_file_id' => null,
+                    'drive_file_name' => null,
+                    'archived_at' => $letter->archived_at ?? now(),
+                    'archived_by' => auth()->id(),
+                ]);
+
+                if ($oldFileId) {
+                    $driveService->deleteFile($oldFileId);
+                }
 
                 AuditLogService::log('update', 'Letter', $letter->id, [
                     'letter_number' => $letter->letter_number,
                     'action' => 'archive_link_updated',
                     'drive_url' => $driveUrl,
                 ]);
+
+                $message = 'Tautan arsip Google Drive berhasil disimpan.';
             } else {
+                $oldFileId = $letter->drive_file_id;
+                if ($oldFileId) {
+                    $driveService->deleteFile($oldFileId);
+                }
+
                 $letter->update([
                     'drive_url' => null,
+                    'drive_file_id' => null,
+                    'drive_file_name' => null,
                     'archived_at' => null,
                     'archived_by' => null,
                 ]);
 
                 AuditLogService::log('update', 'Letter', $letter->id, [
                     'letter_number' => $letter->letter_number,
-                    'action' => 'archive_link_removed',
+                    'action' => $oldFileId ? 'gdrive_file_deleted' : 'archive_link_removed',
+                    'deleted_drive_file_id' => $oldFileId,
                 ]);
+
+                $message = 'Arsip berkas berhasil dihapus.';
             }
 
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => !empty($driveUrl) ? 'Tautan arsip Google Drive berhasil disimpan.' : 'Tautan arsip berhasil dihapus.',
+                    'message' => $message,
                     'data' => [
                         'id' => $letter->id,
                         'letter_number' => $letter->letter_number,
                         'drive_url' => $letter->drive_url,
+                        'drive_file_id' => $letter->drive_file_id,
+                        'drive_file_name' => $letter->drive_file_name,
                         'drive_preview_url' => $letter->drive_preview_url,
                         'is_archived' => $letter->is_archived,
                         'archived_at' => $letter->archived_at?->format('d/m/Y H:i'),
@@ -669,21 +731,46 @@ class LetterController extends Controller
                 ]);
             }
 
-            return back()->with('success', !empty($driveUrl) ? 'Tautan arsip Google Drive berhasil disimpan.' : 'Tautan arsip berhasil dihapus.');
+            return back()->with('success', $message);
+        } catch (GoogleDriveException $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'error_code' => $e->getErrorCode(),
+                    'error_id' => $e->getErrorId(),
+                    'message' => $e->getFormattedUserMessage(),
+                ], 422);
+            }
+
+            return back()->withErrors(['error' => $e->getFormattedUserMessage()]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first() ?: 'Validasi berkas gagal.';
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $firstError,
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+
+            throw $e;
         } catch (\Throwable $e) {
-            Log::error('Error updating archive link', [
+            $errorId = ErrorTrackingService::logError($e, 'LetterController.updateArchiveLink', [
                 'letter_id' => $letter->id,
-                'error' => $e->getMessage(),
+                'letter_number' => $letter->letter_number,
             ]);
+
+            $friendlyMessage = "Gagal menyimpan arsip surat (Kode Error: {$errorId}). Silakan coba lagi atau hubungi Admin.";
 
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Gagal memperbarui tautan arsip: ' . $e->getMessage(),
-                ], 422);
+                    'error_id' => $errorId,
+                    'message' => $friendlyMessage,
+                ], 500);
             }
 
-            return back()->withErrors(['error' => 'Gagal memperbarui tautan arsip: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => $friendlyMessage]);
         }
     }
 }

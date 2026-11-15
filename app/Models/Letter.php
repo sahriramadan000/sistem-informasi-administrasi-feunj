@@ -36,6 +36,8 @@ class Letter extends Model
         'is_active',
         'created_by',
         'drive_url',
+        'drive_file_id',
+        'drive_file_name',
         'archived_at',
         'archived_by',
     ];
