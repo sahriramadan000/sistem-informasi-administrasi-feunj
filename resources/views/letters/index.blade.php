@@ -425,10 +425,10 @@
                                                 @else
                                                     @if ($canManage)
                                                         <button type="button" onclick="openArchiveModal({{ $letter->id }}, '{{ addslashes($letter->letter_number) }}', '')"
-                                                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-gray-50 hover:bg-emerald-50 text-gray-500 hover:text-emerald-700 border border-gray-200 hover:border-emerald-200 transition-colors cursor-pointer"
-                                                            title="Tautkan link Google Drive untuk surat ini">
-                                                            <i data-lucide="link" class="w-3 h-3 text-gray-400"></i>
-                                                            <span>+ Tautkan GDrive</span>
+                                                            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-blue-50/70 hover:bg-blue-100 text-blue-600 hover:text-blue-700 border border-blue-200/80 transition-colors cursor-pointer"
+                                                            title="Upload berkas surat ke Google Drive">
+                                                            <i data-lucide="upload-cloud" class="w-3 h-3"></i>
+                                                            <span>Upload Arsip</span>
                                                         </button>
                                                     @endif
                                                 @endif
@@ -706,52 +706,7 @@
         </div>
     </div>
 
-    {{-- Quick Tautkan / Ubah Link Arsip Modal --}}
-    <div id="archiveModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-md">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full border border-gray-200 overflow-hidden transform transition-all scale-95 opacity-0" id="archiveModalContent">
-            <form id="archiveForm" method="POST" action="" onsubmit="submitArchiveLink(event)">
-                @csrf
-                <div class="p-6 space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-gray-100">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-2xs">
-                                <i data-lucide="folder-symlink" class="w-4.5 h-4.5"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-sm font-bold text-gray-900">Tautkan Berkas Google Drive</h3>
-                                <p class="text-[11px] text-gray-500 font-mono" id="archiveModalLetterNumber">-</p>
-                            </div>
-                        </div>
-                        <button type="button" onclick="hideArchiveModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
-                            <i data-lucide="x" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label for="modal_drive_url" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-                            <i data-lucide="link" class="w-3.5 h-3.5 text-gray-400"></i>
-                            URL / Link Google Drive
-                        </label>
-                        <input type="url" id="modal_drive_url" name="drive_url" value=""
-                            class="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium"
-                            placeholder="https://drive.google.com/file/d/.../view?usp=sharing">
-                        <p class="text-[11px] text-gray-400">Kosongkan link jika ingin menghapus berkas arsip.</p>
-                    </div>
-
-                    <div class="flex items-center gap-2 pt-2">
-                        <button type="button" onclick="hideArchiveModal()"
-                            class="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs rounded-xl transition-all cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit" id="btnSubmitArchive"
-                            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer">
-                            Simpan Tautan
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
+    @include('partials.archive-upload-modal')
 
     @push('scripts')
         <script>
@@ -904,80 +859,6 @@
                     modal.classList.add('hidden');
                     if (iframe) iframe.src = '';
                 }, 200);
-            }
-
-            // Archive Modal Manager (AJAX)
-            function openArchiveModal(letterId, letterNumber, currentUrl) {
-                const modal = document.getElementById('archiveModal');
-                const modalContent = document.getElementById('archiveModalContent');
-                const form = document.getElementById('archiveForm');
-                const input = document.getElementById('modal_drive_url');
-                const titleEl = document.getElementById('archiveModalLetterNumber');
-
-                if (!modal || !modalContent || !form) return;
-
-                form.action = `/letters/${letterId}/archive-link`;
-                if (titleEl) titleEl.textContent = letterNumber || '-';
-                if (input) input.value = currentUrl || '';
-
-                modal.classList.remove('hidden');
-                setTimeout(() => {
-                    modalContent.classList.remove('scale-95', 'opacity-0');
-                    modalContent.classList.add('scale-100', 'opacity-100');
-                    if (input) input.focus();
-                }, 10);
-                lucide.createIcons();
-            }
-
-            function hideArchiveModal() {
-                const modal = document.getElementById('archiveModal');
-                const modalContent = document.getElementById('archiveModalContent');
-                if (!modal || !modalContent) return;
-
-                modalContent.classList.remove('scale-100', 'opacity-100');
-                modalContent.classList.add('scale-95', 'opacity-0');
-
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                }, 200);
-            }
-
-            async function submitArchiveLink(e) {
-                e.preventDefault();
-                const form = document.getElementById('archiveForm');
-                const btn = document.getElementById('btnSubmitArchive');
-                const url = form.action;
-                const driveUrl = document.getElementById('modal_drive_url').value;
-
-                btn.disabled = true;
-                btn.innerHTML = '<span class="inline-block animate-spin mr-1">⏳</span> Menyimpan...';
-
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ drive_url: driveUrl })
-                    });
-
-                    const data = await response.json();
-                    if (data.success) {
-                        hideArchiveModal();
-                        showToast(data.message, 'success');
-                        setTimeout(() => window.location.reload(), 700);
-                    } else {
-                        showToast(data.message || 'Gagal menyimpan tautan.', 'error');
-                        btn.disabled = false;
-                        btn.innerHTML = 'Simpan Tautan';
-                    }
-                } catch (err) {
-                    showToast('Terjadi kesalahan jaringan.', 'error');
-                    btn.disabled = false;
-                    btn.innerHTML = 'Simpan Tautan';
-                }
             }
 
             // Letter Tabs Scroll & Drag Manager
