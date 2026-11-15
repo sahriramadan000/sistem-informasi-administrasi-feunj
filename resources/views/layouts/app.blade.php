@@ -14,7 +14,7 @@
         rel="stylesheet">
 
     {{-- ICON --}}
-    <link rel="icon" type="image/png" href="{{ asset('logo-unj-title.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('logo-unj.png') }}">
 
     {{-- jQuery (Required for Select2) --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
