@@ -1,279 +1,314 @@
 @extends('layouts.app')
 
-@section('title', 'Tambah Pengguna')
+@section('title', 'Tambah Pengguna - FEB UNJ')
+
+@push('styles')
+    <style>
+        .mac-card {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+        .mac-step-badge {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+            border: 1px solid #fed7aa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ea580c;
+            font-weight: 700;
+            font-size: 0.925rem;
+            box-shadow: 0 2px 6px rgba(255, 77, 0, 0.08);
+            flex-shrink: 0;
+        }
+        .perm-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .perm-card:hover {
+            background: #fff7ed;
+            border-color: #fed7aa;
+        }
+    </style>
+@endpush
 
 @section('content')
-<div class="max-w-4xl mx-auto">
-    {{-- Header --}}
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <i data-lucide="user-plus" class="w-6 h-6 text-brand"></i>
-                Tambah Pengguna
-            </h2>
-            <p class="mt-1 text-sm text-gray-500">Buat pengguna baru untuk sistem</p>
+<div class="max-w-4xl mx-auto space-y-6 pb-12">
+    {{-- Page Header --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-200/80">
+        <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#FF4D00] to-amber-500 flex items-center justify-center text-white shadow-xs flex-shrink-0">
+                <i data-lucide="user-plus" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Tambah Pengguna</h1>
+                <p class="text-xs sm:text-sm text-gray-500">Buat akun baru dan atur hak akses modul SIADMIN FEB UNJ</p>
+            </div>
         </div>
-        <a href="{{ route('master.users.index') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i>
-            Kembali
+
+        <a href="{{ route('master.users.index') }}"
+            class="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-full shadow-2xs hover:shadow-xs transition-all active:scale-[0.98] self-start sm:self-auto">
+            <i data-lucide="arrow-left" class="w-4 h-4 text-gray-500"></i>
+            <span>Kembali</span>
         </a>
     </div>
 
-    {{-- Form Section --}}
-    <div class="bg-white rounded-lg shadow border border-gray-200">
-        <div class="p-6">
-            <form method="POST" action="{{ route('master.users.store') }}">
-                @csrf
-                
-                <div class="grid grid-cols-1 gap-6">
-                    {{-- Nama --}}
-                    <div class="space-y-2">
-                        <label for="name" class="label">
-                            Nama Lengkap <span class="text-destructive">*</span>
-                        </label>
-                        <input type="text" 
-                               id="name" 
-                               name="name" 
-                               value="{{ old('name') }}" 
-                               class="input @error('name') !border-red-500 @enderror" 
-                               placeholder="Contoh: John Doe"
-                               required>
-                        @error('name')
-                            <p class="text-sm text-destructive flex items-center gap-1.5">
-                                <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                                {{ $message }}
-                            </p>
-                        @enderror
-                    </div>
+    {{-- Form Card --}}
+    <div class="mac-card overflow-hidden">
+        <form method="POST" action="{{ route('master.users.store') }}" class="p-6 sm:p-8 space-y-8">
+            @csrf
 
-                    {{-- Email --}}
-                    <div class="space-y-2">
-                        <label for="email" class="label">
-                            Email <span class="text-destructive">*</span>
+            {{-- Section 1: Informasi Akun --}}
+            <div class="space-y-5">
+                <div class="flex items-center gap-3 pb-3 border-b border-gray-100">
+                    <div class="mac-step-badge">1</div>
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900 tracking-tight">Informasi Identitas Akun</h2>
+                        <p class="text-xs text-gray-500">Data nama lengkap, email resmi, dan username untuk login</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    {{-- Nama --}}
+                    <div class="sm:col-span-2 space-y-1.5">
+                        <label for="name" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                            <i data-lucide="user" class="w-3.5 h-3.5 text-gray-400"></i>
+                            Nama Lengkap <span class="text-rose-500">*</span>
                         </label>
-                        <input type="email" 
-                               id="email" 
-                               name="email" 
-                               value="{{ old('email') }}" 
-                               class="input @error('email') !border-red-500 @enderror" 
-                               placeholder="contoh@email.com"
-                               required>
-                        @error('email')
-                            <p class="text-sm text-destructive flex items-center gap-1.5">
-                                <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                                {{ $message }}
+                        <input type="text" id="name" name="name" value="{{ old('name') }}"
+                            class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-[#FF4D00] shadow-2xs transition-all placeholder:text-gray-400 @error('name') !border-rose-500 !ring-rose-500/10 @enderror"
+                            placeholder="Contoh: Budi Santoso" required>
+                        @error('name')
+                            <p class="text-[11px] text-rose-600 flex items-center gap-1 mt-1">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> {{ $message }}
                             </p>
                         @enderror
                     </div>
 
                     {{-- Username --}}
-                    <div class="space-y-2">
-                        <label for="username" class="label">
-                            Username <span class="text-destructive">*</span>
+                    <div class="space-y-1.5">
+                        <label for="username" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                            <i data-lucide="at-sign" class="w-3.5 h-3.5 text-gray-400"></i>
+                            Username <span class="text-rose-500">*</span>
                         </label>
-                        <input type="text" 
-                               id="username" 
-                               name="username" 
-                               value="{{ old('username') }}" 
-                               class="input @error('username') !border-red-500 @enderror" 
-                               placeholder="johndoe"
-                               required>
+                        <input type="text" id="username" name="username" value="{{ old('username') }}"
+                            class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-[#FF4D00] shadow-2xs transition-all placeholder:text-gray-400 @error('username') !border-rose-500 !ring-rose-500/10 @enderror"
+                            placeholder="budisantoso" required>
                         @error('username')
-                            <p class="text-sm text-destructive flex items-center gap-1.5">
-                                <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                                {{ $message }}
+                            <p class="text-[11px] text-rose-600 flex items-center gap-1 mt-1">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> {{ $message }}
                             </p>
                         @enderror
                     </div>
 
-                    {{-- Password --}}
-                    <div class="space-y-2">
-                        <label for="password" class="label">
-                            Password <span class="text-destructive">*</span>
+                    {{-- Email --}}
+                    <div class="space-y-1.5">
+                        <label for="email" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                            <i data-lucide="mail" class="w-3.5 h-3.5 text-gray-400"></i>
+                            Email <span class="text-rose-500">*</span>
                         </label>
-                        <input type="password" 
-                               id="password" 
-                               name="password" 
-                               class="input @error('password') !border-red-500 @enderror" 
-                               placeholder="Minimal 6 karakter"
-                               required>
+                        <input type="email" id="email" name="email" value="{{ old('email') }}"
+                            class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-[#FF4D00] shadow-2xs transition-all placeholder:text-gray-400 @error('email') !border-rose-500 !ring-rose-500/10 @enderror"
+                            placeholder="budi@unj.ac.id" required>
+                        @error('email')
+                            <p class="text-[11px] text-rose-600 flex items-center gap-1 mt-1">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            {{-- Section 2: Keamanan Password --}}
+            <div class="space-y-5">
+                <div class="flex items-center gap-3 pb-3 border-b border-gray-100">
+                    <div class="mac-step-badge">2</div>
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900 tracking-tight">Keamanan Password</h2>
+                        <p class="text-xs text-gray-500">Tetapkan kata sandi awal untuk akses akun pengguna</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    {{-- Password --}}
+                    <div class="space-y-1.5">
+                        <label for="password" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                            <i data-lucide="lock" class="w-3.5 h-3.5 text-gray-400"></i>
+                            Password <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="password" id="password" name="password"
+                            class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-[#FF4D00] shadow-2xs transition-all placeholder:text-gray-400 @error('password') !border-rose-500 !ring-rose-500/10 @enderror"
+                            placeholder="Minimal 6 karakter" required>
                         @error('password')
-                            <p class="text-sm text-destructive flex items-center gap-1.5">
-                                <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                                {{ $message }}
+                            <p class="text-[11px] text-rose-600 flex items-center gap-1 mt-1">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> {{ $message }}
                             </p>
                         @enderror
                     </div>
 
                     {{-- Confirm Password --}}
-                    <div class="space-y-2">
-                        <label for="password_confirmation" class="label">
-                            Konfirmasi Password <span class="text-destructive">*</span>
+                    <div class="space-y-1.5">
+                        <label for="password_confirmation" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-gray-400"></i>
+                            Konfirmasi Password <span class="text-rose-500">*</span>
                         </label>
-                        <input type="password" 
-                               id="password_confirmation" 
-                               name="password_confirmation" 
-                               class="input @error('password_confirmation') !border-red-500 @enderror" 
-                               placeholder="Ulangi password"
-                               required>
+                        <input type="password" id="password_confirmation" name="password_confirmation"
+                            class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-[#FF4D00] shadow-2xs transition-all placeholder:text-gray-400 @error('password_confirmation') !border-rose-500 !ring-rose-500/10 @enderror"
+                            placeholder="Ulangi password" required>
                         @error('password_confirmation')
-                            <p class="text-sm text-destructive flex items-center gap-1.5">
-                                <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                                {{ $message }}
+                            <p class="text-[11px] text-rose-600 flex items-center gap-1 mt-1">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> {{ $message }}
                             </p>
                         @enderror
                     </div>
+                </div>
+            </div>
 
+            {{-- Section 3: Role & Hak Akses Modul --}}
+            <div class="space-y-5">
+                <div class="flex items-center gap-3 pb-3 border-b border-gray-100">
+                    <div class="mac-step-badge">3</div>
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900 tracking-tight">Peran &amp; Hak Akses Modul</h2>
+                        <p class="text-xs text-gray-500">Tentukan level peran, status aktif akun, dan modul yang dapat dibuka</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     {{-- Role --}}
-                    <div class="space-y-2">
-                        <label for="role" class="label">
-                            Role <span class="text-destructive">*</span>
+                    <div class="space-y-1.5">
+                        <label for="role" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                            <i data-lucide="badge-check" class="w-3.5 h-3.5 text-gray-400"></i>
+                            Role Pengguna <span class="text-rose-500">*</span>
                         </label>
-                        <select id="role" 
-                                name="role" 
-                                class="select @error('role') !border-red-500 @enderror"
-                                required>
-                            <option value="">Pilih Role</option>
+                        <select id="role" name="role"
+                            class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-[#FF4D00] shadow-2xs transition-all cursor-pointer @error('role') !border-rose-500 !ring-rose-500/10 @enderror"
+                            required>
+                            <option value="">-- Pilih Role --</option>
                             <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
                             <option value="operator" {{ old('role') === 'operator' ? 'selected' : '' }}>Operator</option>
                             <option value="viewer" {{ old('role') === 'viewer' ? 'selected' : '' }}>Viewer</option>
                         </select>
                         @error('role')
-                            <p class="text-sm text-destructive flex items-center gap-1.5">
-                                <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                                {{ $message }}
+                            <p class="text-[11px] text-rose-600 flex items-center gap-1 mt-1">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> {{ $message }}
                             </p>
                         @enderror
-                        <p class="text-sm text-muted-foreground">
-                            <strong>Admin:</strong> Akses penuh, 
-                            <strong>Operator:</strong> Buat & edit surat, 
-                            <strong>Viewer:</strong> Hanya melihat
-                        </p>
                     </div>
 
-                    {{-- Status --}}
-                    <div>
-                        <div class="flex items-start">
-                            <div class="flex items-center h-5">
-                                <input type="checkbox" 
-                                       id="is_active" 
-                                       name="is_active" 
-                                       value="1" 
-                                       {{ old('is_active', true) ? 'checked' : '' }}
-                                       class="w-4 h-4 text-brand border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
+                    {{-- Status Aktif --}}
+                    <div class="space-y-1.5">
+                        <span class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                            <i data-lucide="power" class="w-3.5 h-3.5 text-gray-400"></i>
+                            Status Akun
+                        </span>
+                        <label for="is_active" class="perm-card !py-2.5">
+                            <input type="checkbox" id="is_active" name="is_active" value="1"
+                                {{ old('is_active', true) ? 'checked' : '' }}
+                                class="mt-0.5 w-4 h-4 text-[#FF4D00] border-gray-300 rounded focus:ring-orange-500/30 cursor-pointer">
+                            <div>
+                                <span class="text-xs font-bold text-gray-900 block">Akun Aktif</span>
+                                <span class="text-[11px] text-gray-500">Pengguna dapat login ke sistem</span>
                             </div>
-                            <div class="ml-3">
-                                <label for="is_active" class="font-medium text-gray-700">Aktif</label>
-                                <p class="text-sm text-muted-foreground">Centang jika pengguna dapat mengakses sistem</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Akses Modul --}}
-                    <div>
-                        <label class="label mb-2">Akses Modul <span class="text-destructive">*</span></label>
-                        <div class="space-y-3">
-                            <div class="flex items-start">
-                                <div class="flex items-center h-5">
-                                    <input type="checkbox" 
-                                           id="can_access_letters" 
-                                           name="can_access_letters" 
-                                           value="1" 
-                                           {{ old('can_access_letters', true) ? 'checked' : '' }}
-                                           class="w-4 h-4 text-brand border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
-                                </div>
-                                <div class="ml-3">
-                                    <label for="can_access_letters" class="font-medium text-gray-700">Modul Persuratan</label>
-                                    <p class="text-sm text-muted-foreground">Berikan akses untuk fitur penomoran dan arsip surat</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start">
-                                <div class="flex items-center h-5">
-                                    <input type="checkbox" 
-                                           id="can_access_archives" 
-                                           name="can_access_archives" 
-                                           value="1" 
-                                           {{ old('can_access_archives', true) ? 'checked' : '' }}
-                                           class="w-4 h-4 text-brand border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
-                                </div>
-                                <div class="ml-3">
-                                    <label for="can_access_archives" class="font-medium text-gray-700">Modul Arsip Digital</label>
-                                    <p class="text-sm text-muted-foreground">Berikan akses melihat dan pratinjau arsip digital surat (read-only)</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start">
-                                <div class="flex items-center h-5">
-                                    <input type="checkbox" 
-                                           id="can_access_legalizations" 
-                                           name="can_access_legalizations" 
-                                           value="1" 
-                                           {{ old('can_access_legalizations', false) ? 'checked' : '' }}
-                                           class="w-4 h-4 text-brand border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
-                                </div>
-                                <div class="ml-3">
-                                    <label for="can_access_legalizations" class="font-medium text-gray-700">Modul Legalisir</label>
-                                    <p class="text-sm text-muted-foreground">Berikan akses untuk fitur legalisir dokumen</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start">
-                                <div class="flex items-center h-5">
-                                    <input type="checkbox" 
-                                           id="can_access_room_reservations" 
-                                           name="can_access_room_reservations" 
-                                           value="1" 
-                                           {{ old('can_access_room_reservations', false) ? 'checked' : '' }}
-                                           class="w-4 h-4 text-brand border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors">
-                                </div>
-                                <div class="ml-3">
-                                    <label for="can_access_room_reservations" class="font-medium text-gray-700">Modul Peminjaman Ruang</label>
-                                    <p class="text-sm text-muted-foreground">Berikan akses untuk fitur reservasi dan peminjaman ruang</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Informasi Tambahan --}}
-                    <div>
-                        <div class="bg-orange-50 border border-blue-200 rounded-lg p-4">
-                            <h6 class="font-semibold text-brand-darker mb-2 flex items-center gap-2">
-                                <i data-lucide="info" class="w-4 h-4"></i>
-                                Informasi Role
-                            </h6>
-                            <ul class="list-disc list-inside text-sm text-brand-darker space-y-1">
-                                <li><strong>Admin:</strong> Dapat mengelola semua data master dan pengguna</li>
-                                <li><strong>Operator:</strong> Dapat membuat dan mengelola surat</li>
-                                <li><strong>Viewer:</strong> Hanya dapat melihat data surat tanpa dapat mengubah</li>
-                            </ul>
-                        </div>
+                        </label>
                     </div>
                 </div>
 
-                {{-- Form Actions --}}
-                <div class="flex justify-between items-center pt-6 border-t border-gray-200 mt-6">
-                    <a href="{{ route('master.users.index') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                        <i data-lucide="x-circle" class="w-4 h-4"></i>
-                        Batal
-                    </a>
-                    <button type="submit" class="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        <i data-lucide="check-circle" class="w-4 h-4"></i>
-                        Simpan
-                    </button>
+                {{-- Akses Modul --}}
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-gray-700 block">Akses Modul <span class="text-rose-500">*</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label for="can_access_letters" class="perm-card">
+                            <input type="checkbox" id="can_access_letters" name="can_access_letters" value="1"
+                                {{ old('can_access_letters', true) ? 'checked' : '' }}
+                                class="mt-0.5 w-4 h-4 text-[#FF4D00] border-gray-300 rounded focus:ring-orange-500/30 cursor-pointer">
+                            <div>
+                                <span class="text-xs font-bold text-gray-900 block">Modul Persuratan</span>
+                                <span class="text-[11px] text-gray-500">Fitur penomoran &amp; pengelolaan arsip surat</span>
+                            </div>
+                        </label>
+
+                        <label for="can_access_archives" class="perm-card">
+                            <input type="checkbox" id="can_access_archives" name="can_access_archives" value="1"
+                                {{ old('can_access_archives', true) ? 'checked' : '' }}
+                                class="mt-0.5 w-4 h-4 text-[#FF4D00] border-gray-300 rounded focus:ring-orange-500/30 cursor-pointer">
+                            <div>
+                                <span class="text-xs font-bold text-gray-900 block">Modul Arsip Digital</span>
+                                <span class="text-[11px] text-gray-500">Akses lihat &amp; pratinjau arsip digital (read-only)</span>
+                            </div>
+                        </label>
+
+                        <label for="can_access_legalizations" class="perm-card">
+                            <input type="checkbox" id="can_access_legalizations" name="can_access_legalizations" value="1"
+                                {{ old('can_access_legalizations', false) ? 'checked' : '' }}
+                                class="mt-0.5 w-4 h-4 text-[#FF4D00] border-gray-300 rounded focus:ring-orange-500/30 cursor-pointer">
+                            <div>
+                                <span class="text-xs font-bold text-gray-900 block">Modul Legalisir</span>
+                                <span class="text-[11px] text-gray-500">Fitur pencatatan &amp; laporan legalisir dokumen</span>
+                            </div>
+                        </label>
+
+                        <label for="can_access_room_reservations" class="perm-card">
+                            <input type="checkbox" id="can_access_room_reservations" name="can_access_room_reservations" value="1"
+                                {{ old('can_access_room_reservations', false) ? 'checked' : '' }}
+                                class="mt-0.5 w-4 h-4 text-[#FF4D00] border-gray-300 rounded focus:ring-orange-500/30 cursor-pointer">
+                            <div>
+                                <span class="text-xs font-bold text-gray-900 block">Modul Peminjaman Ruang</span>
+                                <span class="text-[11px] text-gray-500">Fitur reservasi jadwal &amp; peminjaman ruang</span>
+                            </div>
+                        </label>
+                    </div>
                 </div>
-            </form>
-        </div>
+
+                {{-- Info Role --}}
+                <div class="rounded-2xl bg-orange-50/70 border border-orange-200/80 p-4">
+                    <h6 class="text-xs font-bold text-orange-900 mb-2 flex items-center gap-1.5">
+                        <i data-lucide="info" class="w-4 h-4 text-[#FF4D00]"></i>
+                        Panduan Peran (Role)
+                    </h6>
+                    <ul class="text-xs text-orange-800/90 space-y-1 list-disc list-inside">
+                        <li><strong>Admin:</strong> Akses penuh termasuk pengaturan sistem, pengguna, &amp; data master</li>
+                        <li><strong>Operator:</strong> Dapat membuat dan mengelola transaksi pada modul yang diizinkan</li>
+                        <li><strong>Viewer:</strong> Hanya dapat melihat data tanpa melakukan perubahan</li>
+                    </ul>
+                </div>
+            </div>
+
+            {{-- Form Actions --}}
+            <div class="flex items-center justify-between pt-6 border-t border-gray-100">
+                <a href="{{ route('master.users.index') }}"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold text-xs sm:text-sm rounded-xl shadow-2xs transition-all active:scale-[0.98]">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    <span>Batal</span>
+                </a>
+                <button type="submit"
+                    class="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#FF4D00] to-amber-500 hover:from-[#e04400] hover:to-[#d97706] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-md transition-all active:scale-[0.98] cursor-pointer">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                    <span>Simpan Pengguna</span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 @push('scripts')
-<script src="https://unpkg.com/lucide@latest"></script>
 <script>
-    lucide.createIcons();
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
 </script>
 @endpush
 @endsection
-
-
-
-
-
-

@@ -41,6 +41,10 @@ Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 // Fallback GET route untuk logout (jika CSRF expired)
 Route::get('logout', [LoginController::class, 'logout'])->name('logout.get');
 
+// Public Legal Pages (Google OAuth Consent Screen & Public Info)
+Route::view('privacy-policy', 'legal.privacy-policy')->name('privacy-policy');
+Route::view('terms-of-service', 'legal.terms-of-service')->name('terms-of-service');
+
 // Module Switcher (Landing Page)
 Route::get('/', [ModuleSwitcherController::class, 'index'])->name('switcher');
 

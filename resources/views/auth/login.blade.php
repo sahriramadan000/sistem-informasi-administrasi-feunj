@@ -362,6 +362,11 @@
         <p class="text-[11px] text-gray-400 mt-1">
             Sistem Informasi Administrasi Terpadu &bull; All rights reserved
         </p>
+        <div class="flex items-center justify-center gap-3 mt-1.5 text-[11px] text-gray-400">
+            <a href="{{ route('privacy-policy') }}" class="hover:text-[#FF5500] transition-colors">Privacy Policy</a>
+            <span>&bull;</span>
+            <a href="{{ route('terms-of-service') }}" class="hover:text-[#FF5500] transition-colors">Terms of Service</a>
+        </div>
     </footer>
 
     <script>
