@@ -163,6 +163,12 @@
                                             Viewer
                                         </span>
                                     @endif
+                                    @if($user->can_access_certificates && !$user->isAdmin())
+                                        <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/70" title="Diizinkan mengakses Studio Sertifikat">
+                                            <i data-lucide="award" class="w-2.5 h-2.5"></i>
+                                            Sertifikat
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3.5 whitespace-nowrap">
                                     @if($user->is_active)

@@ -128,7 +128,7 @@
         </div>
 
         {{-- 2-Column macOS Studio Layout --}}
-        <form id="signatory-form" method="POST" action="{{ route('master.signatories.store') }}" novalidate>
+        <form id="signatory-form" method="POST" action="{{ route('master.signatories.store') }}" enctype="multipart/form-data" novalidate>
             @csrf
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
@@ -286,7 +286,36 @@
                                 @enderror
                             </div>
 
-                            {{-- Field 5: Status Aktif (Apple iOS Style Toggle Switch) --}}
+                            {{-- Field 5: Spesimen TTD Digital (Opsional) --}}
+                            <div class="space-y-2 pt-1">
+                                <div class="flex items-center justify-between">
+                                    <label for="signature_file" class="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                                        <i data-lucide="pen-tool" class="w-3.5 h-3.5 text-gray-400"></i>
+                                        Spesimen Tanda Tangan Digital (PNG Transparan)
+                                    </label>
+                                    <span class="text-[10px] text-gray-400">Opsional • Studio Sertifikat</span>
+                                </div>
+                                <div class="flex items-center gap-4 p-3.5 rounded-2xl bg-gray-50/80 border border-dashed border-gray-300">
+                                    <div id="sigPreviewBox" class="w-24 h-14 rounded-xl bg-white border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                        <img id="sigPreviewImg" src="" alt="Preview TTD" class="hidden max-h-12 max-w-full object-contain">
+                                        <span id="sigPreviewPlaceholder" class="text-[10px] text-gray-400 text-center px-1">Belum ada</span>
+                                    </div>
+                                    <div class="flex-1 min-w-0 space-y-1">
+                                        <input type="file" id="signature_file" name="signature_file" accept=".png,.webp,.jpg,.jpeg"
+                                            onchange="previewSignatureInput(this)"
+                                            class="block w-full text-xs text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-orange-50 file:text-[#FF4D00] hover:file:bg-orange-100 cursor-pointer">
+                                        <p class="text-[11px] text-gray-400">Gunakan PNG background transparan agar rapi saat ditempel ke sertifikat.</p>
+                                    </div>
+                                </div>
+                                @error('signature_file')
+                                    <p class="text-xs text-destructive flex items-center gap-1 mt-1">
+                                        <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
+
+                            {{-- Field 6: Status Aktif (Apple iOS Style Toggle Switch) --}}
                             <div class="pt-2">
                                 <div class="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/80 hover:bg-gray-50 transition-colors">
                                     <div class="flex items-start justify-between gap-4">
@@ -585,6 +614,19 @@
         posInput.dispatchEvent(new Event('input'));
         showToast(`Jabatan "${pos}" dipilih`, 'success');
         posInput.focus();
+    }
+
+    function previewSignatureInput(input) {
+        const img = document.getElementById('sigPreviewImg');
+        const placeholder = document.getElementById('sigPreviewPlaceholder');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (img) { img.src = e.target.result; img.classList.remove('hidden'); }
+                if (placeholder) placeholder.classList.add('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 
     // iOS Status Toggle Handler

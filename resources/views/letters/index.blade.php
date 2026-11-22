@@ -433,6 +433,16 @@
                                                     @endif
                                                 @endif
                                             </div>
+                                            @if (auth()->user()?->canAccessCertificateStudio() && ($letter->letterType?->is_certificate || str_contains(strtolower($letter->letterType?->name ?? ''), 'sertifikat')))
+                                                <div class="mt-1">
+                                                    <a href="{{ route('letters.certificate-studio', $letter) }}"
+                                                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 transition-colors shadow-2xs"
+                                                        title="Buka Studio Sertifikat (Tempel Nomor, TTD & Stempel)">
+                                                        <i data-lucide="award" class="w-3 h-3 text-indigo-600"></i>
+                                                        <span>Studio Sertifikat</span>
+                                                    </a>
+                                                </div>
+                                            @endif
                                         @endif
                                     </td>
 

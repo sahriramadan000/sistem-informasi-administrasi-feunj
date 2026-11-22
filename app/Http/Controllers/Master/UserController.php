@@ -84,6 +84,7 @@ class UserController extends Controller
             'can_access_archives' => 'boolean',
             'can_access_legalizations' => 'boolean',
             'can_access_room_reservations' => 'boolean',
+            'can_access_certificates' => 'boolean',
         ]);
 
         try {
@@ -93,6 +94,7 @@ class UserController extends Controller
             $validated['can_access_archives'] = $request->has('can_access_archives');
             $validated['can_access_legalizations'] = $request->has('can_access_legalizations');
             $validated['can_access_room_reservations'] = $request->has('can_access_room_reservations');
+            $validated['can_access_certificates'] = $request->has('can_access_certificates');
             $validated['password'] = Hash::make($validated['password']);
 
             // Simpan data menggunakan transaction
@@ -169,6 +171,7 @@ class UserController extends Controller
             'can_access_archives' => 'boolean',
             'can_access_legalizations' => 'boolean',
             'can_access_room_reservations' => 'boolean',
+            'can_access_certificates' => 'boolean',
         ]);
 
         try {
@@ -178,6 +181,7 @@ class UserController extends Controller
             $validated['can_access_archives'] = $request->has('can_access_archives');
             $validated['can_access_legalizations'] = $request->has('can_access_legalizations');
             $validated['can_access_room_reservations'] = $request->has('can_access_room_reservations');
+            $validated['can_access_certificates'] = $request->has('can_access_certificates');
             
             // Hanya update password jika diisi
             if (!empty($validated['password'])) {

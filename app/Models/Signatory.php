@@ -22,8 +22,17 @@ class Signatory extends Model
         'name',
         'position',
         'nip',
+        'signature_path',
         'is_active',
     ];
+
+    /**
+     * URL penuh gambar tanda tangan digital (bila tersedia).
+     */
+    public function getSignatureUrlAttribute(): ?string
+    {
+        return $this->signature_path ? asset($this->signature_path) : null;
+    }
 
     /**
      * The attributes that should be cast.

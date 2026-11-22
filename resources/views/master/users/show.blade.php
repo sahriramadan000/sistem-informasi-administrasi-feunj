@@ -137,6 +137,7 @@
                         ['label' => 'Arsip Digital', 'allowed' => $user->can_access_archives || $user->isAdmin(), 'icon' => 'archive'],
                         ['label' => 'Legalisir', 'allowed' => $user->can_access_legalizations || $user->isAdmin(), 'icon' => 'stamp'],
                         ['label' => 'Peminjaman Ruang', 'allowed' => $user->can_access_room_reservations || $user->isAdmin(), 'icon' => 'calendar'],
+                        ['label' => 'Studio Sertifikat', 'allowed' => $user->canAccessCertificateStudio(), 'icon' => 'award'],
                     ];
                 @endphp
                 @foreach($modules as $mod)

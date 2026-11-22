@@ -28,6 +28,7 @@ class User extends Authenticatable
         'can_access_archives',
         'can_access_legalizations',
         'can_access_room_reservations',
+        'can_access_certificates',
     ];
 
     /**
@@ -53,6 +54,7 @@ class User extends Authenticatable
         'can_access_archives' => 'boolean',
         'can_access_legalizations' => 'boolean',
         'can_access_room_reservations' => 'boolean',
+        'can_access_certificates' => 'boolean',
     ];
 
     /**
@@ -85,6 +87,14 @@ class User extends Authenticatable
     public function isViewer(): bool
     {
         return $this->role === 'viewer';
+    }
+
+    /**
+     * Cek apakah user diizinkan mengakses fitur Studio Sertifikat
+     */
+    public function canAccessCertificateStudio(): bool
+    {
+        return $this->isAdmin() || (bool) $this->can_access_certificates;
     }
 
     /**

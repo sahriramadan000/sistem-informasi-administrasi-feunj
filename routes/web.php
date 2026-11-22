@@ -14,6 +14,8 @@ use App\Http\Controllers\LetterImportController;
 use App\Http\Controllers\Admin\ErrorLogController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\GoogleDriveSettingController;
+use App\Http\Controllers\CertificateStudioController;
+use App\Http\Controllers\Master\CertificateStampController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ModuleSwitcherController;
 use App\Http\Controllers\Master\EducationLevelController;
@@ -79,8 +81,10 @@ Route::prefix('master')->name('master.')->group(function () {
     Route::resource('letter-types', LetterTypeController::class);
     Route::post('letter-types/{letterType}/toggle-requires-purpose', [LetterTypeController::class, 'toggleRequiresPurpose'])->name('letter-types.toggle-requires-purpose');
     Route::post('letter-types/{letterType}/toggle-requires-drive-archive', [LetterTypeController::class, 'toggleRequiresDriveArchive'])->name('letter-types.toggle-requires-drive-archive');
+    Route::post('letter-types/{letterType}/toggle-is-certificate', [LetterTypeController::class, 'toggleIsCertificate'])->name('letter-types.toggle-is-certificate');
     
     Route::resource('signatories', SignatoryController::class);
+    Route::resource('certificate-stamps', CertificateStampController::class)->except(['create', 'edit', 'show']);
     Route::resource('letter-purposes', LetterPurposeController::class);
     Route::resource('rooms', RoomController::class);
     Route::resource('room-groups', \App\Http\Controllers\Master\RoomGroupController::class);
@@ -91,6 +95,11 @@ Route::prefix('master')->name('master.')->group(function () {
 Route::get('letters/import/template', [LetterImportController::class, 'template'])->name('letters.import.template')->middleware(['auth', 'role:admin,operator']);
 Route::post('letters/import', [LetterImportController::class, 'import'])->name('letters.import')->middleware(['auth', 'role:admin,operator']);
 Route::post('letters/{letter}/archive-link', [LetterController::class, 'updateArchiveLink'])->name('letters.update-archive-link')->middleware(['auth', 'role:admin,operator']);
+Route::get('letters/{letter}/certificate-studio', [CertificateStudioController::class, 'show'])->name('letters.certificate-studio')->middleware(['auth', 'role:admin,operator']);
+Route::post('letters/{letter}/certificate-studio/log-export', [CertificateStudioController::class, 'logExport'])->name('letters.certificate-studio.log-export')->middleware(['auth', 'role:admin,operator']);
+Route::post('certificate-studio/quick-asset', [CertificateStudioController::class, 'uploadQuickAsset'])->name('certificate-studio.quick-asset')->middleware(['auth', 'role:admin,operator']);
+Route::post('certificate-studio/presets', [CertificateStudioController::class, 'savePreset'])->name('certificate-studio.presets.store')->middleware(['auth', 'role:admin,operator']);
+Route::delete('certificate-studio/presets/{preset}', [CertificateStudioController::class, 'deletePreset'])->name('certificate-studio.presets.destroy')->middleware(['auth', 'role:admin,operator']);
 Route::resource('letters', LetterController::class);
 
 // Arsip Digital Routes

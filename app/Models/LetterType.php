@@ -25,6 +25,7 @@ class LetterType extends Model
         'requires_subject',
         'requires_purpose',
         'requires_drive_archive',
+        'is_certificate',
     ];
 
     /**
@@ -37,6 +38,7 @@ class LetterType extends Model
         'requires_subject' => 'boolean',
         'requires_purpose' => 'boolean',
         'requires_drive_archive' => 'boolean',
+        'is_certificate' => 'boolean',
     ];
 
     /**
@@ -61,5 +63,13 @@ class LetterType extends Model
     public function scopeRequiresDriveArchive($query)
     {
         return $query->where('requires_drive_archive', true);
+    }
+
+    /**
+     * Scope untuk mendapatkan jenis surat bertipe sertifikat
+     */
+    public function scopeCertificate($query)
+    {
+        return $query->where('is_certificate', true);
     }
 }

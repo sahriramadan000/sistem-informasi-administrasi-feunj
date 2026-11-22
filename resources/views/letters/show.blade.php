@@ -392,6 +392,38 @@
                     </div>
                 @endif
 
+                {{-- SHORTCUT STUDIO SERTIFIKAT --}}
+                @php
+                    $isCertificateLetter = $letter->letterType?->is_certificate
+                        || str_contains(strtolower($letter->letterType?->name ?? ''), 'sertifikat');
+                @endphp
+                @if (auth()->user()?->canAccessCertificateStudio() && ($isCertificateLetter || $letter->status === 'final'))
+                <div class="mac-card overflow-hidden {{ $isCertificateLetter ? 'border-indigo-200/90 bg-gradient-to-br from-indigo-50/40 via-white to-blue-50/30' : 'border-gray-200/90' }}">
+                    <div class="px-5 py-3.5 border-b {{ $isCertificateLetter ? 'border-indigo-100 bg-indigo-50/60' : 'border-gray-100 bg-gray-50/50' }} flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <i data-lucide="award" class="w-4.5 h-4.5 {{ $isCertificateLetter ? 'text-indigo-600' : 'text-gray-500' }}"></i>
+                            <h3 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Studio Sertifikat</h3>
+                        </div>
+                        @if ($isCertificateLetter)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                Rekomendasi
+                            </span>
+                        @endif
+                    </div>
+
+                    <div class="p-5 space-y-3">
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            Tempel nomor surat resmi, tanda tangan pejabat, dan stempel fakultas pada desain sertifikat (PDF / PNG / JPG), lalu export atau arsipkan langsung ke Google Drive.
+                        </p>
+                        <a href="{{ route('letters.certificate-studio', $letter) }}"
+                            class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold text-xs rounded-xl shadow-xs hover:shadow-md transition-all active:scale-[0.98]">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            <span>Buka Studio Sertifikat</span>
+                        </a>
+                    </div>
+                </div>
+                @endif
+
                 {{-- CARD ARSIP DIGITAL (Google Drive) - Hanya untuk jenis surat yang membutuhkan arsip Drive --}}
                 @if ($letter->requires_drive_archive)
                 <div class="mac-card overflow-hidden border {{ $letter->is_archived ? 'border-emerald-200/90 bg-emerald-50/20' : 'border-gray-200/90' }}">

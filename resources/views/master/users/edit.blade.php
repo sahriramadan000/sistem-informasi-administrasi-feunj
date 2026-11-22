@@ -269,6 +269,16 @@
                                 <span class="text-[11px] text-gray-500">Fitur reservasi jadwal &amp; peminjaman ruang</span>
                             </div>
                         </label>
+
+                        <label for="can_access_certificates" class="perm-card sm:col-span-2">
+                            <input type="checkbox" id="can_access_certificates" name="can_access_certificates" value="1"
+                                {{ old('can_access_certificates', $user->can_access_certificates) ? 'checked' : '' }}
+                                class="mt-0.5 w-4 h-4 text-[#FF4D00] border-gray-300 rounded focus:ring-orange-500/30 cursor-pointer">
+                            <div>
+                                <span class="text-xs font-bold text-gray-900 block">Fitur Studio Sertifikat</span>
+                                <span class="text-[11px] text-gray-500">Akses khusus tempel nomor, TTD pejabat &amp; stempel pada sertifikat (Admin selalu memiliki akses)</span>
+                            </div>
+                        </label>
                     </div>
                 </div>
 

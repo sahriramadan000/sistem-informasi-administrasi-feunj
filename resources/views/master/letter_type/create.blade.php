@@ -183,11 +183,12 @@
                                         <span>Pintasan Contoh Kode:</span>
                                     </div>
                                     <div class="flex flex-wrap gap-1.5">
-                                        <button type="button" class="code-preset-chip" onclick="fillPreset('ST', 'Surat Tugas', true)">ST (Surat Tugas)</button>
-                                        <button type="button" class="code-preset-chip" onclick="fillPreset('SK', 'Surat Keputusan', false)">SK (Surat Keputusan)</button>
-                                        <button type="button" class="code-preset-chip" onclick="fillPreset('SU', 'Surat Umum', false)">SU (Surat Umum)</button>
-                                        <button type="button" class="code-preset-chip" onclick="fillPreset('UND', 'Surat Undangan', false)">UND (Undangan)</button>
-                                        <button type="button" class="code-preset-chip" onclick="fillPreset('SMW', 'SIPERMAWA', true)">SMW (SIPERMAWA)</button>
+                                        <button type="button" class="code-preset-chip" onclick="fillPreset('ST', 'Surat Tugas', true, false)">ST (Surat Tugas)</button>
+                                        <button type="button" class="code-preset-chip" onclick="fillPreset('SK', 'Surat Keputusan', false, false)">SK (Surat Keputusan)</button>
+                                        <button type="button" class="code-preset-chip" onclick="fillPreset('SU', 'Surat Umum', false, false)">SU (Surat Umum)</button>
+                                        <button type="button" class="code-preset-chip" onclick="fillPreset('UND', 'Surat Undangan', false, false)">UND (Undangan)</button>
+                                        <button type="button" class="code-preset-chip" onclick="fillPreset('SMW', 'SIPERMAWA', true, false)">SMW (SIPERMAWA)</button>
+                                        <button type="button" class="code-preset-chip" onclick="fillPreset('SRTF', 'Sertifikat', false, true)">SRTF (Sertifikat)</button>
                                     </div>
                                 </div>
 
@@ -307,6 +308,38 @@
                                                    {{ old('requires_drive_archive', false) ? 'checked' : '' }} 
                                                    class="sr-only peer"
                                                    onchange="handleDriveToggle(this)">
+                                            <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Field: Fitur Studio Sertifikat (Apple iOS Style Toggle Switch) --}}
+                            <div>
+                                <div class="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/80 hover:bg-gray-50 transition-colors">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="space-y-1">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs font-bold text-gray-900">Fitur Studio Sertifikat (Penomoran, TTD &amp; Stempel)</span>
+                                                <span id="certificateIndicatorBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold {{ old('is_certificate', false) ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-gray-100 text-gray-700 border border-gray-300' }}">
+                                                    <span class="w-1.5 h-1.5 rounded-full {{ old('is_certificate', false) ? 'bg-emerald-500' : 'bg-gray-400' }}"></span>
+                                                    {{ old('is_certificate', false) ? 'Aktif' : 'Nonaktif' }}
+                                                </span>
+                                            </div>
+                                            <p id="certificateDescriptionText" class="text-xs text-gray-500 leading-relaxed">
+                                                {{ old('is_certificate', false) ? 'Memunculkan shortcut Studio Sertifikat untuk upload base desain (PDF/JPG/PNG), tempel nomor, TTD & stempel.' : 'Aktifkan jika jenis surat ini dipakai untuk menerbitkan sertifikat kegiatan.' }}
+                                            </p>
+                                        </div>
+
+                                        <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-0.5">
+                                            <input type="hidden" name="is_certificate" value="0">
+                                            <input type="checkbox"
+                                                   id="is_certificate"
+                                                   name="is_certificate"
+                                                   value="1"
+                                                   {{ old('is_certificate', false) ? 'checked' : '' }}
+                                                   class="sr-only peer"
+                                                   onchange="handleCertificateToggle(this)">
                                             <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div>
                                         </label>
                                     </div>
@@ -541,10 +574,11 @@
     });
 
     // Preset Chip Click Helper
-    function fillPreset(code, name, requiresPurpose) {
+    function fillPreset(code, name, requiresPurpose, isCertificate = false) {
         const codeInput = document.getElementById('code');
         const nameInput = document.getElementById('name');
         const purposeCheckbox = document.getElementById('requires_purpose');
+        const certCheckbox = document.getElementById('is_certificate');
         
         codeInput.value = code;
         if (!nameInput.value.trim()) {
@@ -553,6 +587,10 @@
         if (purposeCheckbox) {
             purposeCheckbox.checked = requiresPurpose;
             handlePurposeToggle(purposeCheckbox);
+        }
+        if (certCheckbox) {
+            certCheckbox.checked = isCertificate;
+            handleCertificateToggle(certCheckbox);
         }
         
         // Trigger input event
@@ -601,6 +639,24 @@
             driveIndicatorBadge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-300';
             driveIndicatorBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Tidak Diperlukan';
             driveDescriptionText.textContent = 'Surat dengan jenis ini tidak memerlukan arsip Google Drive dan tidak masuk ke menu Arsip Digital.';
+        }
+    }
+
+    // iOS Certificate Toggle Handler
+    function handleCertificateToggle(checkbox) {
+        const isChecked = checkbox.checked;
+        const badge = document.getElementById('certificateIndicatorBadge');
+        const desc = document.getElementById('certificateDescriptionText');
+        if (!badge || !desc) return;
+
+        if (isChecked) {
+            badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Aktif';
+            desc.textContent = 'Memunculkan shortcut Studio Sertifikat untuk upload base desain (PDF/JPG/PNG), tempel nomor, TTD & stempel.';
+        } else {
+            badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-300';
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Nonaktif';
+            desc.textContent = 'Aktifkan jika jenis surat ini dipakai untuk menerbitkan sertifikat kegiatan.';
         }
     }
 

@@ -7,7 +7,9 @@ use App\Models\Signatory;
 use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Controller untuk manajemen master data penandatangan surat
@@ -97,11 +99,20 @@ class SignatoryController extends Controller
             'position' => 'required|string|max:150',
             'nip' => 'nullable|string|max:50',
             'is_active' => 'boolean',
+            'signature_file' => 'nullable|image|mimes:png,webp,jpg,jpeg|max:5120',
+        ], [
+            'signature_file.mimes' => 'Format spesimen TTD harus PNG (disarankan transparan), WEBP, JPG, atau JPEG.',
+            'signature_file.max' => 'Ukuran berkas TTD maksimal 5 MB.',
         ]);
 
         try {
             // Set is_active explicitly using boolean helper
             $validated['is_active'] = $request->boolean('is_active');
+            unset($validated['signature_file']);
+
+            if ($request->hasFile('signature_file')) {
+                $validated['signature_path'] = $this->storeSignatureFile($request->file('signature_file'), $validated['code']);
+            }
 
             // Simpan data menggunakan transaction
             DB::transaction(function () use ($validated) {
@@ -160,11 +171,31 @@ class SignatoryController extends Controller
             'position' => 'required|string|max:150',
             'nip' => 'nullable|string|max:50',
             'is_active' => 'boolean',
+            'signature_file' => 'nullable|image|mimes:png,webp,jpg,jpeg|max:5120',
+            'remove_signature' => 'nullable|boolean',
+        ], [
+            'signature_file.mimes' => 'Format spesimen TTD harus PNG (disarankan transparan), WEBP, JPG, atau JPEG.',
+            'signature_file.max' => 'Ukuran berkas TTD maksimal 5 MB.',
         ]);
 
         try {
             // Set is_active explicitly using boolean helper
             $validated['is_active'] = $request->boolean('is_active');
+            unset($validated['signature_file'], $validated['remove_signature']);
+
+            if ($request->hasFile('signature_file')) {
+                $oldPath = $signatory->signature_path ? public_path($signatory->signature_path) : null;
+                $validated['signature_path'] = $this->storeSignatureFile($request->file('signature_file'), $validated['code']);
+                if ($oldPath && File::exists($oldPath)) {
+                    File::delete($oldPath);
+                }
+            } elseif ($request->boolean('remove_signature') && $signatory->signature_path) {
+                $oldPath = public_path($signatory->signature_path);
+                if (File::exists($oldPath)) {
+                    File::delete($oldPath);
+                }
+                $validated['signature_path'] = null;
+            }
 
             // Update data menggunakan transaction
             DB::transaction(function () use ($signatory, $validated) {
@@ -232,5 +263,23 @@ class SignatoryController extends Controller
         } catch (\Throwable $e) {
             return $this->handleError($e, 'SignatoryController.destroy', 'Terjadi kesalahan saat menonaktifkan data. Silakan coba lagi.');
         }
+    }
+
+    /**
+     * Simpan berkas TTD digital penandatangan ke public/uploads/certificates/signatures.
+     */
+    protected function storeSignatureFile($file, string $code): string
+    {
+        $dir = public_path('uploads/certificates/signatures');
+        if (!File::isDirectory($dir)) {
+            File::makeDirectory($dir, 0755, true);
+        }
+
+        $ext = strtolower($file->getClientOriginalExtension() ?: 'png');
+        $slug = Str::slug($code) ?: 'signatory';
+        $filename = "ttd_{$slug}_" . time() . '_' . Str::random(6) . ".{$ext}";
+        $file->move($dir, $filename);
+
+        return "uploads/certificates/signatures/{$filename}";
     }
 }

@@ -308,6 +308,12 @@
                                                     @else
                                                         <span class="text-gray-400 italic">NIP belum diatur</span>
                                                     @endif
+                                                    @if ($signatory->signature_path)
+                                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80" title="TTD Digital tersedia untuk Studio Sertifikat">
+                                                            <i data-lucide="pen-tool" class="w-2.5 h-2.5"></i>
+                                                            TTD
+                                                        </span>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>

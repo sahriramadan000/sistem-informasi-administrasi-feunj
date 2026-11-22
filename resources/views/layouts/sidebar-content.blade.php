@@ -40,7 +40,7 @@
             <div class="px-2.5 py-1.5 text-gray-400 font-bold uppercase tracking-wider" style="font-size: 10px;">Pilih Modul Aktif</div>
 
             <a href="{{ route('dashboard') }}"
-                class="flex items-center justify-between px-2.5 py-2 text-xs font-semibold rounded-xl transition-colors {{ request()->routeIs('dashboard', 'letters.*', 'letter-archives.*', 'master.classification-letters.*', 'master.letter-types.*', 'master.letter-purposes.*', 'master.signatories.*') ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-700 hover:bg-gray-100' }}">
+                class="flex items-center justify-between px-2.5 py-2 text-xs font-semibold rounded-xl transition-colors {{ request()->routeIs('dashboard', 'letters.*', 'letter-archives.*', 'master.classification-letters.*', 'master.letter-types.*', 'master.letter-purposes.*', 'master.signatories.*', 'master.certificate-stamps.*') ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-700 hover:bg-gray-100' }}">
                 <span class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full {{ request()->routeIs('dashboard', 'letters.*', 'letter-archives.*') ? 'bg-orange-500' : 'bg-gray-300' }}"></span>
                     Persuratan &amp; Arsip
@@ -378,6 +378,15 @@
                     </span>
                     <i data-lucide="chevron-right" class="ios-right-chevron sidebar-hide-on-collapsed"></i>
                 </a>
+                @if (auth()->user()->canAccessCertificateStudio())
+                    <a href="{{ route('master.certificate-stamps.index') }}" class="ios-nav-item {{ request()->routeIs('master.certificate-stamps.*') ? 'active' : '' }}" title="Stempel Sertifikat">
+                        <span class="ios-item-label">
+                            <i data-lucide="stamp" class="ios-menu-icon"></i>
+                            <span class="truncate sidebar-hide-on-collapsed">Stempel Sertifikat</span>
+                        </span>
+                        <i data-lucide="chevron-right" class="ios-right-chevron sidebar-hide-on-collapsed"></i>
+                    </a>
+                @endif
             </div>
         @endif
     @endif
@@ -392,7 +401,7 @@
         </div>
         <div class="space-y-0.5">
             {{-- Modul Persuratan --}}
-            @if(!request()->routeIs('dashboard', 'letters.*', 'master.classification-letters.*', 'master.letter-types.*', 'master.letter-purposes.*', 'master.signatories.*') && (auth()->user()->can_access_letters || auth()->user()->isAdmin()))
+            @if(!request()->routeIs('dashboard', 'letters.*', 'master.classification-letters.*', 'master.letter-types.*', 'master.letter-purposes.*', 'master.signatories.*', 'master.certificate-stamps.*') && (auth()->user()->can_access_letters || auth()->user()->isAdmin()))
                 <a href="{{ route('dashboard') }}" class="ios-nav-item group" title="Buka Modul Persuratan">
                     <span class="ios-item-label">
                         <span class="ios-pinned-badge" style="background-color: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;">S</span>

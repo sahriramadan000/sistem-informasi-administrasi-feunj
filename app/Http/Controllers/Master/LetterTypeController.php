@@ -30,7 +30,8 @@ class LetterTypeController extends Controller
             'update',
             'destroy',
             'toggleRequiresPurpose',
-            'toggleRequiresDriveArchive'
+            'toggleRequiresDriveArchive',
+            'toggleIsCertificate'
         ]);
     }
 
@@ -104,6 +105,7 @@ class LetterTypeController extends Controller
             'is_active' => 'boolean',
             'requires_purpose' => 'boolean',
             'requires_drive_archive' => 'boolean',
+            'is_certificate' => 'boolean',
         ]);
 
         try {
@@ -111,6 +113,7 @@ class LetterTypeController extends Controller
             $validated['is_active'] = $request->boolean('is_active');
             $validated['requires_purpose'] = $request->boolean('requires_purpose');
             $validated['requires_drive_archive'] = $request->boolean('requires_drive_archive');
+            $validated['is_certificate'] = $request->boolean('is_certificate');
 
             // Simpan data menggunakan transaction
             DB::transaction(function () use ($validated) {
@@ -169,6 +172,7 @@ class LetterTypeController extends Controller
             'is_active' => 'boolean',
             'requires_purpose' => 'boolean',
             'requires_drive_archive' => 'boolean',
+            'is_certificate' => 'boolean',
         ]);
 
         try {
@@ -176,6 +180,7 @@ class LetterTypeController extends Controller
             $validated['is_active'] = $request->boolean('is_active');
             $validated['requires_purpose'] = $request->boolean('requires_purpose');
             $validated['requires_drive_archive'] = $request->boolean('requires_drive_archive');
+            $validated['is_certificate'] = $request->boolean('is_certificate');
 
             // Update data menggunakan transaction
             DB::transaction(function () use ($letterType, $validated) {
@@ -337,6 +342,48 @@ class LetterTypeController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat memperbarui status.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Toggle is_certificate field via AJAX
+     */
+    public function toggleIsCertificate(Request $request, LetterType $letterType)
+    {
+        try {
+            $validated = $request->validate([
+                'is_certificate' => 'required|boolean',
+            ]);
+
+            DB::transaction(function () use ($letterType, $validated) {
+                $letterType->update([
+                    'is_certificate' => $validated['is_certificate'],
+                ]);
+            });
+
+            AuditLogService::log('update', 'LetterType', $letterType->id, [
+                'code' => $letterType->code,
+                'name' => $letterType->name,
+                'is_certificate' => $letterType->is_certificate,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'is_certificate' => $letterType->is_certificate,
+                'message' => 'Status Studio Sertifikat berhasil diperbarui.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            Log::error('Error toggling is_certificate', [
+                'id' => $letterType->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui status Studio Sertifikat.',
             ], 500);
         }
     }
