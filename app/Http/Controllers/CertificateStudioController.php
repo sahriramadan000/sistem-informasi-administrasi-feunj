@@ -253,13 +253,15 @@ class CertificateStudioController extends Controller
     public function logExport(Request $request, Letter $letter)
     {
         $validated = $request->validate([
-            'format' => 'required|in:pdf,png,jpg',
+            'format' => 'required|in:pdf,png,jpg,pdf_batch,zip_pdf,zip_png,zip_jpg',
+            'page_count' => 'nullable|integer|min:1|max:500',
         ]);
 
         AuditLogService::log('update', 'Letter', $letter->id, [
             'letter_number' => $letter->letter_number,
             'action' => 'certificate_exported',
             'format' => strtoupper($validated['format']),
+            'page_count' => (int) ($validated['page_count'] ?? 1),
         ]);
 
         return response()->json(['success' => true]);
