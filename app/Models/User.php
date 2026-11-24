@@ -29,6 +29,7 @@ class User extends Authenticatable
         'can_access_legalizations',
         'can_access_room_reservations',
         'can_access_certificates',
+        'can_access_letter_studio',
     ];
 
     /**
@@ -55,6 +56,7 @@ class User extends Authenticatable
         'can_access_legalizations' => 'boolean',
         'can_access_room_reservations' => 'boolean',
         'can_access_certificates' => 'boolean',
+        'can_access_letter_studio' => 'boolean',
     ];
 
     /**
@@ -95,6 +97,22 @@ class User extends Authenticatable
     public function canAccessCertificateStudio(): bool
     {
         return $this->isAdmin() || (bool) $this->can_access_certificates;
+    }
+
+    /**
+     * Cek apakah user diizinkan mengakses fitur Studio Surat (SIPERMAWA)
+     */
+    public function canAccessLetterStudio(): bool
+    {
+        return $this->isAdmin() || (bool) $this->can_access_letter_studio;
+    }
+
+    /**
+     * Cek apakah user diizinkan mengakses salah satu mode Studio
+     */
+    public function canAccessAnyStudio(): bool
+    {
+        return $this->canAccessCertificateStudio() || $this->canAccessLetterStudio();
     }
 
     /**

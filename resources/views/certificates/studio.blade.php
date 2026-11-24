@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Studio Sertifikat - ' . $letter->letter_number)
+@section('title', ($studioMode === 'letter' ? 'Studio Surat' : 'Studio Sertifikat') . ' - ' . $letter->letter_number)
 @section('disable_layout_alerts', true)
 
 @push('styles')
@@ -88,7 +88,7 @@
     </div>
 
     {{-- ── 1. UNIFIED SLIM TOP STUDIO BAR ── --}}
-    <header class="h-14 bg-white border-b border-gray-200/80 px-3 sm:px-4 flex items-center justify-between gap-2 z-30 flex-shrink-0">
+    <header class="h-14 bg-white border-b border-gray-200/80 px-3 sm:px-4 flex items-center justify-between gap-2 z-20 flex-shrink-0">
         {{-- Left: Navigation, Title & Status --}}
         <div class="flex items-center gap-2.5 min-w-0">
             <a href="{{ route('letters.show', $letter) }}"
@@ -98,29 +98,25 @@
             </a>
             <div class="w-px h-5 bg-gray-200 flex-shrink-0"></div>
             <div class="flex items-center gap-2 min-w-0">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#FF4D00] to-amber-500 text-white flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="award" class="w-4 h-4"></i>
+                <div class="w-7 h-7 rounded-lg {{ $studioMode === 'letter' ? 'bg-gradient-to-br from-emerald-600 to-teal-600' : 'bg-gradient-to-br from-[#FF4D00] to-amber-500' }} text-white flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="{{ $studioMode === 'letter' ? 'file-pen-line' : 'award' }}" class="w-4 h-4"></i>
                 </div>
-                <span class="hidden md:inline text-sm font-extrabold text-gray-900 tracking-tight whitespace-nowrap">Studio</span>
-                <span class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-orange-50 text-[#FF4D00] border border-orange-200/80 truncate max-w-[140px] sm:max-w-[200px]" title="{{ $letter->letter_number }}">
-                    {{ $letter->letter_number }}
+                <span class="hidden md:inline text-sm font-extrabold text-gray-900 tracking-tight whitespace-nowrap">
+                    {{ $studioMode === 'letter' ? 'Studio Surat' : 'Studio Sertifikat' }}
                 </span>
-                <span id="topQueueBadge" class="hidden px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80 whitespace-nowrap"></span>
-                @if ($letter->is_archived && $letter->drive_url)
-                    <a id="topGdriveStatusPill" href="{{ $letter->drive_url }}" target="_blank" rel="noopener noreferrer"
-                        class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 transition-colors whitespace-nowrap"
-                        title="Klik untuk buka arsip di Google Drive">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        <span>Terarsip</span>
-                        <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
-                    </a>
-                @else
-                    <span id="topGdriveStatusPill"
-                        class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-gray-100 text-gray-500 border border-gray-200/80 whitespace-nowrap">
-                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                        <span>Belum Arsip</span>
-                    </span>
+                @if ($canCert && $canLetter)
+                    <div class="hidden sm:inline-flex items-center p-0.5 rounded-lg bg-gray-100 border border-gray-200/80 text-[10.5px] font-bold">
+                        <a href="{{ route('letters.certificate-studio', ['letter' => $letter, 'mode' => 'certificate']) }}"
+                            class="px-2 py-0.5 rounded-md transition-colors {{ $studioMode === 'certificate' ? 'bg-white text-[#FF4D00] shadow-2xs' : 'text-gray-500 hover:text-gray-800' }}">
+                            Sertifikat
+                        </a>
+                        <a href="{{ route('letters.certificate-studio', ['letter' => $letter, 'mode' => 'letter']) }}"
+                            class="px-2 py-0.5 rounded-md transition-colors {{ $studioMode === 'letter' ? 'bg-white text-emerald-700 shadow-2xs' : 'text-gray-500 hover:text-gray-800' }}">
+                            Surat / Kop
+                        </a>
+                    </div>
                 @endif
+                <span id="topQueueBadge" class="hidden px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80 whitespace-nowrap"></span>
             </div>
         </div>
 
@@ -304,10 +300,17 @@
         <aside class="lg:w-[64px] bg-white border-b lg:border-b-0 lg:border-r border-gray-200/80 flex lg:flex-col items-center justify-between px-2 py-1.5 lg:py-3 z-20 flex-shrink-0">
             <nav class="flex lg:flex-col items-center gap-1.5">
                 <button type="button" data-tool-tab="upload" onclick="switchLeftTool('upload')"
-                    class="rail-btn active w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 cursor-pointer" title="Unggah Base Sertifikat">
-                    <i data-lucide="upload-cloud" class="w-4 h-4"></i>
-                    <span class="text-[9.5px] font-bold">Unggah</span>
+                    class="rail-btn active w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 cursor-pointer" title="{{ $studioMode === 'letter' ? 'Template Kertas Kop & Crop Surat' : 'Unggah Base Sertifikat' }}">
+                    <i data-lucide="{{ $studioMode === 'letter' ? 'layout-template' : 'upload-cloud' }}" class="w-4 h-4"></i>
+                    <span class="text-[9.5px] font-bold">{{ $studioMode === 'letter' ? 'Template' : 'Unggah' }}</span>
                 </button>
+                @if ($studioMode === 'letter')
+                    <button type="button" data-tool-tab="letterhead" onclick="switchLeftTool('letterhead')"
+                        class="rail-btn w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 cursor-pointer" title="Kotak Penutup (Whiteout) &amp; Crop Ulang">
+                        <i data-lucide="eraser" class="w-4 h-4"></i>
+                        <span class="text-[9.5px] font-bold">Penutup</span>
+                    </button>
+                @endif
                 <button type="button" data-tool-tab="text" onclick="switchLeftTool('text')"
                     class="rail-btn w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 cursor-pointer" title="Nomor &amp; Teks">
                     <i data-lucide="type" class="w-4 h-4"></i>
@@ -341,75 +344,182 @@
         {{-- B. LEFT COLLAPSIBLE TOOL DRAWER (260px) --}}
         <aside id="leftToolDrawer" class="w-full lg:w-[260px] bg-white border-b lg:border-b-0 lg:border-r border-gray-200/80 flex flex-col max-h-72 lg:max-h-none min-h-0 z-10 flex-shrink-0">
             <div class="h-11 px-3.5 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
-                <span id="leftDrawerTitle" class="text-xs font-extrabold text-gray-900 uppercase tracking-wider">Unggah Sertifikat</span>
+                <span id="leftDrawerTitle" class="text-xs font-extrabold text-gray-900 uppercase tracking-wider">
+                    {{ $studioMode === 'letter' ? 'Template Kop & Surat' : 'Unggah Sertifikat' }}
+                </span>
                 <button type="button" onclick="collapseLeftDrawer()" class="hidden lg:flex w-7 h-7 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 items-center justify-center cursor-pointer" title="Tutup Panel">
                     <i data-lucide="panel-left-close" class="w-3.5 h-3.5"></i>
                 </button>
             </div>
 
             <div class="flex-1 overflow-y-auto studio-scroll p-3.5 space-y-4">
-                {{-- Tool Panel: Upload --}}
-                <div id="toolPanel-upload" class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[11px] font-bold text-gray-600">File Desain</span>
-                        <span id="baseDimsBadge" class="hidden text-[10px] font-mono font-semibold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded"></span>
-                    </div>
-
-                    <label for="baseFileInput" id="baseDropZone"
-                        class="flex flex-col items-center justify-center gap-1.5 p-4 border-2 border-dashed border-gray-200 hover:border-[#FF4D00] rounded-2xl bg-gray-50/70 hover:bg-orange-50/40 transition-all cursor-pointer text-center">
-                        <div class="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-[#FF4D00] shadow-2xs">
-                            <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                {{-- Tool Panel: Upload / Template Base --}}
+                <div id="toolPanel-upload" class="space-y-3.5">
+                    @if ($studioMode === 'letter')
+                        {{-- 1. Pilih Template Kertas Kop sebagai Base --}}
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[11px] font-extrabold uppercase tracking-wider text-gray-500">1. Template Kop (Base)</span>
+                                <button type="button" onclick="openQuickUploadModal('letterhead')"
+                                    class="text-[11px] font-bold text-emerald-700 hover:underline cursor-pointer">+ Upload Kop</button>
+                            </div>
+                            <div id="letterheadsGallery" class="space-y-2">
+                                @forelse ($letterheads as $lh)
+                                    <button type="button"
+                                        onclick="selectLetterheadAsBase('{{ $lh->file_url }}', '{{ addslashes($lh->name) }}')"
+                                        class="shortcut-chip w-full flex flex-col gap-1.5 p-2 rounded-xl bg-gray-50 hover:bg-emerald-50/70 border border-gray-200/80 hover:border-emerald-300 text-left cursor-pointer"
+                                        title="Jadikan {{ $lh->name }} sebagai Base kanvas A4">
+                                        <div class="w-full h-16 bg-white rounded-lg border border-gray-100 flex items-center justify-center overflow-hidden p-1">
+                                            <img src="{{ $lh->file_url }}" alt="{{ $lh->name }}" class="max-h-full max-w-full object-contain">
+                                        </div>
+                                        <div class="flex items-center justify-between gap-1 px-0.5">
+                                            <span class="text-[11px] font-bold text-gray-800 truncate">{{ $lh->name }}</span>
+                                            <span class="text-[9.5px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded flex-shrink-0">Pakai</span>
+                                        </div>
+                                    </button>
+                                @empty
+                                    <div class="text-center py-4 px-2.5 rounded-2xl bg-gray-50 border border-dashed border-gray-200 text-[11px] text-gray-500 space-y-2">
+                                        <p>Belum ada Template Kop FEB UNJ.</p>
+                                        <button type="button" onclick="openQuickUploadModal('letterhead')"
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-600 text-white text-[10.5px] font-bold cursor-pointer">
+                                            <i data-lucide="upload" class="w-3 h-3"></i>
+                                            <span>Upload PDF / PNG Kop</span>
+                                        </button>
+                                    </div>
+                                @endforelse
+                            </div>
                         </div>
-                        <p id="baseFileNameLabel" class="text-xs font-bold text-gray-800 truncate max-w-full">Pilih atau Tarik File</p>
-                        <p class="text-[10px] text-gray-400">PDF multi-halaman, PNG, atau JPG</p>
-                        <input type="file" id="baseFileInput" multiple accept=".pdf,.png,.jpg,.jpeg" class="hidden" onchange="handleBaseFilesUpload(this.files, false)">
-                    </label>
 
-                    <input type="file" id="appendFileInput" multiple accept=".pdf,.png,.jpg,.jpeg" class="hidden" onchange="handleBaseFilesUpload(this.files, true)">
+                        {{-- 2. Upload & Crop Surat dari Universitas --}}
+                        <div class="pt-3 border-t border-gray-100 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[11px] font-extrabold uppercase tracking-wider text-gray-500">2. Surat Universitas</span>
+                                <span id="baseDimsBadge" class="hidden text-[10px] font-mono font-semibold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded"></span>
+                            </div>
 
-                    <div id="baseQueueActions" class="hidden flex items-center gap-2">
-                        <button type="button" onclick="document.getElementById('appendFileInput').click()"
-                            class="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 text-[11px] font-bold transition-colors cursor-pointer">
-                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                            <span>Tambah File</span>
-                        </button>
-                        <button type="button" onclick="resetAllSlides()"
-                            class="inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl bg-gray-100 hover:bg-rose-50 text-gray-600 hover:text-rose-600 text-[11px] font-semibold transition-colors cursor-pointer"
-                            title="Reset semua sertifikat">
-                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                        </button>
+                            <label for="univLetterFileInput" id="baseDropZone"
+                                class="flex flex-col items-center justify-center gap-1.5 p-3.5 border-2 border-dashed border-emerald-200 hover:border-emerald-500 rounded-2xl bg-emerald-50/40 hover:bg-emerald-50/80 transition-all cursor-pointer text-center">
+                                <div class="w-8 h-8 rounded-xl bg-white border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-2xs">
+                                    <i data-lucide="crop" class="w-4 h-4"></i>
+                                </div>
+                                <p class="text-xs font-bold text-gray-900">Upload &amp; Crop Isi Surat</p>
+                                <p class="text-[10px] text-gray-500">Pilih PDF/gambar surat dari Universitas untuk diambil body-nya</p>
+                                <input type="file" id="univLetterFileInput" accept=".pdf,.png,.jpg,.jpeg" class="hidden" onchange="openUnivCropModalFromFile(this.files[0])">
+                            </label>
+
+                            <p id="baseFileNameLabel" class="hidden text-[10.5px] text-gray-500 truncate"></p>
+                            <input type="file" id="baseFileInput" multiple accept=".pdf,.png,.jpg,.jpeg" class="hidden" onchange="handleBaseFilesUpload(this.files, false)">
+                            <input type="file" id="appendFileInput" multiple accept=".pdf,.png,.jpg,.jpeg" class="hidden" onchange="handleBaseFilesUpload(this.files, true)">
+
+                            <div id="baseQueueActions" class="hidden flex items-center gap-2 pt-1">
+                                <button type="button" onclick="document.getElementById('appendFileInput').click()"
+                                    class="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-bold transition-colors cursor-pointer" title="Tambahkan halaman lampiran PDF/gambar">
+                                    <i data-lucide="file-plus" class="w-3.5 h-3.5"></i>
+                                    <span>+ Lampiran</span>
+                                </button>
+                                <button type="button" onclick="resetAllSlides()"
+                                    class="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl bg-gray-100 hover:bg-rose-50 text-gray-600 hover:text-rose-600 text-[11px] font-semibold transition-colors cursor-pointer"
+                                    title="Reset semua halaman">
+                                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    @else
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-gray-600">File Desain</span>
+                            <span id="baseDimsBadge" class="hidden text-[10px] font-mono font-semibold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded"></span>
+                        </div>
+
+                        <label for="baseFileInput" id="baseDropZone"
+                            class="flex flex-col items-center justify-center gap-1.5 p-4 border-2 border-dashed border-gray-200 hover:border-[#FF4D00] rounded-2xl bg-gray-50/70 hover:bg-orange-50/40 transition-all cursor-pointer text-center">
+                            <div class="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-[#FF4D00] shadow-2xs">
+                                <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                            </div>
+                            <p id="baseFileNameLabel" class="text-xs font-bold text-gray-800 truncate max-w-full">Pilih atau Tarik File</p>
+                            <p class="text-[10px] text-gray-400">PDF multi-halaman, PNG, atau JPG</p>
+                            <input type="file" id="baseFileInput" multiple accept=".pdf,.png,.jpg,.jpeg" class="hidden" onchange="handleBaseFilesUpload(this.files, false)">
+                        </label>
+
+                        <input type="file" id="appendFileInput" multiple accept=".pdf,.png,.jpg,.jpeg" class="hidden" onchange="handleBaseFilesUpload(this.files, true)">
+
+                        <div id="baseQueueActions" class="hidden flex items-center gap-2">
+                            <button type="button" onclick="document.getElementById('appendFileInput').click()"
+                                class="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 text-[11px] font-bold transition-colors cursor-pointer">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                <span>Tambah File</span>
+                            </button>
+                            <button type="button" onclick="resetAllSlides()"
+                                class="inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl bg-gray-100 hover:bg-rose-50 text-gray-600 hover:text-rose-600 text-[11px] font-semibold transition-colors cursor-pointer"
+                                title="Reset semua sertifikat">
+                                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    @endif
+                </div>
+
+                @if ($studioMode === 'letter')
+                {{-- Tool Panel: Penutup (Whiteout) --}}
+                <div id="toolPanel-letterhead" class="hidden space-y-4">
+                    <button type="button" onclick="document.getElementById('univLetterFileInput').click()"
+                        class="shortcut-chip w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs cursor-pointer">
+                        <i data-lucide="crop" class="w-4 h-4"></i>
+                        <span>Upload &amp; Crop Surat Univ</span>
+                    </button>
+
+                    <div class="pt-3 border-t border-gray-100 space-y-2">
+                        <span class="block text-[11px] font-extrabold uppercase tracking-wider text-gray-500">Alat Penutup (Whiteout)</span>
+                        <div class="grid grid-cols-1 gap-1.5">
+                            <button type="button" onclick="addWhiteoutLayer(0.5, 0.25, 0.35, 0.04, 'Penutup Teks')"
+                                class="shortcut-chip flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 hover:bg-slate-100 border border-gray-200/80 text-xs font-semibold text-gray-700 cursor-pointer">
+                                <i data-lucide="eraser" class="w-3.5 h-3.5 text-amber-600"></i>
+                                <span>+ Kotak Penutup Bebas</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
+                @endif
 
                 {{-- Tool Panel: Text & Quick Compose --}}
                 <div id="toolPanel-text" class="hidden space-y-4">
                     <button type="button" onclick="smartAutoCompose()"
-                        class="shortcut-chip w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xs font-bold shadow-xs cursor-pointer">
-                        <span class="flex items-center gap-2"><i data-lucide="wand-2" class="w-4 h-4"></i><span>Susun Otomatis</span></span>
+                        class="shortcut-chip w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl {{ $studioMode === 'letter' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700' : 'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700' }} text-white text-xs font-bold shadow-xs cursor-pointer">
+                        <span class="flex items-center gap-2"><i data-lucide="wand-2" class="w-4 h-4"></i><span>{{ $studioMode === 'letter' ? 'Susun Kop & Nomor' : 'Susun Otomatis' }}</span></span>
                         <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-full">1 Klik</span>
                     </button>
 
                     <div class="pt-3 border-t border-gray-100 space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="text-[11px] font-extrabold uppercase tracking-wider text-gray-500">Nomor Surat</span>
-                            <button type="button" onclick="addTextLayer('No. ' + LETTER_DATA.number, 0.5, 0.308, 'number', 'Nomor Sertifikat')"
+                            <button type="button" onclick="{{ $studioMode === 'letter' ? 'addNumberWithWhiteout(false)' : "addTextLayer('No. ' + LETTER_DATA.number, 0.5, 0.308, 'number', 'Nomor Sertifikat')" }}"
                                 class="text-[11px] font-bold text-[#FF4D00] hover:underline cursor-pointer">+ Tempel</button>
                         </div>
                         <div class="grid grid-cols-1 gap-1.5">
-                            <button type="button" onclick="addOrReplaceNumberText('No. ' + LETTER_DATA.number)"
-                                class="shortcut-chip w-full text-left px-3 py-2 rounded-xl bg-gray-50 hover:bg-orange-50/70 border border-gray-200/80 hover:border-orange-300 text-xs font-semibold text-gray-800 truncate cursor-pointer">
-                                No. {{ $letter->letter_number }}
-                            </button>
-                            <div class="grid grid-cols-2 gap-1.5">
-                                <button type="button" onclick="addOrReplaceNumberText(LETTER_DATA.number)"
-                                    class="shortcut-chip px-2.5 py-1.5 rounded-xl bg-white border border-gray-200 hover:border-orange-300 text-[11px] font-semibold text-gray-700 cursor-pointer">
-                                    Tanpa "No."
+                            @if ($studioMode === 'letter')
+                                <button type="button" onclick="addNumberWithWhiteout(false)"
+                                    class="shortcut-chip w-full text-left px-3 py-2 rounded-xl bg-emerald-50/70 hover:bg-emerald-100/70 border border-emerald-200 text-xs font-bold text-emerald-900 truncate cursor-pointer"
+                                    title="Menempelkan nomor surat dengan latar putih otomatis untuk menutup nomor lama">
+                                    {{ $letter->letter_number }} (Latar Putih)
                                 </button>
-                                <button type="button" onclick="snapNumberUnderTitle()"
-                                    class="shortcut-chip px-2.5 py-1.5 rounded-xl bg-orange-50 border border-orange-200 text-[11px] font-bold text-[#FF4D00] cursor-pointer">
-                                    Bawah Judul
+                                <button type="button" onclick="addNumberWithWhiteout(true)"
+                                    class="shortcut-chip w-full text-left px-3 py-2 rounded-xl bg-gray-50 hover:bg-orange-50/70 border border-gray-200/80 text-xs font-semibold text-gray-800 truncate cursor-pointer">
+                                    Nomor: {{ $letter->letter_number }}
                                 </button>
-                            </div>
+                            @else
+                                <button type="button" onclick="addOrReplaceNumberText('No. ' + LETTER_DATA.number)"
+                                    class="shortcut-chip w-full text-left px-3 py-2 rounded-xl bg-gray-50 hover:bg-orange-50/70 border border-gray-200/80 hover:border-orange-300 text-xs font-semibold text-gray-800 truncate cursor-pointer">
+                                    No. {{ $letter->letter_number }}
+                                </button>
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <button type="button" onclick="addOrReplaceNumberText(LETTER_DATA.number)"
+                                        class="shortcut-chip px-2.5 py-1.5 rounded-xl bg-white border border-gray-200 hover:border-orange-300 text-[11px] font-semibold text-gray-700 cursor-pointer">
+                                        Tanpa "No."
+                                    </button>
+                                    <button type="button" onclick="snapNumberUnderTitle()"
+                                        class="shortcut-chip px-2.5 py-1.5 rounded-xl bg-orange-50 border border-orange-200 text-[11px] font-bold text-[#FF4D00] cursor-pointer">
+                                        Bawah Judul
+                                    </button>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -439,23 +549,40 @@
 
                 {{-- Tool Panel: Signatures --}}
                 <div id="toolPanel-signature" class="hidden space-y-3">
+                    @php
+                        $currentUser = auth()->user();
+                        $primarySigAllowed = $letter->signatory ? $letter->signatory->canUserUseSignature($currentUser) : false;
+                    @endphp
                     @if ($letter->signatory)
-                        <div class="p-3 rounded-2xl bg-emerald-50/50 border border-emerald-200/80 space-y-2">
-                            <div class="min-w-0">
-                                <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-emerald-700">Penandatangan Surat</span>
-                                <p class="text-xs font-bold text-gray-900 truncate">{{ $letter->signatory->name }}</p>
-                                <p class="text-[10.5px] text-gray-500 truncate">{{ $letter->signatory->position }}</p>
+                        <div class="p-3 rounded-2xl {{ $primarySigAllowed ? 'bg-emerald-50/50 border-emerald-200/80' : 'bg-gray-50 border-gray-200' }} border space-y-2">
+                            <div class="min-w-0 flex items-start justify-between gap-2">
+                                <div class="min-w-0">
+                                    <span class="text-[9.5px] font-extrabold uppercase tracking-wider {{ $primarySigAllowed ? 'text-emerald-700' : 'text-gray-500' }}">Penandatangan Surat</span>
+                                    <p class="text-xs font-bold text-gray-900 truncate">{{ $letter->signatory->name }}</p>
+                                    <p class="text-[10.5px] text-gray-500 truncate">{{ $letter->signatory->position }}</p>
+                                </div>
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold {{ $primarySigAllowed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }} flex-shrink-0" title="{{ $primarySigAllowed ? 'TTD disimpan aman di private server' : 'Akses TTD ini dibatasi' }}">
+                                    <i data-lucide="{{ $primarySigAllowed ? 'shield-check' : 'lock' }}" class="w-2.5 h-2.5"></i>
+                                </span>
                             </div>
                             <div id="primarySigSlot">
-                                @if ($letter->signatory->signature_path)
+                                @if (!$primarySigAllowed)
+                                    <div class="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[10.5px] text-amber-800 font-semibold flex items-center gap-1.5">
+                                        <i data-lucide="lock" class="w-3.5 h-3.5 flex-shrink-0"></i>
+                                        <span>Anda belum terdaftar untuk memakai TTD pejabat ini.</span>
+                                    </div>
+                                @elseif ($letter->signatory->signature_path)
                                     <button type="button"
-                                        onclick="addImageLayer('signature', '{{ $letter->signatory->signature_url }}', '{{ addslashes($letter->signatory->name) }}', 100)"
+                                        onclick="addImageLayer('signature', '{{ $letter->signatory->signature_url }}', '{{ addslashes($letter->signatory->name) }}', 100, null, {{ $letter->signatory->id }})"
                                         class="shortcut-chip w-full flex items-center gap-2.5 p-2 rounded-xl bg-white border border-emerald-200 hover:border-emerald-400 cursor-pointer">
-                                        <div class="w-12 h-8 checkerboard-mini rounded-lg flex items-center justify-center overflow-hidden p-1">
-                                            <img src="{{ $letter->signatory->signature_url }}" alt="TTD" class="max-h-full max-w-full object-contain">
+                                        <div class="w-9 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 flex-shrink-0">
+                                            <i data-lucide="shield-check" class="w-4 h-4"></i>
                                         </div>
-                                        <span class="text-xs font-bold text-emerald-800 flex-1 text-left">Tempel TTD</span>
-                                        <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-600"></i>
+                                        <div class="flex-1 text-left min-w-0">
+                                            <span class="text-xs font-bold text-emerald-800 block">Tempel TTD</span>
+                                            <span class="text-[9.5px] text-gray-400 block truncate">Terproteksi Server</span>
+                                        </div>
+                                        <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
                                     </button>
                                 @else
                                     <button type="button"
@@ -474,26 +601,43 @@
                             <span class="block text-[10.5px] font-extrabold uppercase tracking-wider text-gray-400">Pejabat Lainnya</span>
                             <div class="space-y-1.5" id="otherSignaturesList">
                                 @foreach ($otherSigs as $sig)
-                                    <button type="button"
-                                        onclick="addImageLayer('signature', '{{ $sig->signature_url }}', '{{ addslashes($sig->name) }}', 100)"
-                                        class="shortcut-chip w-full flex items-center gap-2 p-2 rounded-xl bg-gray-50 hover:bg-emerald-50 border border-gray-200/80 text-left cursor-pointer">
-                                        <img src="{{ $sig->signature_url }}" alt="{{ $sig->name }}" class="w-10 h-6 object-contain bg-white rounded border border-gray-100 p-0.5">
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-[11px] font-bold text-gray-800 truncate">{{ $sig->name }}</p>
-                                            <p class="text-[10px] text-gray-400 truncate">{{ $sig->position }}</p>
+                                    @php $canUseSig = $sig->canUserUseSignature($currentUser); @endphp
+                                    @if ($canUseSig)
+                                        <button type="button"
+                                            onclick="addImageLayer('signature', '{{ $sig->signature_url }}', '{{ addslashes($sig->name) }}', 100, null, {{ $sig->id }})"
+                                            class="shortcut-chip w-full flex items-center gap-2 p-2 rounded-xl bg-gray-50 hover:bg-emerald-50/70 border border-gray-200/80 hover:border-emerald-300 text-left cursor-pointer" title="Tempel gambar TTD terproteksi">
+                                            <div class="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                                                <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-[11px] font-bold text-gray-800 truncate">{{ $sig->name }}</p>
+                                                <p class="text-[10px] text-gray-400 truncate">{{ $sig->position }}</p>
+                                            </div>
+                                            <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0"></i>
+                                        </button>
+                                    @else
+                                        <div class="flex items-center gap-2 p-2 rounded-xl bg-gray-100/70 border border-gray-200/60 opacity-65" title="Akses TTD ini dibatasi hanya untuk user terdaftar">
+                                            <div class="w-7 h-7 rounded-lg bg-gray-200 flex items-center justify-center text-gray-500 flex-shrink-0">
+                                                <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-[11px] font-bold text-gray-600 truncate">{{ $sig->name }}</p>
+                                                <p class="text-[9.5px] text-amber-700 font-semibold truncate">Akses TTD Terbatas</p>
+                                            </div>
                                         </div>
-                                        <i data-lucide="plus" class="w-3.5 h-3.5 text-gray-400"></i>
-                                    </button>
+                                    @endif
                                 @endforeach
                             </div>
                         </div>
                     @endif
 
-                    <button type="button" onclick="openQuickUploadModal('signature', {{ $letter->signatory_id ?? 'null' }}, '{{ addslashes($letter->signatory?->name ?? '') }}')"
-                        class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-xs font-bold transition-colors cursor-pointer">
-                        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-                        <span>+ Upload TTD Baru</span>
-                    </button>
+                    @if (!$letter->signatory || $primarySigAllowed)
+                        <button type="button" onclick="openQuickUploadModal('signature', {{ $letter->signatory_id ?? 'null' }}, '{{ addslashes($letter->signatory?->name ?? '') }}')"
+                            class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-xs font-bold transition-colors cursor-pointer">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                            <span>+ Upload TTD Baru</span>
+                        </button>
+                    @endif
                 </div>
 
                 {{-- Tool Panel: Stamps --}}
@@ -560,18 +704,47 @@
             <div id="stageWrapper" class="flex-1 min-h-0 studio-stage-bg flex items-center justify-center overflow-auto p-4 sm:p-6 relative">
                 {{-- Empty State --}}
                 <div id="emptyStageState" class="text-center max-w-xs sm:max-w-sm space-y-3.5 p-8 rounded-3xl bg-white/90 backdrop-blur-sm border border-gray-200/80 shadow-sm">
-                    <div class="w-14 h-14 rounded-2xl bg-orange-50 border border-orange-200/80 text-[#FF4D00] flex items-center justify-center mx-auto">
-                        <i data-lucide="file-badge" class="w-7 h-7"></i>
-                    </div>
-                    <div class="space-y-1">
-                        <h3 class="text-sm font-extrabold text-gray-900">Upload Sertifikat untuk Memulai</h3>
-                        <p class="text-[11.5px] text-gray-500">Pilih atau tarik 1 atau banyak PNG/JPG, atau PDF multi-halaman.</p>
-                    </div>
-                    <button type="button" onclick="document.getElementById('baseFileInput').click()"
-                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#FF4D00] to-amber-500 text-white text-xs font-bold shadow-xs cursor-pointer">
-                        <i data-lucide="upload" class="w-4 h-4"></i>
-                        <span>Pilih File</span>
-                    </button>
+                    @if ($studioMode === 'letter')
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-600 flex items-center justify-center mx-auto">
+                            <i data-lucide="layout-template" class="w-7 h-7"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <h3 class="text-sm font-extrabold text-gray-900">Pilih Template Kertas Kop (Base)</h3>
+                            <p class="text-[11.5px] text-gray-500">Pilih atau upload Template Kop FEB UNJ (PDF/PNG), lalu crop isi surat dari Universitas.</p>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            @if ($letterheads->count() > 0)
+                                <button type="button" onclick="selectLetterheadAsBase('{{ $letterheads->first()->file_url }}', '{{ addslashes($letterheads->first()->name) }}')"
+                                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold shadow-xs cursor-pointer">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                                    <span>Pakai Template "{{ $letterheads->first()->name }}"</span>
+                                </button>
+                                <button type="button" onclick="openQuickUploadModal('letterhead')"
+                                    class="text-[11px] font-bold text-emerald-700 hover:underline cursor-pointer">
+                                    + Upload Template Kop Baru
+                                </button>
+                            @else
+                                <button type="button" onclick="openQuickUploadModal('letterhead')"
+                                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold shadow-xs cursor-pointer">
+                                    <i data-lucide="upload" class="w-4 h-4"></i>
+                                    <span>Upload Template Kop (PDF / PNG)</span>
+                                </button>
+                            @endif
+                        </div>
+                    @else
+                        <div class="w-14 h-14 rounded-2xl bg-orange-50 border border-orange-200/80 text-[#FF4D00] flex items-center justify-center mx-auto">
+                            <i data-lucide="file-badge" class="w-7 h-7"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <h3 class="text-sm font-extrabold text-gray-900">Upload Sertifikat untuk Memulai</h3>
+                            <p class="text-[11.5px] text-gray-500">Pilih atau tarik 1 atau banyak PNG/JPG, atau PDF multi-halaman.</p>
+                        </div>
+                        <button type="button" onclick="document.getElementById('baseFileInput').click()"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#FF4D00] to-amber-500 text-white text-xs font-bold shadow-xs cursor-pointer">
+                            <i data-lucide="upload" class="w-4 h-4"></i>
+                            <span>Pilih File</span>
+                        </button>
+                    @endif
                 </div>
 
                 {{-- Loading Spinner Overlay --}}
@@ -583,7 +756,7 @@
                 </div>
 
                 {{-- Interactive Canvas --}}
-                <canvas id="studioCanvas" class="hidden rounded-lg shadow-[0_12px_40px_rgba(15,23,42,0.14)] ring-1 ring-black/5 bg-white touch-none select-none"></canvas>
+                <canvas id="studioCanvas" oncontextmenu="return false" class="hidden rounded-lg shadow-[0_12px_40px_rgba(15,23,42,0.14)] ring-1 ring-black/5 bg-white touch-none select-none"></canvas>
             </div>
 
             {{-- Bottom Filmstrip Dock --}}
@@ -749,7 +922,7 @@
                         </div>
                     </div>
 
-                    <div class="p-3.5 space-y-2">
+                    <div class="p-3.5 space-y-2.5">
                         <div class="flex items-center justify-between">
                             <span class="text-[10.5px] font-bold uppercase tracking-wider text-gray-400">Warna</span>
                             <label class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-gray-600 cursor-pointer">
@@ -765,18 +938,48 @@
                                     class="w-5 h-5 rounded-full border border-gray-300 cursor-pointer shadow-2xs" style="background: {{ $hex }}" title="{{ $hex }}"></button>
                             @endforeach
                         </div>
+                        <div class="pt-2 border-t border-gray-100 space-y-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <label class="inline-flex items-center gap-1.5 text-[11px] font-bold text-gray-700 cursor-pointer" title="Beri kotak putih di belakang teks agar menimpa tulisan lama">
+                                    <input type="checkbox" id="propTextBgFill" onchange="updateSelectedTextProp('bgFill', this.checked); syncInspector(); pushHistory();" class="rounded border-gray-300 text-emerald-600">
+                                    <span>Latar Putih (Tutup Teks)</span>
+                                </label>
+                                <input type="color" id="propTextBgColor" value="#ffffff" oninput="updateSelectedTextProp('bgColor', this.value)"
+                                    class="w-6 h-6 rounded-md border border-gray-200 cursor-pointer p-0.5" title="Warna latar penutup teks">
+                            </div>
+                            <div id="propTextBgWidthWrap" class="hidden">
+                                <div class="flex items-center justify-between text-[10.5px] font-bold text-gray-500 mb-1">
+                                    <span>Lebar Min. Penutup</span>
+                                    <span id="propTextBgMinWLabel" class="font-mono">0%</span>
+                                </div>
+                                <input type="range" id="propTextBgMinW" min="0" max="60" step="1" value="0"
+                                    oninput="updateSelectedTextProp('bgMinWidthPct', parseInt(this.value))"
+                                    class="w-full accent-emerald-600">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Image Inspector (TTD / Stamp) --}}
+                {{-- Image Inspector (TTD / Stamp / Kop Surat) --}}
                 <div id="inspectorImage" class="hidden divide-y divide-gray-100">
+                    <div id="propLetterheadTools" class="hidden p-3.5 space-y-2 bg-emerald-50/40">
+                        <button type="button" onclick="fitLetterheadFullWidth()"
+                            class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer">
+                            <i data-lucide="move-horizontal" class="w-3.5 h-3.5"></i>
+                            <span>Sesuaikan Lebar Penuh (100%)</span>
+                        </button>
+                        <label class="flex items-center justify-between gap-2 text-[11px] font-semibold text-emerald-900 cursor-pointer">
+                            <span>Latar Putih Belakang Kop</span>
+                            <input type="checkbox" id="propWhiteBacking" onchange="updateSelectedProp('whiteBacking', this.checked); pushHistory();" class="rounded border-emerald-300 text-emerald-600">
+                        </label>
+                    </div>
                     <div class="p-3.5 space-y-3">
                         <div>
                             <div class="flex items-center justify-between text-[11px] font-bold text-gray-600 mb-1">
                                 <span>Ukuran</span>
                                 <span id="propImgScaleLabel" class="font-mono text-gray-900">18%</span>
                             </div>
-                            <input type="range" id="propImgScale" min="4" max="65" step="0.5" value="18"
+                            <input type="range" id="propImgScale" min="4" max="105" step="0.5" value="18"
                                 oninput="updateSelectedImageScale(parseFloat(this.value))"
                                 class="w-full accent-indigo-600">
                         </div>
@@ -824,6 +1027,50 @@
                                     oninput="updateSelectedBgThreshold(parseInt(this.value))"
                                     class="w-full accent-indigo-600">
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Whiteout Inspector --}}
+                <div id="inspectorWhiteout" class="hidden divide-y divide-gray-100">
+                    <div class="p-3.5 space-y-3">
+                        <div>
+                            <div class="flex items-center justify-between text-[11px] font-bold text-gray-600 mb-1">
+                                <span>Lebar Penutup</span>
+                                <span id="propWhiteoutWLabel" class="font-mono text-gray-900">40%</span>
+                            </div>
+                            <input type="range" id="propWhiteoutW" min="2" max="100" step="0.5" value="40"
+                                oninput="updateSelectedWhiteoutSize('width', parseFloat(this.value))"
+                                class="w-full accent-emerald-600">
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between text-[11px] font-bold text-gray-600 mb-1">
+                                <span>Tinggi Penutup</span>
+                                <span id="propWhiteoutHLabel" class="font-mono text-gray-900">15%</span>
+                            </div>
+                            <input type="range" id="propWhiteoutH" min="1" max="60" step="0.5" value="15"
+                                oninput="updateSelectedWhiteoutSize('height', parseFloat(this.value))"
+                                class="w-full accent-emerald-600">
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between text-[11px] font-bold text-gray-600 mb-1">
+                                <span>Opacity</span>
+                                <span id="propWhiteoutOpacityLabel" class="font-mono text-gray-900">100%</span>
+                            </div>
+                            <input type="range" id="propWhiteoutOpacity" min="20" max="100" step="1" value="100"
+                                oninput="updateSelectedProp('opacity', parseInt(this.value))"
+                                class="w-full accent-gray-700">
+                        </div>
+                    </div>
+                    <div class="p-3.5 space-y-2">
+                        <span class="block text-[10.5px] font-bold uppercase tracking-wider text-gray-400">Warna Kertas Penutup</span>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <input type="color" id="propWhiteoutColor" value="#ffffff" oninput="updateSelectedWhiteoutColor(this.value)"
+                                class="w-7 h-7 rounded-lg border border-gray-200 cursor-pointer p-0.5">
+                            @foreach (['#ffffff', '#fcfcfd', '#f8fafc', '#f5f5f4', '#fefce8'] as $wHex)
+                                <button type="button" onclick="setWhiteoutColorPreset('{{ $wHex }}')"
+                                    class="w-5.5 h-5.5 rounded-full border border-gray-300 cursor-pointer shadow-2xs" style="background: {{ $wHex }}" title="{{ $wHex }}"></button>
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -937,7 +1184,7 @@
                             class="w-full px-3.5 py-2 text-sm font-mono border border-gray-200 rounded-xl">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">File Gambar (PNG/JPG/WEBP, maks. 5 MB)</label>
+                        <label id="qaFileLabel" class="block text-xs font-bold text-gray-700 mb-1">File Gambar (PNG/JPG/WEBP, maks. 5 MB)</label>
                         <input type="file" id="qa_file" name="asset_file" accept=".png,.jpg,.jpeg,.webp" required
                             class="block w-full text-xs text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white cursor-pointer">
                     </div>
@@ -974,6 +1221,84 @@
         </form>
     </div>
 </div>
+
+{{-- Modal: Interactive Crop Surat Universitas --}}
+<div id="univCropModal" class="hidden fixed inset-0 z-[9996] flex items-center justify-center p-3 sm:p-5 bg-slate-950/75 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[94vh] flex flex-col overflow-hidden border border-slate-200">
+        <div class="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between gap-3 flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center">
+                    <i data-lucide="crop" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-extrabold text-gray-900">Crop Isi Surat Universitas</h3>
+                    <p class="text-[11px] text-gray-500">Tarik garis hijau untuk memilih bagian body ke bawah yang akan ditempel di Template Kop FEB</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div id="cropPageSelectWrap" class="hidden inline-flex items-center gap-1 bg-gray-100 rounded-xl p-1 text-xs">
+                    <button type="button" id="cropPrevPageBtn" onclick="switchCropPdfPage(-1)" class="w-6 h-6 rounded-lg hover:bg-white text-gray-700 font-bold cursor-pointer">&lsaquo;</button>
+                    <span id="cropPageInfo" class="px-1.5 font-mono text-[11px] font-bold text-gray-700">Hal 1/1</span>
+                    <button type="button" id="cropNextPageBtn" onclick="switchCropPdfPage(1)" class="w-6 h-6 rounded-lg hover:bg-white text-gray-700 font-bold cursor-pointer">&rsaquo;</button>
+                </div>
+                <button type="button" onclick="closeUnivCropModal()" class="p-1.5 text-gray-400 hover:text-gray-700 rounded-xl cursor-pointer">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        {{-- Multi-Page Inclusion & Sync Strip --}}
+        <div id="cropPagesBar" class="hidden px-5 py-2 bg-emerald-50/50 border-b border-emerald-100 flex items-center gap-2 overflow-x-auto filmstrip-scroll flex-shrink-0"></div>
+
+        <div class="px-5 py-2 bg-gray-50 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs flex-shrink-0">
+            <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-[11px] font-bold text-gray-500 mr-1">Preset:</span>
+                <button type="button" onclick="setCropPreset(0.14, 0.935, 0.03, 0.97)"
+                    class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold cursor-pointer">
+                    Standar (Tanpa Kop &amp; Footer)
+                </button>
+                <button type="button" onclick="setCropPreset(0.14, 0.675, 0.03, 0.97)"
+                    class="px-2.5 py-1 rounded-lg bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 text-[11px] font-semibold cursor-pointer">
+                    Tanpa Kop &amp; TTD Lama
+                </button>
+                <button type="button" onclick="setCropPreset(0, 1, 0, 1)"
+                    class="px-2.5 py-1 rounded-lg bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 text-[11px] font-semibold cursor-pointer">
+                    Penuh
+                </button>
+
+                <div id="cropPageSyncWrap" class="hidden inline-flex items-center gap-2 ml-1 pl-2 border-l border-gray-200">
+                    <label class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 cursor-pointer">
+                        <input type="checkbox" id="cropUseSameAsP1" checked onchange="toggleCurrentCropPageSync(this.checked)" class="rounded border-emerald-300 text-emerald-600">
+                        <span>Sama dg Hal. 1</span>
+                    </label>
+                    <button type="button" onclick="applyCurrentCropToAllPages()"
+                        class="px-2 py-0.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-[10.5px] font-bold cursor-pointer"
+                        title="Jadikan ukuran crop halaman ini sebagai standar semua halaman">
+                        Samakan Semua
+                    </button>
+                </div>
+            </div>
+            <span id="cropCoordsLabel" class="text-[11px] font-mono text-gray-500">Atas: 14% · Bawah: 94%</span>
+        </div>
+
+        <div class="flex-1 overflow-auto bg-[#EBEEF3] p-4 flex items-center justify-center min-h-[360px]">
+            <canvas id="univCropCanvas" class="rounded-lg shadow-xl bg-white touch-none select-none cursor-crosshair"></canvas>
+        </div>
+
+        <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between gap-3 flex-shrink-0 bg-white">
+            <p class="text-[11px] text-gray-500 hidden sm:block">Tip: Centang halaman di atas jika ingin mengambil lebih dari 1 halaman sekaligus dengan Template Kop yang sama.</p>
+            <div class="flex items-center gap-2 ml-auto">
+                <button type="button" onclick="closeUnivCropModal()" class="px-4 py-2 text-xs font-semibold bg-gray-100 hover:bg-gray-200 rounded-xl cursor-pointer">Batal</button>
+                <button type="button" onclick="applyUnivCropToCanvas()"
+                    class="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl shadow-xs cursor-pointer">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                    <span id="btnApplyUnivCropLabel">Tempel Hasil Crop ke Kanvas</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -985,19 +1310,26 @@
 <script>
     const LETTER_DATA = {
         id: {{ $letter->id }},
+        mode: @json($studioMode),
         number: @json($letter->letter_number),
         formattedDate: @json($formattedLetterDate),
         letterTypeId: {{ $letter->letter_type_id ?? 'null' }},
+        primarySigId: {{ $letter->signatory_id ?? 'null' }},
+        canUsePrimarySig: {{ $canUsePrimarySig ? 'true' : 'false' }},
         primarySigName: @json($letter->signatory?->name ?? ''),
         primarySigNip: @json($letter->signatory?->nip ?? ''),
-        primarySigUrl: @json($letter->signatory?->signature_url),
+        primarySigPosition: @json($letter->signatory?->position ?? ''),
+        primarySigUrl: @json($canUsePrimarySig ? $letter->signatory?->signature_url : null),
         archiveUrl: @json(route('letters.update-archive-link', $letter)),
         logExportUrl: @json(route('letters.certificate-studio.log-export', $letter)),
         quickAssetUrl: @json(route('certificate-studio.quick-asset')),
+        stampSignaturesUrl: @json(route('certificate-studio.stamp-signatures')),
         savePresetUrl: @json(route('certificate-studio.presets.store')),
         defaultStampUrl: @json($stamps->first()?->file_url),
         defaultStampName: @json($stamps->first()?->name ?? 'Stempel FEB UNJ'),
         defaultStampOpacity: {{ $stamps->first()?->default_opacity ?? 88 }},
+        defaultLetterheadUrl: @json($letterheads->first()?->file_url),
+        defaultLetterheadName: @json($letterheads->first()?->name ?? 'Kop Surat FEB UNJ'),
         gdriveReady: {{ $gdriveReady ? 'true' : 'false' }},
     };
 
@@ -1031,7 +1363,8 @@
     let redoStack = [];
 
     const LEFT_TOOL_TITLES = {
-        upload: 'Unggah Sertifikat',
+        upload: LETTER_DATA.mode === 'letter' ? 'Template Kop & Surat' : 'Unggah Sertifikat',
+        letterhead: 'Penutup (Whiteout)',
         text: 'Nomor & Teks',
         signature: 'Tanda Tangan',
         stamp: 'Stempel Resmi',
@@ -1207,14 +1540,20 @@
             uppercase: !!l.uppercase,
             letterSpacing: l.letterSpacing ?? 0,
             textShadow: !!l.textShadow,
-            color: l.color || '#111827',
+            color: l.color || (l.type === 'whiteout' ? '#ffffff' : '#111827'),
+            bgFill: !!l.bgFill,
+            bgColor: l.bgColor || '#ffffff',
+            bgMinWidthPct: l.bgMinWidthPct || 0,
             align: l.align || 'center',
             widthPct: l.width ? l.width / refW : null,
+            heightPct: l.height ? l.height / refH : null,
             aspect: l.aspect || 1,
             rotation: l.rotation || 0,
             opacity: l.opacity ?? 100,
             removeBg: !!l.removeBg,
             bgThreshold: l.bgThreshold || 225,
+            whiteBacking: !!l.whiteBacking,
+            signatoryId: l.signatoryId || null,
             url: l.url || null,
         }));
     }
@@ -1223,6 +1562,22 @@
         const refW = w || 1754;
         const refH = h || 1240;
         return (normLayers || []).map(n => {
+            if (n.type === 'whiteout') {
+                return {
+                    id: n.id || uid('wht_'),
+                    type: 'whiteout',
+                    role: n.role || 'whiteout',
+                    name: n.name || 'Kotak Penutup',
+                    locked: !!n.locked,
+                    x: refW * (n.xPct ?? 0.5),
+                    y: refH * (n.yPct ?? 0.5),
+                    width: Math.max(20, refW * (n.widthPct ?? 0.35)),
+                    height: Math.max(12, refH * (n.heightPct ?? 0.05)),
+                    color: n.color || '#ffffff',
+                    opacity: n.opacity ?? 100,
+                    rotation: n.rotation || 0,
+                };
+            }
             if (n.type === 'text') {
                 return {
                     id: n.id || uid(),
@@ -1243,6 +1598,9 @@
                     letterSpacing: n.letterSpacing ?? 0,
                     textShadow: !!n.textShadow,
                     color: n.color || '#111827',
+                    bgFill: !!n.bgFill,
+                    bgColor: n.bgColor || '#ffffff',
+                    bgMinWidthPct: n.bgMinWidthPct || 0,
                     align: n.align || 'center',
                     opacity: n.opacity ?? 100,
                     rotation: n.rotation || 0,
@@ -1266,6 +1624,8 @@
                 opacity: n.opacity ?? 100,
                 removeBg: !!n.removeBg,
                 bgThreshold: n.bgThreshold || 225,
+                whiteBacking: !!n.whiteBacking,
+                signatoryId: n.signatoryId || null,
             };
         });
     }
@@ -1391,6 +1751,7 @@
                         thumbCanvas.height = Math.max(1, Math.round(vpThumb.height));
                         await page.render({ canvasContext: thumbCanvas.getContext('2d'), viewport: vpThumb }).promise;
 
+                        const defaultUseMaster = LETTER_DATA.mode !== 'letter';
                         slides.push({
                             id: uid('sld_'),
                             label: pdfDoc.numPages > 1 ? `${cleanBase} (Hal. ${p})` : cleanBase,
@@ -1401,8 +1762,8 @@
                             thumbUrl: thumbCanvas.toDataURL('image/jpeg', 0.8),
                             width: Math.round(vpFull.width),
                             height: Math.round(vpFull.height),
-                            useMasterLayout: true,
-                            customNormalizedLayers: null,
+                            useMasterLayout: defaultUseMaster,
+                            customNormalizedLayers: defaultUseMaster ? null : [],
                         });
                         addedCount++;
                     }
@@ -1417,6 +1778,7 @@
                     tmp.height = Math.max(1, Math.round(h * (tmp.width / w)));
                     tmp.getContext('2d').drawImage(img, 0, 0, tmp.width, tmp.height);
 
+                    const defaultUseMasterImg = LETTER_DATA.mode !== 'letter';
                     slides.push({
                         id: uid('sld_'),
                         label: cleanBase,
@@ -1426,8 +1788,8 @@
                         thumbUrl: tmp.toDataURL('image/jpeg', 0.8),
                         width: w,
                         height: h,
-                        useMasterLayout: true,
-                        customNormalizedLayers: null,
+                        useMasterLayout: defaultUseMasterImg,
+                        customNormalizedLayers: defaultUseMasterImg ? null : [],
                     });
                     addedCount++;
                 }
@@ -1439,9 +1801,9 @@
                 const targetIndex = append ? startIdx : 0;
                 await switchSlide(targetIndex);
                 if (!append && activeLeftTool === 'upload') {
-                    switchLeftTool('text');
+                    switchLeftTool(LETTER_DATA.mode === 'letter' ? 'letterhead' : 'text');
                 }
-                showStudioToast(`${addedCount} halaman sertifikat berhasil dimuat!`);
+                showStudioToast(`${addedCount} halaman ${LETTER_DATA.mode === 'letter' ? 'surat' : 'sertifikat'} berhasil dimuat!`);
             } else {
                 showStudioToast('Tidak ada berkas valid (PDF/PNG/JPG) yang dimuat.', true);
             }
@@ -1817,9 +2179,12 @@
     }
 
     // ── Layer Management ──
-    function addTextLayer(textValue, xPct = 0.5, yPct = 0.308, role = 'number', name = 'Teks') {
+    function addTextLayer(textValue, xPct = 0.5, yPct = 0.308, role = 'number', name = 'Teks', extraOpts = {}) {
         if (!ensureBaseReady()) return;
-        const fontSize = Math.max(22, Math.round(baseHeight * (role === 'number' ? 0.025 : 0.022)));
+        const defaultScale = role === 'number'
+            ? (LETTER_DATA.mode === 'letter' ? 0.0145 : 0.025)
+            : (LETTER_DATA.mode === 'letter' ? 0.0145 : 0.022);
+        const fontSize = extraOpts.fontSize || Math.max(16, Math.round(baseHeight * defaultScale));
         const layer = {
             id: uid(),
             type: 'text',
@@ -1830,16 +2195,44 @@
             x: baseWidth * xPct,
             y: baseHeight * yPct,
             fontSize: fontSize,
-            fontFamily: 'Times New Roman, Liberation Serif, serif',
-            bold: false,
-            italic: false,
-            underline: false,
-            strikethrough: false,
-            uppercase: false,
-            letterSpacing: 0,
-            textShadow: false,
-            color: '#111827',
-            align: 'center',
+            fontFamily: extraOpts.fontFamily || 'Times New Roman, Liberation Serif, serif',
+            bold: !!extraOpts.bold,
+            italic: !!extraOpts.italic,
+            underline: !!extraOpts.underline,
+            strikethrough: !!extraOpts.strikethrough,
+            uppercase: !!extraOpts.uppercase,
+            letterSpacing: extraOpts.letterSpacing ?? 0,
+            textShadow: !!extraOpts.textShadow,
+            color: extraOpts.color || '#111827',
+            bgFill: !!extraOpts.bgFill,
+            bgColor: extraOpts.bgColor || '#ffffff',
+            bgMinWidthPct: extraOpts.bgMinWidthPct || 0,
+            align: extraOpts.align || (LETTER_DATA.mode === 'letter' ? 'left' : 'center'),
+            opacity: extraOpts.opacity ?? 100,
+            rotation: 0,
+        };
+        layers.push(layer);
+        selectedLayerId = layer.id;
+        pushHistory();
+        renderCanvas();
+        syncInspector();
+        renderLayerList();
+        return layer;
+    }
+
+    function addWhiteoutLayer(xPct = 0.5, yPct = 0.25, wPct = 0.35, hPct = 0.04, name = 'Kotak Penutup', role = 'whiteout') {
+        if (!ensureBaseReady()) return null;
+        const layer = {
+            id: uid('wht_'),
+            type: 'whiteout',
+            role: role,
+            name: name,
+            locked: false,
+            x: baseWidth * xPct,
+            y: baseHeight * yPct,
+            width: Math.max(24, Math.round(baseWidth * wPct)),
+            height: Math.max(14, Math.round(baseHeight * hPct)),
+            color: '#ffffff',
             opacity: 100,
             rotation: 0,
         };
@@ -1849,6 +2242,676 @@
         renderCanvas();
         syncInspector();
         renderLayerList();
+        return layer;
+    }
+
+    async function addLetterheadLayer(url, label = 'Kop Surat FEB UNJ') {
+        if (!ensureBaseReady()) return null;
+        if (!url) {
+            showStudioToast('Gambar Kop Surat belum tersedia. Upload terlebih dahulu.', true);
+            return null;
+        }
+        try {
+            const img = await loadCachedImage(url);
+            const aspect = (img.naturalHeight || 1) / (img.naturalWidth || 1);
+            const widthPx = baseWidth * 1.0;
+            const heightPx = widthPx * aspect;
+
+            const layer = {
+                id: uid('kop_'),
+                type: 'image',
+                role: 'letterhead',
+                name: label,
+                locked: false,
+                url: url,
+                x: baseWidth * 0.5,
+                y: heightPx / 2,
+                width: widthPx,
+                height: heightPx,
+                aspect: aspect,
+                rotation: 0,
+                opacity: 100,
+                removeBg: false,
+                bgThreshold: 225,
+                whiteBacking: true,
+            };
+
+            layers.push(layer);
+            selectedLayerId = layer.id;
+            pushHistory();
+            renderCanvas();
+            syncInspector();
+            renderLayerList();
+            showStudioToast(`Kop "${label}" ditempelkan di bagian atas halaman.`);
+            return layer;
+        } catch (err) {
+            showStudioToast('Gagal memuat gambar Kop Surat.', true);
+            return null;
+        }
+    }
+
+    function addNumberWithWhiteout(withPrefix = false) {
+        const textVal = withPrefix ? ('Nomor: ' + LETTER_DATA.number) : LETTER_DATA.number;
+        const existing = layers.find(l => l.type === 'text' && l.role === 'number');
+        if (existing) {
+            if (existing.locked) {
+                showStudioToast('Layer Nomor sedang dikunci.', true);
+                return;
+            }
+            existing.text = textVal;
+            existing.bgFill = true;
+            existing.bgColor = existing.bgColor || '#ffffff';
+            existing.bgMinWidthPct = existing.bgMinWidthPct || 34;
+            selectedLayerId = existing.id;
+            pushHistory();
+            renderCanvas();
+            syncInspector();
+            renderLayerList();
+            return;
+        }
+        addTextLayer(textVal, 0.223, 0.175, 'number', 'Nomor Surat (Latar Putih)', {
+            bgFill: true,
+            bgColor: '#ffffff',
+            bgMinWidthPct: 34,
+            color: '#000000',
+            align: 'left',
+            fontSize: Math.max(14, Math.round(baseHeight * 0.0132)),
+        });
+    }
+
+    async function addFullSignatureBlock(sigOverride = null) {
+        if (!ensureBaseReady()) return;
+
+        const sigId = sigOverride?.id ?? LETTER_DATA.primarySigId;
+        const sigName = sigOverride?.name ?? LETTER_DATA.primarySigName;
+        const sigNip = sigOverride?.nip ?? LETTER_DATA.primarySigNip;
+        const sigPos = sigOverride?.position ?? LETTER_DATA.primarySigPosition;
+        const sigUrl = sigOverride?.url ?? LETTER_DATA.primarySigUrl;
+        const bodyFontSize = Math.max(14, Math.round(baseHeight * 0.0132));
+
+        // 1. Kotak Penutup TTD Lama di kanan bawah (aman dari area Tembusan di kiri)
+        addWhiteoutLayer(0.71, 0.775, 0.44, 0.185, 'Penutup TTD Lama', 'whiteout_sig');
+
+        // 2. Jabatan Pejabat (tanpa baris tanggal karena tanggal sudah di kanan atas)
+        if (sigPos) {
+            addTextLayer(sigPos, 0.505, 0.712, 'sig_block_date', 'Jabatan TTD', {
+                align: 'left',
+                color: '#000000',
+                fontSize: bodyFontSize,
+            });
+        }
+
+        // 3. Gambar TTD Digital (jika ada & diizinkan)
+        if (sigUrl) {
+            await addImageLayer('signature', sigUrl, sigName || 'TTD Pejabat', 100, {
+                wPct: 0.17,
+                xPct: 0.62,
+                yPct: 0.77,
+            }, sigId);
+        }
+
+        // 4. Nama Lengkap (Bold) & NIP (Regular)
+        if (sigName) {
+            addTextLayer(sigName, 0.505, 0.822, 'sig_block_name', 'Nama Pejabat TTD', {
+                align: 'left',
+                bold: true,
+                color: '#000000',
+                fontSize: bodyFontSize,
+            });
+        }
+        if (sigNip) {
+            addTextLayer(`NIP : ${sigNip}`, 0.505, 0.848, 'sig_block_nip', 'NIP Pejabat TTD', {
+                align: 'left',
+                color: '#000000',
+                fontSize: bodyFontSize,
+            });
+        }
+
+        showStudioToast('Blok TTD baru FEB UNJ disusun! Geser sesuai posisi di surat.');
+    }
+
+    // ── Template Kop Base & Interactive Multi-Page Crop Modal untuk Surat Universitas ──
+    const univCropState = {
+        fileName: 'Surat_Universitas',
+        pdfDoc: null,
+        totalPages: 1,
+        activeIdx: 0,
+        masterCrop: { top: 0.14, bottom: 0.935, left: 0.03, right: 0.97 },
+        pages: [],
+        dispScale: 1,
+        dragMode: null,
+        startY: 0,
+        startX: 0,
+        origCrop: null,
+    };
+
+    function getActiveCropPage() {
+        return univCropState.pages[univCropState.activeIdx] || null;
+    }
+
+    function getCropForPage(pageObj) {
+        if (!pageObj) return { ...univCropState.masterCrop };
+        return pageObj.useSameCrop
+            ? { ...univCropState.masterCrop }
+            : { ...(pageObj.customCrop || univCropState.masterCrop) };
+    }
+
+    function setActivePageCrop(nextRect, refreshUI = true) {
+        const idx = univCropState.activeIdx;
+        const pageObj = univCropState.pages[idx];
+        if (!pageObj) return;
+
+        if (idx === 0) {
+            univCropState.masterCrop = { ...nextRect };
+            pageObj.useSameCrop = true;
+        } else {
+            pageObj.useSameCrop = false;
+            pageObj.customCrop = { ...nextRect };
+        }
+
+        if (refreshUI) {
+            updateUnivCropPageUI();
+            renderCropPagesBar();
+        }
+    }
+
+    async function selectLetterheadAsBase(url, label = 'Kop Surat FEB UNJ') {
+        if (!url) return false;
+        const loadingEl = document.getElementById('stageLoadingOverlay');
+        loadingEl?.classList.remove('hidden');
+        try {
+            const img = await loadCachedImage(url);
+            const w = img.naturalWidth || img.width || 1654;
+            const h = img.naturalHeight || img.height || 2339;
+
+            const tmp = document.createElement('canvas');
+            tmp.width = Math.min(w, 260);
+            tmp.height = Math.max(1, Math.round(h * (tmp.width / w)));
+            tmp.getContext('2d').drawImage(img, 0, 0, tmp.width, tmp.height);
+            const thumbUrl = tmp.toDataURL('image/jpeg', 0.82);
+
+            if (slides.length === 0) {
+                slides.push({
+                    id: uid('sld_'),
+                    label: label,
+                    fileName: label,
+                    sourceType: 'image',
+                    dataUrl: url,
+                    thumbUrl: thumbUrl,
+                    width: w,
+                    height: h,
+                    useMasterLayout: false,
+                    customNormalizedLayers: [],
+                });
+                await switchSlide(0);
+            } else {
+                syncCurrentLayersToState();
+                slides.forEach(s => {
+                    s.sourceType = 'image';
+                    s.dataUrl = url;
+                    s.thumbUrl = thumbUrl;
+                    s.width = w;
+                    s.height = h;
+                    s.useMasterLayout = false;
+                    delete s._cachedHiResImg;
+                });
+                if (slides.length === 1) slides[0].label = label;
+                await switchSlide(activeSlideIndex >= 0 ? activeSlideIndex : 0);
+            }
+
+            showStudioToast(`Template "${label}" aktif sebagai Base! Selanjutnya klik "Upload & Crop Isi Surat".`);
+            return true;
+        } catch (err) {
+            showStudioToast('Gagal memuat template Kop Surat.', true);
+            return false;
+        } finally {
+            loadingEl?.classList.add('hidden');
+        }
+    }
+
+    async function openUnivCropModalFromFile(file) {
+        if (!file) return;
+        const inputEl = document.getElementById('univLetterFileInput');
+        if (inputEl) inputEl.value = '';
+
+        const ext = file.name.split('.').pop().toLowerCase();
+        const cleanBase = file.name.replace(/\.[^/.]+$/, '') || 'Surat_Universitas';
+        setBatchProgress(true, 'Membuka Dokumen Universitas...', `Memuat "${file.name}"...`, 35);
+
+        try {
+            univCropState.fileName = cleanBase;
+            univCropState.masterCrop = { top: 0.14, bottom: 0.935, left: 0.03, right: 0.97 };
+            univCropState.activeIdx = 0;
+
+            if (ext === 'pdf') {
+                const buffer = await file.arrayBuffer();
+                const pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
+                univCropState.pdfDoc = pdfDoc;
+                univCropState.totalPages = pdfDoc.numPages;
+                univCropState.pages = Array.from({ length: pdfDoc.numPages }, (_, i) => ({
+                    pageNum: i + 1,
+                    included: true,
+                    useSameCrop: true,
+                    customCrop: null,
+                    canvasCache: null,
+                }));
+                await ensureCropPageCanvas(0);
+            } else if (['png', 'jpg', 'jpeg'].includes(ext)) {
+                const { img } = await readImageFileAsDataUrl(file);
+                const off = document.createElement('canvas');
+                off.width = img.naturalWidth || img.width;
+                off.height = img.naturalHeight || img.height;
+                off.getContext('2d').drawImage(img, 0, 0);
+                univCropState.pdfDoc = null;
+                univCropState.totalPages = 1;
+                univCropState.pages = [{
+                    pageNum: 1,
+                    included: true,
+                    useSameCrop: true,
+                    customCrop: null,
+                    canvasCache: off,
+                }];
+            } else {
+                setBatchProgress(false);
+                showStudioToast('Format surat harus PDF, PNG, atau JPG.', true);
+                return;
+            }
+
+            setBatchProgress(false);
+            renderCropPagesBar();
+            updateUnivCropPageUI();
+            document.getElementById('univCropModal')?.classList.remove('hidden');
+            requestAnimationFrame(drawUnivCropCanvas);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        } catch (err) {
+            console.error(err);
+            setBatchProgress(false);
+            showStudioToast('Gagal membaca file surat Universitas.', true);
+        }
+    }
+
+    async function ensureCropPageCanvas(idx) {
+        const pageObj = univCropState.pages[idx];
+        if (!pageObj) return null;
+        if (pageObj.canvasCache) return pageObj.canvasCache;
+        if (!univCropState.pdfDoc) return null;
+
+        const page = await univCropState.pdfDoc.getPage(pageObj.pageNum);
+        const vp = page.getViewport({ scale: 3.0 });
+        const off = document.createElement('canvas');
+        off.width = Math.round(vp.width);
+        off.height = Math.round(vp.height);
+        await page.render({ canvasContext: off.getContext('2d'), viewport: vp }).promise;
+        pageObj.canvasCache = off;
+        return off;
+    }
+
+    function renderCropPagesBar() {
+        const bar = document.getElementById('cropPagesBar');
+        const applyLabel = document.getElementById('btnApplyUnivCropLabel');
+        const includedCount = univCropState.pages.filter(p => p.included).length;
+
+        if (applyLabel) {
+            applyLabel.textContent = includedCount > 1
+                ? `Tempel ${includedCount} Halaman ke Kanvas`
+                : 'Tempel Hasil Crop ke Kanvas';
+        }
+
+        if (!bar) return;
+        if (univCropState.totalPages <= 1) {
+            bar.classList.add('hidden');
+            bar.innerHTML = '';
+            return;
+        }
+
+        bar.classList.remove('hidden');
+        bar.innerHTML = univCropState.pages.map((p, idx) => {
+            const isActive = idx === univCropState.activeIdx;
+            const syncText = idx === 0 ? 'Master' : (p.useSameCrop ? 'Sama' : 'Custom');
+            const dotColor = idx === 0 || p.useSameCrop ? 'bg-emerald-500' : 'bg-amber-500';
+            return `
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[11px] flex-shrink-0 transition-all ${isActive ? 'bg-white border-emerald-500 ring-2 ring-emerald-500/20 shadow-2xs' : 'bg-white/75 border-gray-200 hover:bg-white'} ${p.included ? '' : 'opacity-50'}">
+                    <input type="checkbox" ${p.included ? 'checked' : ''} onchange="toggleCropPageIncluded(${idx}, this.checked)"
+                        class="rounded border-gray-300 text-emerald-600 cursor-pointer" title="Sertakan Halaman ${p.pageNum}">
+                    <button type="button" onclick="selectCropModalPage(${idx})" class="inline-flex items-center gap-1.5 font-bold text-gray-800 cursor-pointer">
+                        <span>Hal. ${p.pageNum}</span>
+                        <span class="inline-flex items-center gap-1 text-[9.5px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                            <span class="w-1.5 h-1.5 rounded-full ${dotColor}"></span>${syncText}
+                        </span>
+                    </button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function toggleCropPageIncluded(idx, checked) {
+        if (!univCropState.pages[idx]) return;
+        univCropState.pages[idx].included = checked;
+        renderCropPagesBar();
+    }
+
+    function updateUnivCropPageUI() {
+        const wrap = document.getElementById('cropPageSelectWrap');
+        const info = document.getElementById('cropPageInfo');
+        const prevBtn = document.getElementById('cropPrevPageBtn');
+        const nextBtn = document.getElementById('cropNextPageBtn');
+        const syncWrap = document.getElementById('cropPageSyncWrap');
+        const sameCb = document.getElementById('cropUseSameAsP1');
+        const curPage = getActiveCropPage();
+
+        if (wrap) wrap.classList.toggle('hidden', univCropState.totalPages <= 1);
+        if (info) info.textContent = `Hal ${univCropState.activeIdx + 1}/${univCropState.totalPages}`;
+        if (prevBtn) prevBtn.disabled = univCropState.activeIdx <= 0;
+        if (nextBtn) nextBtn.disabled = univCropState.activeIdx >= univCropState.totalPages - 1;
+        if (syncWrap) syncWrap.classList.toggle('hidden', univCropState.totalPages <= 1 || univCropState.activeIdx === 0);
+        if (sameCb && curPage) sameCb.checked = !!curPage.useSameCrop;
+    }
+
+    async function selectCropModalPage(idx) {
+        if (idx < 0 || idx >= univCropState.totalPages) return;
+        univCropState.activeIdx = idx;
+        await ensureCropPageCanvas(idx);
+        updateUnivCropPageUI();
+        renderCropPagesBar();
+        drawUnivCropCanvas();
+    }
+
+    async function switchCropPdfPage(delta) {
+        await selectCropModalPage(univCropState.activeIdx + delta);
+    }
+
+    function toggleCurrentCropPageSync(useSame) {
+        const p = getActiveCropPage();
+        if (!p || univCropState.activeIdx === 0) return;
+        p.useSameCrop = useSame;
+        if (useSame) {
+            p.customCrop = null;
+        } else {
+            p.customCrop = { ...univCropState.masterCrop };
+        }
+        updateUnivCropPageUI();
+        renderCropPagesBar();
+        drawUnivCropCanvas();
+    }
+
+    function applyCurrentCropToAllPages() {
+        const cur = getCropForPage(getActiveCropPage());
+        univCropState.masterCrop = { ...cur };
+        univCropState.pages.forEach(p => {
+            p.useSameCrop = true;
+            p.customCrop = null;
+        });
+        updateUnivCropPageUI();
+        renderCropPagesBar();
+        drawUnivCropCanvas();
+        showStudioToast('Ukuran crop halaman ini diterapkan ke seluruh halaman.');
+    }
+
+    function setCropPreset(top, bottom, left, right) {
+        setActivePageCrop({ top, bottom, left, right }, true);
+        drawUnivCropCanvas();
+    }
+
+    function drawUnivCropCanvas() {
+        const pageObj = getActiveCropPage();
+        const src = pageObj?.canvasCache;
+        const c = document.getElementById('univCropCanvas');
+        if (!src || !c) return;
+
+        const maxW = Math.min(760, window.innerWidth - 80);
+        const maxH = Math.max(340, window.innerHeight * 0.56);
+        const scale = Math.min(maxW / src.width, maxH / src.height, 1);
+        univCropState.dispScale = scale;
+
+        c.width = Math.round(src.width * scale);
+        c.height = Math.round(src.height * scale);
+
+        const cctx = c.getContext('2d');
+        cctx.clearRect(0, 0, c.width, c.height);
+        cctx.drawImage(src, 0, 0, c.width, c.height);
+
+        const { top, bottom, left, right } = getCropForPage(pageObj);
+        const rx = left * c.width;
+        const ry = top * c.height;
+        const rw = (right - left) * c.width;
+        const rh = (bottom - top) * c.height;
+
+        cctx.fillStyle = 'rgba(15, 23, 42, 0.55)';
+        cctx.fillRect(0, 0, c.width, ry);
+        cctx.fillRect(0, ry + rh, c.width, c.height - (ry + rh));
+        cctx.fillRect(0, ry, rx, rh);
+        cctx.fillRect(rx + rw, ry, c.width - (rx + rw), rh);
+
+        cctx.strokeStyle = '#10b981';
+        cctx.lineWidth = 2.5;
+        cctx.strokeRect(rx, ry, rw, rh);
+
+        cctx.fillStyle = '#10b981';
+        cctx.fillRect(rx + rw / 2 - 22, ry - 4, 44, 8);
+        cctx.fillRect(rx + rw / 2 - 22, ry + rh - 4, 44, 8);
+        cctx.fillRect(rx - 4, ry + rh / 2 - 18, 8, 36);
+        cctx.fillRect(rx + rw - 4, ry + rh / 2 - 18, 8, 36);
+
+        const lbl = document.getElementById('cropCoordsLabel');
+        if (lbl) {
+            lbl.textContent = `Atas: ${Math.round(top * 100)}% · Bawah: ${Math.round(bottom * 100)}%`;
+        }
+    }
+
+    function initUnivCropInteraction() {
+        const c = document.getElementById('univCropCanvas');
+        if (!c || c.dataset.boundCrop) return;
+        c.dataset.boundCrop = '1';
+
+        const getNormPt = (evt) => {
+            const rect = c.getBoundingClientRect();
+            const cx = evt.touches ? evt.touches[0].clientX : evt.clientX;
+            const cy = evt.touches ? evt.touches[0].clientY : evt.clientY;
+            return {
+                x: Math.max(0, Math.min(1, (cx - rect.left) / rect.width)),
+                y: Math.max(0, Math.min(1, (cy - rect.top) / rect.height)),
+            };
+        };
+
+        c.addEventListener('mousedown', (evt) => {
+            const p = getNormPt(evt);
+            const cr = getCropForPage(getActiveCropPage());
+            const tol = 0.025;
+            let mode = null;
+            if (Math.abs(p.y - cr.top) < tol && p.x >= cr.left - tol && p.x <= cr.right + tol) mode = 'top';
+            else if (Math.abs(p.y - cr.bottom) < tol && p.x >= cr.left - tol && p.x <= cr.right + tol) mode = 'bottom';
+            else if (Math.abs(p.x - cr.left) < tol && p.y >= cr.top && p.y <= cr.bottom) mode = 'left';
+            else if (Math.abs(p.x - cr.right) < tol && p.y >= cr.top && p.y <= cr.bottom) mode = 'right';
+            else if (p.x > cr.left && p.x < cr.right && p.y > cr.top && p.y < cr.bottom) mode = 'move';
+            if (!mode) return;
+            evt.preventDefault();
+            univCropState.dragMode = mode;
+            univCropState.startX = p.x;
+            univCropState.startY = p.y;
+            univCropState.origCrop = { ...cr };
+        });
+
+        window.addEventListener('mousemove', (evt) => {
+            if (!univCropState.dragMode) return;
+            const p = getNormPt(evt);
+            const o = univCropState.origCrop;
+            const next = { ...o };
+            const minSpan = 0.08;
+            if (univCropState.dragMode === 'top') {
+                next.top = Math.max(0, Math.min(o.bottom - minSpan, p.y));
+            } else if (univCropState.dragMode === 'bottom') {
+                next.bottom = Math.min(1, Math.max(o.top + minSpan, p.y));
+            } else if (univCropState.dragMode === 'left') {
+                next.left = Math.max(0, Math.min(o.right - minSpan, p.x));
+            } else if (univCropState.dragMode === 'right') {
+                next.right = Math.min(1, Math.max(o.left + minSpan, p.x));
+            } else if (univCropState.dragMode === 'move') {
+                const dx = p.x - univCropState.startX;
+                const dy = p.y - univCropState.startY;
+                const w = o.right - o.left;
+                const h = o.bottom - o.top;
+                const nl = Math.max(0, Math.min(1 - w, o.left + dx));
+                const nt = Math.max(0, Math.min(1 - h, o.top + dy));
+                next.left = nl;
+                next.right = nl + w;
+                next.top = nt;
+                next.bottom = nt + h;
+            }
+            setActivePageCrop(next, false);
+            drawUnivCropCanvas();
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!univCropState.dragMode) return;
+            univCropState.dragMode = null;
+            updateUnivCropPageUI();
+            renderCropPagesBar();
+        });
+    }
+
+    function closeUnivCropModal() {
+        document.getElementById('univCropModal')?.classList.add('hidden');
+    }
+
+    async function cropPageToBodyLayer(pageObj, tplW, tplH) {
+        const src = await ensureCropPageCanvas(univCropState.pages.indexOf(pageObj));
+        if (!src) return null;
+
+        const { top, bottom, left, right } = getCropForPage(pageObj);
+        const sx = Math.round(left * src.width);
+        const sy = Math.round(top * src.height);
+        const sw = Math.max(40, Math.round((right - left) * src.width));
+        const sh = Math.max(40, Math.round((bottom - top) * src.height));
+
+        const out = document.createElement('canvas');
+        out.width = sw;
+        out.height = sh;
+        out.getContext('2d').drawImage(src, sx, sy, sw, sh, 0, 0, sw, sh);
+
+        const croppedDataUrl = out.toDataURL('image/png');
+        const img = await loadCachedImage(croppedDataUrl);
+        const aspect = (img.naturalHeight || sh) / (img.naturalWidth || sw);
+
+        const wPct = Math.min(0.98, Math.max(0.45, right - left));
+        const widthPx = tplW * wPct;
+        const heightPx = widthPx * aspect;
+        const startYPx = tplH * 0.162;
+
+        return {
+            id: uid('body_'),
+            type: 'image',
+            role: 'body_crop',
+            name: `Isi Surat Hal. ${pageObj.pageNum}`,
+            locked: false,
+            url: croppedDataUrl,
+            x: tplW * 0.5,
+            y: startYPx + heightPx / 2,
+            width: widthPx,
+            height: heightPx,
+            aspect: aspect,
+            rotation: 0,
+            opacity: 100,
+            removeBg: false,
+            bgThreshold: 225,
+            whiteBacking: false,
+        };
+    }
+
+    async function applyUnivCropToCanvas() {
+        const includedPages = univCropState.pages.filter(p => p.included);
+        if (includedPages.length === 0) {
+            showStudioToast('Centang minimal 1 halaman surat untuk ditempel ke kanvas.', true);
+            return;
+        }
+
+        if ((!baseImage || slides.length === 0) && LETTER_DATA.defaultLetterheadUrl) {
+            await selectLetterheadAsBase(LETTER_DATA.defaultLetterheadUrl, LETTER_DATA.defaultLetterheadName);
+        }
+        if (!ensureBaseReady()) return;
+
+        const tplSlide = getActiveSlide();
+        const tplUrl = tplSlide?.dataUrl || LETTER_DATA.defaultLetterheadUrl;
+        const tplThumb = tplSlide?.thumbUrl;
+        const tplW = tplSlide?.width || baseWidth;
+        const tplH = tplSlide?.height || baseHeight;
+
+        if (includedPages.length === 1) {
+            const bodyLayer = await cropPageToBodyLayer(includedPages[0], baseWidth, baseHeight);
+            if (!bodyLayer) return;
+
+            layers = layers.filter(l => l.role !== 'body_crop');
+            layers.unshift(bodyLayer);
+            selectedLayerId = bodyLayer.id;
+            pushHistory();
+            renderCanvas();
+            syncInspector();
+            renderLayerList();
+            closeUnivCropModal();
+            switchLeftTool('text');
+            showStudioToast('Isi surat Universitas berhasil ditempel di atas Template Kop!');
+            return;
+        }
+
+        // Multi-page: generate slides using the same Template Kop Base + each page's cropped body
+        setBatchProgress(true, 'Menyusun Multi-Halaman Surat...', `Memproses ${includedPages.length} halaman dengan Template Kop yang sama...`, 15);
+
+        try {
+            const existingOverlayNorm = normalizeLayers(layers.filter(l => l.role !== 'body_crop'), baseWidth, baseHeight);
+            const newSlides = [];
+
+            for (let i = 0; i < includedPages.length; i++) {
+                const p = includedPages[i];
+                const pct = 15 + Math.round(((i + 1) / includedPages.length) * 80);
+                setBatchProgress(true, 'Menyusun Multi-Halaman Surat...', `Memotong halaman ${p.pageNum} (${i + 1}/${includedPages.length})...`, pct);
+
+                const bodyLayer = await cropPageToBodyLayer(p, tplW, tplH);
+                const pageLayersNorm = bodyLayer ? normalizeLayers([bodyLayer], tplW, tplH) : [];
+                if (i === 0 && existingOverlayNorm.length > 0) {
+                    pageLayersNorm.push(...existingOverlayNorm);
+                }
+
+                newSlides.push({
+                    id: uid('sld_'),
+                    label: `${univCropState.fileName} (Hal. ${p.pageNum})`,
+                    fileName: `${univCropState.fileName}_hal${p.pageNum}`,
+                    sourceType: 'image',
+                    dataUrl: tplUrl,
+                    thumbUrl: tplThumb,
+                    width: tplW,
+                    height: tplH,
+                    useMasterLayout: false,
+                    customNormalizedLayers: pageLayersNorm,
+                });
+            }
+
+            slides = newSlides;
+            activeSlideIndex = -1;
+            setBatchProgress(false);
+            closeUnivCropModal();
+            await switchSlide(0);
+            switchLeftTool('text');
+            showStudioToast(`${includedPages.length} halaman surat ditempel dengan Template Kop yang sama!`);
+        } catch (err) {
+            console.error(err);
+            setBatchProgress(false);
+            showStudioToast('Gagal menyusun multi-halaman hasil crop.', true);
+        }
+    }
+
+    function fitLetterheadFullWidth() {
+        const layer = layers.find(l => l.id === selectedLayerId && l.type === 'image');
+        if (!layer) return;
+        if (layer.locked) {
+            showStudioToast('Layer sedang dikunci.', true);
+            return;
+        }
+        layer.width = baseWidth;
+        layer.height = baseWidth * (layer.aspect || 1);
+        layer.x = baseWidth * 0.5;
+        layer.y = layer.height / 2;
+        pushHistory();
+        syncInspector();
+        renderCanvas();
     }
 
     function addCustomTextShortcut() {
@@ -1922,7 +2985,7 @@
         await Promise.all(urls.map(u => loadCachedImage(u).catch(() => null)));
     }
 
-    async function addImageLayer(role, url, label, opacity = 100, customPct = null) {
+    async function addImageLayer(role, url, label, opacity = 100, customPct = null, signatoryId = null) {
         if (!ensureBaseReady()) return;
         if (!url) {
             showStudioToast('Gambar belum tersedia. Silakan upload terlebih dahulu.', true);
@@ -1944,7 +3007,7 @@
                 id: uid(),
                 type: 'image',
                 role: role,
-                name: label || (role === 'stamp' ? 'Stempel' : 'Tanda Tangan'),
+                name: label || (role === 'stamp' ? 'Stempel' : (role === 'letterhead' ? 'Kop Surat' : 'Tanda Tangan')),
                 locked: false,
                 url: url,
                 x: baseWidth * (customPct?.xPct ?? defaultXPct),
@@ -1956,6 +3019,8 @@
                 opacity: opacity,
                 removeBg: false,
                 bgThreshold: 225,
+                whiteBacking: role === 'letterhead',
+                signatoryId: signatoryId || null,
             };
 
             layers.push(layer);
@@ -1970,16 +3035,30 @@
     }
 
     async function smartAutoCompose() {
+        if (LETTER_DATA.mode === 'letter') {
+            if ((!baseImage || slides.length === 0) && LETTER_DATA.defaultLetterheadUrl) {
+                await selectLetterheadAsBase(LETTER_DATA.defaultLetterheadUrl, LETTER_DATA.defaultLetterheadName);
+            }
+            if (!ensureBaseReady()) return;
+
+            if (!layers.find(l => l.type === 'text' && l.role === 'number')) {
+                addNumberWithWhiteout(false);
+            }
+
+            showStudioToast('Nomor Surat berlatar putih ditempelkan! Geser tepat di atas nomor surat Universitas.');
+            return;
+        }
+
         if (!ensureBaseReady()) return;
 
         if (!layers.find(l => l.type === 'text' && l.role === 'number')) {
             addTextLayer('No. ' + LETTER_DATA.number, 0.5, 0.308, 'number', 'Nomor Sertifikat');
         }
 
-        if (LETTER_DATA.primarySigUrl && !layers.find(l => l.role === 'signature')) {
+        if (LETTER_DATA.canUsePrimarySig && LETTER_DATA.primarySigUrl && !layers.find(l => l.role === 'signature')) {
             await addImageLayer('signature', LETTER_DATA.primarySigUrl, LETTER_DATA.primarySigName || 'TTD Pejabat', 100, {
                 wPct: 0.21, xPct: 0.54, yPct: 0.745
-            });
+            }, LETTER_DATA.primarySigId);
         }
 
         if (LETTER_DATA.defaultStampUrl && !layers.find(l => l.role === 'stamp')) {
@@ -2042,32 +3121,31 @@
         return width;
     }
 
-    function drawLayersOnContext(targetCtx, targetW, targetH, bgImg, layerList) {
+    function drawLayersOnContext(targetCtx, targetW, targetH, bgImg, layerList, skipProtectedSignatures = false) {
         targetCtx.clearRect(0, 0, targetW, targetH);
         targetCtx.drawImage(bgImg, 0, 0, targetW, targetH);
 
         for (const layer of layerList) {
+            if (skipProtectedSignatures && layer.type === 'image' && layer.role === 'signature' && layer.signatoryId) {
+                continue;
+            }
             targetCtx.save();
             targetCtx.globalAlpha = Math.max(0.05, Math.min(1, (layer.opacity ?? 100) / 100));
 
-            if (layer.type === 'text') {
+            if (layer.type === 'whiteout') {
+                targetCtx.translate(layer.x, layer.y);
+                if (layer.rotation) targetCtx.rotate((layer.rotation * Math.PI) / 180);
+                targetCtx.fillStyle = layer.color || '#ffffff';
+                targetCtx.fillRect(-layer.width / 2, -layer.height / 2, layer.width, layer.height);
+            } else if (layer.type === 'text') {
                 const stylePrefix = `${layer.italic ? 'italic ' : ''}${layer.bold ? 'bold ' : ''}`;
                 targetCtx.font = `${stylePrefix}${layer.fontSize}px ${layer.fontFamily}`;
-                targetCtx.fillStyle = layer.color || '#111827';
-                targetCtx.strokeStyle = layer.color || '#111827';
                 targetCtx.textAlign = layer.align || 'center';
                 targetCtx.textBaseline = 'middle';
 
                 const spacing = Number(layer.letterSpacing || 0);
                 if ('letterSpacing' in targetCtx) {
                     targetCtx.letterSpacing = `${spacing}px`;
-                }
-
-                if (layer.textShadow) {
-                    targetCtx.shadowColor = 'rgba(0, 0, 0, 0.25)';
-                    targetCtx.shadowBlur = Math.max(3, layer.fontSize * 0.08);
-                    targetCtx.shadowOffsetX = 1;
-                    targetCtx.shadowOffsetY = Math.max(1, layer.fontSize * 0.04);
                 }
 
                 targetCtx.translate(layer.x, layer.y);
@@ -2077,6 +3155,34 @@
                 const lineHeight = layer.fontSize * 1.3;
                 const totalHeight = lines.length * lineHeight;
                 const startY = -(totalHeight / 2) + (lineHeight / 2);
+
+                if (layer.bgFill) {
+                    let maxW = 24;
+                    for (const lt of lines) {
+                        maxW = Math.max(maxW, measureLineWithSpacing(targetCtx, lt, spacing));
+                    }
+                    const padX = Math.max(10, layer.fontSize * 0.42);
+                    const padY = Math.max(4, layer.fontSize * 0.24);
+                    const minBoxW = targetW * ((layer.bgMinWidthPct || 0) / 100);
+                    const boxW = Math.max(maxW + padX * 2, minBoxW);
+                    const boxH = totalHeight + padY * 2;
+                    let bgLeft = -boxW / 2;
+                    if ((layer.align || 'center') === 'left') bgLeft = -padX;
+                    if ((layer.align || 'center') === 'right') bgLeft = -(boxW - padX);
+
+                    targetCtx.fillStyle = layer.bgColor || '#ffffff';
+                    targetCtx.fillRect(bgLeft, -(totalHeight / 2) - padY, boxW, boxH);
+                }
+
+                targetCtx.fillStyle = layer.color || '#111827';
+                targetCtx.strokeStyle = layer.color || '#111827';
+
+                if (layer.textShadow) {
+                    targetCtx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+                    targetCtx.shadowBlur = Math.max(3, layer.fontSize * 0.08);
+                    targetCtx.shadowOffsetX = 1;
+                    targetCtx.shadowOffsetY = Math.max(1, layer.fontSize * 0.04);
+                }
 
                 lines.forEach((lineText, idx) => {
                     const ly = startY + idx * lineHeight;
@@ -2112,6 +3218,10 @@
                 if (imgSource) {
                     targetCtx.translate(layer.x, layer.y);
                     if (layer.rotation) targetCtx.rotate((layer.rotation * Math.PI) / 180);
+                    if (layer.whiteBacking) {
+                        targetCtx.fillStyle = '#ffffff';
+                        targetCtx.fillRect(-layer.width / 2, -layer.height / 2, layer.width, layer.height);
+                    }
                     targetCtx.drawImage(imgSource, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
                 }
             }
@@ -2383,13 +3493,19 @@
             layer.x = nx;
             layer.y = ny;
         } else if (dragState.mode === 'resize') {
-            const newDist = Math.max(15, Math.hypot(pt.x - dragState.cx, pt.y - dragState.cy));
-            const ratio = newDist / dragState.origDist;
-            if (layer.type === 'image') {
-                layer.width = Math.max(30, dragState.origW * ratio);
-                layer.height = layer.width * (layer.aspect || 1);
+            if (layer.type === 'whiteout') {
+                const lp = toLocalPoint(pt, dragState.cx, dragState.cy, layer.rotation || 0);
+                layer.width = Math.max(24, Math.round(Math.abs(lp.x) * 2));
+                layer.height = Math.max(14, Math.round(Math.abs(lp.y) * 2));
             } else {
-                layer.fontSize = Math.max(14, Math.min(260, Math.round(dragState.origFontSize * ratio)));
+                const newDist = Math.max(15, Math.hypot(pt.x - dragState.cx, pt.y - dragState.cy));
+                const ratio = newDist / dragState.origDist;
+                if (layer.type === 'image') {
+                    layer.width = Math.max(30, dragState.origW * ratio);
+                    layer.height = layer.width * (layer.aspect || 1);
+                } else {
+                    layer.fontSize = Math.max(14, Math.min(260, Math.round(dragState.origFontSize * ratio)));
+                }
             }
             syncInspector();
         } else if (dragState.mode === 'rotate') {
@@ -2430,6 +3546,7 @@
         const empty = document.getElementById('inspectorEmpty');
         const txt = document.getElementById('inspectorText');
         const img = document.getElementById('inspectorImage');
+        const wht = document.getElementById('inspectorWhiteout');
         const common = document.getElementById('inspectorCommon');
         const nudgeWrap = document.getElementById('inspectorNudgeWrap');
         const badge = document.getElementById('selectedLayerTypeBadge');
@@ -2439,6 +3556,7 @@
             empty.classList.remove('hidden');
             txt.classList.add('hidden');
             img.classList.add('hidden');
+            wht?.classList.add('hidden');
             common.classList.add('hidden');
             nudgeWrap?.classList.add('hidden');
             badge.classList.add('hidden');
@@ -2450,7 +3568,9 @@
         common.classList.remove('hidden');
         nudgeWrap?.classList.remove('hidden');
         badge.classList.remove('hidden');
-        badge.textContent = layer.type === 'text' ? (layer.role === 'number' ? 'Nomor' : 'Teks') : (layer.role === 'stamp' ? 'Stempel' : 'TTD');
+        badge.textContent = layer.type === 'whiteout'
+            ? 'Penutup'
+            : (layer.type === 'text' ? (layer.role === 'number' ? 'Nomor' : 'Teks') : (layer.role === 'stamp' ? 'Stempel' : (layer.role === 'letterhead' ? 'Kop Surat' : 'TTD')));
 
         if (lockBtn) {
             lockBtn.classList.remove('hidden');
@@ -2461,15 +3581,37 @@
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
-        if (layer.type === 'text') {
+        if (layer.type === 'whiteout') {
+            txt.classList.add('hidden');
+            img.classList.add('hidden');
+            wht?.classList.remove('hidden');
+            const wPct = +((layer.width / baseWidth) * 100).toFixed(1);
+            const hPct = +((layer.height / baseHeight) * 100).toFixed(1);
+            document.getElementById('propWhiteoutW').value = wPct;
+            document.getElementById('propWhiteoutWLabel').textContent = wPct + '%';
+            document.getElementById('propWhiteoutH').value = hPct;
+            document.getElementById('propWhiteoutHLabel').textContent = hPct + '%';
+            document.getElementById('propWhiteoutColor').value = layer.color || '#ffffff';
+            document.getElementById('propWhiteoutOpacity').value = layer.opacity ?? 100;
+            document.getElementById('propWhiteoutOpacityLabel').textContent = (layer.opacity ?? 100) + '%';
+        } else if (layer.type === 'text') {
             txt.classList.remove('hidden');
             img.classList.add('hidden');
+            wht?.classList.add('hidden');
             document.getElementById('propTextValue').value = layer.text || '';
             document.getElementById('propFontFamily').value = layer.fontFamily;
             document.getElementById('propFontSize').value = layer.fontSize;
             document.getElementById('propFontSizeSlider').value = Math.min(180, layer.fontSize);
             document.getElementById('propFontSizeLabel').textContent = layer.fontSize;
             document.getElementById('propTextColor').value = layer.color || '#111827';
+            document.getElementById('propTextBgFill').checked = !!layer.bgFill;
+            document.getElementById('propTextBgColor').value = layer.bgColor || '#ffffff';
+            document.getElementById('propTextBgWidthWrap')?.classList.toggle('hidden', !layer.bgFill);
+            const minWPct = layer.bgMinWidthPct || 0;
+            const minWEl = document.getElementById('propTextBgMinW');
+            const minWLbl = document.getElementById('propTextBgMinWLabel');
+            if (minWEl) minWEl.value = minWPct;
+            if (minWLbl) minWLbl.textContent = minWPct + '%';
             document.getElementById('propLetterSpacing').value = layer.letterSpacing ?? 0;
             document.getElementById('propLetterSpacingLabel').textContent = `${layer.letterSpacing ?? 0}px`;
             document.getElementById('propTextOpacity').value = layer.opacity ?? 100;
@@ -2486,7 +3628,11 @@
             syncStyleButton('btnAlignRight', layer.align === 'right');
         } else {
             txt.classList.add('hidden');
+            wht?.classList.add('hidden');
             img.classList.remove('hidden');
+            document.getElementById('propLetterheadTools')?.classList.toggle('hidden', layer.role !== 'letterhead');
+            const whiteBackingCb = document.getElementById('propWhiteBacking');
+            if (whiteBackingCb) whiteBackingCb.checked = !!layer.whiteBacking;
             const pct = +((layer.width / baseWidth) * 100).toFixed(1);
             document.getElementById('propImgScale').value = pct;
             document.getElementById('propImgScaleLabel').textContent = pct + '%';
@@ -2501,6 +3647,34 @@
         }
     }
 
+    function updateSelectedWhiteoutSize(dim, pct) {
+        const layer = layers.find(l => l.id === selectedLayerId && l.type === 'whiteout');
+        if (!layer) return;
+        if (dim === 'width') {
+            layer.width = Math.max(20, baseWidth * (pct / 100));
+            document.getElementById('propWhiteoutWLabel').textContent = pct + '%';
+        } else {
+            layer.height = Math.max(12, baseHeight * (pct / 100));
+            document.getElementById('propWhiteoutHLabel').textContent = pct + '%';
+        }
+        syncCurrentLayersToState();
+        renderCanvas();
+    }
+
+    function updateSelectedWhiteoutColor(hex) {
+        const layer = layers.find(l => l.id === selectedLayerId && l.type === 'whiteout');
+        if (!layer) return;
+        layer.color = hex;
+        syncCurrentLayersToState();
+        renderCanvas();
+    }
+
+    function setWhiteoutColorPreset(hex) {
+        document.getElementById('propWhiteoutColor').value = hex;
+        updateSelectedWhiteoutColor(hex);
+        pushHistory();
+    }
+
     function updateSelectedTextProp(key, val) {
         const layer = layers.find(l => l.id === selectedLayerId);
         if (!layer || layer.type !== 'text') return;
@@ -2510,6 +3684,10 @@
         }
         if (key === 'letterSpacing') {
             document.getElementById('propLetterSpacingLabel').textContent = `${val}px`;
+        }
+        if (key === 'bgMinWidthPct') {
+            const lbl = document.getElementById('propTextBgMinWLabel');
+            if (lbl) lbl.textContent = `${val}%`;
         }
         if (key === 'align') {
             syncInspector();
@@ -2567,6 +3745,8 @@
         if (key === 'opacity') {
             if (layer.type === 'text') {
                 document.getElementById('propTextOpacityLabel').textContent = val + '%';
+            } else if (layer.type === 'whiteout') {
+                document.getElementById('propWhiteoutOpacityLabel').textContent = val + '%';
             } else {
                 document.getElementById('propImgOpacityLabel').textContent = val + '%';
             }
@@ -2703,7 +3883,9 @@
         container.innerHTML = [...layers].reverse().map(l => {
             const active = l.id === selectedLayerId;
             const title = l.type === 'text' ? (l.text || 'Teks') : l.name;
-            const badge = l.type === 'text' ? (l.role === 'number' ? 'No' : 'T') : (l.role === 'stamp' ? 'Cap' : 'TTD');
+            const badge = l.type === 'whiteout'
+                ? 'Tutup'
+                : (l.type === 'text' ? (l.role === 'number' ? 'No' : 'T') : (l.role === 'stamp' ? 'Cap' : (l.role === 'letterhead' ? 'Kop' : (l.role === 'body_crop' ? 'Isi' : 'TTD'))));
             return `
                 <div onclick="selectLayerById('${l.id}')"
                     class="w-full flex items-center justify-between gap-1.5 px-2.5 py-2 rounded-xl border text-left transition-all cursor-pointer ${active ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold' : 'bg-gray-50 border-gray-200/70 text-gray-700 hover:bg-gray-100'}">
@@ -2761,6 +3943,7 @@
         if (e.key === 'Escape') {
             closeFullscreenPreview();
             closeRenameSlideModal();
+            closeUnivCropModal();
             closePresetMenu();
             closeExportMenu();
             closeShortcutPopover();
@@ -2841,14 +4024,21 @@
             letterSpacing: l.letterSpacing ?? 0,
             textShadow: !!l.textShadow,
             color: l.color || null,
+            bgFill: !!l.bgFill,
+            bgColor: l.bgColor || '#ffffff',
+            bgMinWidthPct: l.bgMinWidthPct || 0,
             align: l.align || 'center',
             widthPct: l.width ? l.width / baseWidth : null,
+            heightPct: l.height ? l.height / baseHeight : null,
             rotation: l.rotation || 0,
             opacity: l.opacity ?? 100,
             removeBg: !!l.removeBg,
             bgThreshold: l.bgThreshold || 225,
+            whiteBacking: !!l.whiteBacking,
+            signatoryId: l.signatoryId || null,
             url: l.url || null,
             usePrefixNo: l.type === 'text' && l.role === 'number' && (l.text || '').startsWith('No.'),
+            useNomorPrefix: l.type === 'text' && l.role === 'number' && (l.text || '').startsWith('Nomor:'),
         }));
     }
 
@@ -2894,10 +4084,34 @@
 
         const normItems = [];
         for (const item of preset.config.items) {
-            if (item.type === 'text') {
-                const resolvedText = (item.role || 'number') === 'number'
-                    ? (item.usePrefixNo ? ('No. ' + LETTER_DATA.number) : LETTER_DATA.number)
-                    : (item.text || '');
+            if (item.type === 'whiteout') {
+                normItems.push({
+                    id: uid('wht_'),
+                    type: 'whiteout',
+                    role: item.role || 'whiteout',
+                    name: item.name || 'Kotak Penutup',
+                    locked: !!item.locked,
+                    xPct: item.xPct ?? 0.5,
+                    yPct: item.yPct ?? 0.5,
+                    widthPct: item.widthPct ?? 0.35,
+                    heightPct: item.heightPct ?? 0.05,
+                    color: item.color || '#ffffff',
+                    opacity: item.opacity ?? 100,
+                    rotation: item.rotation || 0,
+                });
+            } else if (item.type === 'text') {
+                let resolvedText = item.text || '';
+                if ((item.role || 'number') === 'number') {
+                    resolvedText = item.useNomorPrefix
+                        ? ('Nomor: ' + LETTER_DATA.number)
+                        : (item.usePrefixNo ? ('No. ' + LETTER_DATA.number) : LETTER_DATA.number);
+                } else if (item.role === 'sig_block_date') {
+                    resolvedText = LETTER_DATA.primarySigPosition || item.text || '';
+                } else if (item.role === 'sig_block_name' && LETTER_DATA.primarySigName) {
+                    resolvedText = LETTER_DATA.primarySigName;
+                } else if (item.role === 'sig_block_nip' && LETTER_DATA.primarySigNip) {
+                    resolvedText = `NIP : ${LETTER_DATA.primarySigNip}`;
+                }
 
                 normItems.push({
                     id: uid(),
@@ -2918,14 +4132,19 @@
                     letterSpacing: item.letterSpacing ?? 0,
                     textShadow: !!item.textShadow,
                     color: item.color || '#111827',
+                    bgFill: !!item.bgFill,
+                    bgColor: item.bgColor || '#ffffff',
+                    bgMinWidthPct: item.bgMinWidthPct || 0,
                     align: item.align || 'center',
                     opacity: item.opacity ?? 100,
                     rotation: item.rotation || 0,
                 });
             } else if (item.type === 'image') {
                 let targetUrl = item.url;
-                if (item.role === 'signature' && LETTER_DATA.primarySigUrl) {
+                let targetSigId = item.signatoryId || null;
+                if (item.role === 'signature' && LETTER_DATA.canUsePrimarySig && LETTER_DATA.primarySigUrl) {
                     targetUrl = LETTER_DATA.primarySigUrl;
+                    targetSigId = LETTER_DATA.primarySigId || targetSigId;
                 }
                 if (!targetUrl) continue;
                 try {
@@ -2946,18 +4165,27 @@
                         opacity: item.opacity ?? 100,
                         removeBg: !!item.removeBg,
                         bgThreshold: item.bgThreshold || 225,
+                        whiteBacking: !!item.whiteBacking || item.role === 'letterhead',
+                        signatoryId: targetSigId,
                     });
                 } catch {}
             }
         }
 
-        masterNormalizedLayers = normItems;
-        slides.forEach(s => {
-            s.useMasterLayout = true;
-            s.customNormalizedLayers = null;
-        });
+        if (LETTER_DATA.mode === 'letter' && getActiveSlide()) {
+            const active = getActiveSlide();
+            active.useMasterLayout = false;
+            active.customNormalizedLayers = normItems;
+            layers = materializeLayers(normItems, baseWidth, baseHeight);
+        } else {
+            masterNormalizedLayers = normItems;
+            slides.forEach(s => {
+                s.useMasterLayout = true;
+                s.customNormalizedLayers = null;
+            });
+            layers = materializeLayers(masterNormalizedLayers, baseWidth, baseHeight);
+        }
 
-        layers = materializeLayers(masterNormalizedLayers, baseWidth, baseHeight);
         selectedLayerId = layers[0]?.id || null;
         pushHistory();
         renderCanvas();
@@ -2965,7 +4193,9 @@
         renderLayerList();
         renderFilmstrip();
         updateMultiSlideUI();
-        showStudioToast(`Preset "${preset.name}" diterapkan ke seluruh sertifikat.`);
+        showStudioToast(LETTER_DATA.mode === 'letter'
+            ? `Preset "${preset.name}" diterapkan pada halaman aktif.`
+            : `Preset "${preset.name}" diterapkan ke seluruh sertifikat.`);
     }
 
     async function deleteSelectedPreset() {
@@ -2991,9 +4221,25 @@
     function openQuickUploadModal(type, signatoryId = null, signatoryName = '') {
         document.getElementById('qa_type').value = type;
         document.getElementById('qa_signatory_id').value = signatoryId || '';
-        document.getElementById('qa_file').value = '';
-        document.getElementById('qaModalTitle').textContent = type === 'signature' ? 'Upload TTD Digital' : 'Upload Stempel Sertifikat';
-        document.getElementById('qaNameLabel').textContent = type === 'signature' ? 'Nama Pejabat / Label TTD' : 'Nama Stempel';
+        const qaFile = document.getElementById('qa_file');
+        const qaFileLabel = document.getElementById('qaFileLabel');
+        if (qaFile) qaFile.value = '';
+        if (type === 'signature') {
+            document.getElementById('qaModalTitle').textContent = 'Upload TTD Digital';
+            document.getElementById('qaNameLabel').textContent = 'Nama Pejabat / Label TTD';
+            if (qaFile) qaFile.accept = '.png,.jpg,.jpeg,.webp';
+            if (qaFileLabel) qaFileLabel.textContent = 'File Gambar (PNG/JPG/WEBP, maks. 15 MB)';
+        } else if (type === 'letterhead') {
+            document.getElementById('qaModalTitle').textContent = 'Upload Template Kop Surat';
+            document.getElementById('qaNameLabel').textContent = 'Nama Template (Misal: Kop FEB UNJ)';
+            if (qaFile) qaFile.accept = '.pdf,.png,.jpg,.jpeg,.webp';
+            if (qaFileLabel) qaFileLabel.textContent = 'File Template Kop (PDF hasil Save As Word / PNG / JPG)';
+        } else {
+            document.getElementById('qaModalTitle').textContent = 'Upload Stempel Sertifikat';
+            document.getElementById('qaNameLabel').textContent = 'Nama Stempel';
+            if (qaFile) qaFile.accept = '.png,.jpg,.jpeg,.webp';
+            if (qaFileLabel) qaFileLabel.textContent = 'File Gambar (PNG/JPG/WEBP, maks. 15 MB)';
+        }
         document.getElementById('qa_name').value = signatoryName || '';
         document.getElementById('qaOpacityWrap').classList.toggle('hidden', type !== 'stamp');
         document.getElementById('quickAssetModal').classList.remove('hidden');
@@ -3003,14 +4249,39 @@
         document.getElementById('quickAssetModal').classList.add('hidden');
     }
 
+    async function convertPdfFirstPageToPngBlob(pdfFile) {
+        const buffer = await pdfFile.arrayBuffer();
+        const pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
+        const page = await pdfDoc.getPage(1);
+        const vp = page.getViewport({ scale: 3.0 });
+        const off = document.createElement('canvas');
+        off.width = Math.round(vp.width);
+        off.height = Math.round(vp.height);
+        await page.render({ canvasContext: off.getContext('2d'), viewport: vp }).promise;
+        return new Promise((resolve) => off.toBlob(resolve, 'image/png'));
+    }
+
     async function submitQuickAsset(e) {
         e.preventDefault();
         const btn = document.getElementById('qaSubmitBtn');
         btn.disabled = true;
-        btn.textContent = 'Mengunggah...';
+        btn.textContent = 'Memproses...';
 
         try {
-            const fd = new FormData(document.getElementById('quickAssetForm'));
+            const formEl = document.getElementById('quickAssetForm');
+            const fd = new FormData(formEl);
+            const assetType = document.getElementById('qa_type').value;
+            const rawFile = document.getElementById('qa_file')?.files?.[0];
+
+            if (assetType === 'letterhead' && rawFile && rawFile.name.toLowerCase().endsWith('.pdf')) {
+                btn.textContent = 'Mengonversi PDF ke PNG...';
+                const pngBlob = await convertPdfFirstPageToPngBlob(rawFile);
+                if (pngBlob) {
+                    fd.set('asset_file', pngBlob, 'kop_template.png');
+                }
+            }
+
+            btn.textContent = 'Mengunggah...';
             const resp = await fetch(LETTER_DATA.quickAssetUrl, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
@@ -3021,10 +4292,43 @@
                 if (data.asset.type === 'signature' && data.asset.signatory_id == {{ $letter->signatory_id ?? 'null' }}) {
                     LETTER_DATA.primarySigUrl = data.asset.url;
                 }
+                if (data.asset.type === 'letterhead') {
+                    LETTER_DATA.defaultLetterheadUrl = data.asset.url;
+                    LETTER_DATA.defaultLetterheadName = data.asset.name;
+                    const gallery = document.getElementById('letterheadsGallery');
+                    if (gallery) {
+                        const emptyMsg = gallery.querySelector('.border-dashed');
+                        if (emptyMsg) emptyMsg.remove();
+                        const card = document.createElement('button');
+                        card.type = 'button';
+                        card.className = 'shortcut-chip w-full flex flex-col gap-1.5 p-2 rounded-xl bg-gray-50 hover:bg-emerald-50/70 border border-gray-200/80 hover:border-emerald-300 text-left cursor-pointer';
+                        card.onclick = () => selectLetterheadAsBase(data.asset.url, data.asset.name);
+                        card.innerHTML = `
+                            <div class="w-full h-16 bg-white rounded-lg border border-gray-100 flex items-center justify-center overflow-hidden p-1">
+                                <img src="${data.asset.url}" alt="${data.asset.name}" class="max-h-full max-w-full object-contain">
+                            </div>
+                            <div class="flex items-center justify-between gap-1 px-0.5">
+                                <span class="text-[11px] font-bold text-gray-800 truncate">${data.asset.name}</span>
+                                <span class="text-[9.5px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded flex-shrink-0">Pakai</span>
+                            </div>`;
+                        gallery.prepend(card);
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }
+                    closeQuickUploadModal();
+                    await selectLetterheadAsBase(data.asset.url, data.asset.name);
+                    return;
+                }
                 closeQuickUploadModal();
                 showStudioToast(data.message);
                 if (baseImage) {
-                    await addImageLayer(data.asset.type, data.asset.url, data.asset.name, data.asset.default_opacity || 100);
+                    await addImageLayer(
+                        data.asset.type,
+                        data.asset.url,
+                        data.asset.name,
+                        data.asset.default_opacity || 100,
+                        null,
+                        data.asset.signatory_id || null
+                    );
                 } else {
                     setTimeout(() => window.location.reload(), 700);
                 }
@@ -3032,6 +4336,7 @@
                 showStudioToast(data.message || 'Upload gagal.', true);
             }
         } catch (err) {
+            console.error(err);
             showStudioToast('Terjadi kesalahan saat mengunggah aset.', true);
         } finally {
             btn.disabled = false;
@@ -3041,17 +4346,78 @@
 
     // ── Offscreen Rendering & Export Helpers ──
     function safeFilename(ext, suffix = '') {
-        const cleanNum = (LETTER_DATA.number || 'Sertifikat').replace(/[^A-Za-z0-9\-]+/g, '-');
-        return `Sertifikat_${cleanNum}${suffix}.${ext}`;
+        const prefix = LETTER_DATA.mode === 'letter' ? 'Surat' : 'Sertifikat';
+        const cleanNum = (LETTER_DATA.number || prefix).replace(/[^A-Za-z0-9\-]+/g, '-');
+        return `${prefix}_${cleanNum}${suffix}.${ext}`;
     }
 
     function safeSlideSlug(label, idx) {
+        const defaultBase = LETTER_DATA.mode === 'letter' ? 'Surat' : 'Sertifikat';
         const prefix = String(idx + 1).padStart(2, '0');
-        const clean = (label || `Sertifikat_${prefix}`).replace(/[^A-Za-z0-9\-_]+/g, '_').replace(/^_+|_+$/g, '');
-        return `${prefix}_${clean || 'Sertifikat'}`;
+        const clean = (label || `${defaultBase}_${prefix}`).replace(/[^A-Za-z0-9\-_]+/g, '_').replace(/^_+|_+$/g, '');
+        return `${prefix}_${clean || defaultBase}`;
     }
 
-    async function renderSlideToOffscreenCanvas(slide) {
+    async function stampProtectedSignaturesOnServer(cleanCanvas, layerList, w, h, format = 'png') {
+        const protectedSigs = layerList.filter(l => l.type === 'image' && l.role === 'signature' && l.signatoryId);
+        if (protectedSigs.length === 0) {
+            return cleanCanvas;
+        }
+
+        const instructions = protectedSigs.map(l => ({
+            signatory_id: l.signatoryId,
+            xPct: l.x / w,
+            yPct: l.y / h,
+            widthPct: l.width / w,
+            rotation: l.rotation || 0,
+            opacity: l.opacity ?? 100,
+            removeBg: !!l.removeBg,
+            bgThreshold: l.bgThreshold || 225,
+        }));
+
+        const pageBlob = await new Promise(res => cleanCanvas.toBlob(res, 'image/png'));
+        const fd = new FormData();
+        fd.append('page_image', pageBlob, 'page.png');
+        fd.append('signatures', JSON.stringify(instructions));
+        fd.append('letter_id', LETTER_DATA.id);
+        fd.append('format', format === 'jpg' ? 'jpg' : 'png');
+
+        const resp = await fetch(LETTER_DATA.stampSignaturesUrl, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+            body: fd,
+        });
+
+        if (!resp.ok) {
+            let errMsg = 'Gagal menempelkan TTD terproteksi di server.';
+            try {
+                const errJson = await resp.json();
+                if (errJson?.message) errMsg = errJson.message;
+            } catch {}
+            throw new Error(errMsg);
+        }
+
+        const stampedBlob = await resp.blob();
+        const objUrl = URL.createObjectURL(stampedBlob);
+        try {
+            const stampedImg = await new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = objUrl;
+            });
+
+            const out = document.createElement('canvas');
+            out.width = w;
+            out.height = h;
+            out.getContext('2d').drawImage(stampedImg, 0, 0, w, h);
+            return out;
+        } finally {
+            URL.revokeObjectURL(objUrl);
+        }
+    }
+
+    async function renderSlideToOffscreenCanvas(slide, forRealExport = true, outputFormat = 'png') {
         const bgImg = await loadSlideHighResImage(slide);
         const w = slide.width || bgImg.naturalWidth || bgImg.width;
         const h = slide.height || bgImg.naturalHeight || bgImg.height;
@@ -3061,16 +4427,22 @@
             : (slide.customNormalizedLayers || masterNormalizedLayers);
         const slideLayers = materializeLayers(norm, w, h);
 
-        const urls = [...new Set(slideLayers.filter(l => l.type === 'image').map(l => l.url))];
+        const hasProtectedSig = forRealExport && slideLayers.some(l => l.type === 'image' && l.role === 'signature' && l.signatoryId);
+
+        const urls = [...new Set(slideLayers.filter(l => l.type === 'image' && !(hasProtectedSig && l.role === 'signature' && l.signatoryId)).map(l => l.url))];
         await Promise.all(urls.map(u => loadCachedImage(u).catch(() => null)));
 
         const off = document.createElement('canvas');
         off.width = w;
         off.height = h;
         const octx = off.getContext('2d');
-        drawLayersOnContext(octx, w, h, bgImg, slideLayers);
+        drawLayersOnContext(octx, w, h, bgImg, slideLayers, hasProtectedSig);
 
-        return { canvas: off, width: w, height: h };
+        const finalCanvas = hasProtectedSig
+            ? await stampProtectedSignaturesOnServer(off, slideLayers, w, h, outputFormat)
+            : off;
+
+        return { canvas: finalCanvas, width: w, height: h };
     }
 
     function buildSinglePdfFromCanvas(srcCanvas, w, h, quality = 0.94) {
@@ -3134,26 +4506,33 @@
         syncCurrentLayersToState();
 
         const suffix = slides.length > 1 ? `_Hal${activeSlideIndex + 1}` : '';
+        const slide = getActiveSlide();
 
-        if (format === 'pdf') {
-            renderCanvas(true);
-            const pdf = buildSinglePdfFromCanvas(canvas, baseWidth, baseHeight, 0.95);
-            renderCanvas(false);
-            pdf.save(safeFilename('pdf', suffix));
-        } else {
-            renderCanvas(true);
-            const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
-            const dataUrl = canvas.toDataURL(mime, 0.96);
-            renderCanvas(false);
+        try {
+            setBatchProgress(true, 'Memproses Dokumen Final...', 'Menyiapkan hasil resolusi tinggi & TTD terproteksi...', 45);
+            const rendered = await renderSlideToOffscreenCanvas(slide, true, format === 'jpg' ? 'jpg' : 'png');
 
-            const link = document.createElement('a');
-            link.download = safeFilename(format, suffix);
-            link.href = dataUrl;
-            link.click();
+            if (format === 'pdf') {
+                const pdf = buildSinglePdfFromCanvas(rendered.canvas, rendered.width, rendered.height, 0.95);
+                pdf.save(safeFilename('pdf', suffix));
+            } else {
+                const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
+                const dataUrl = rendered.canvas.toDataURL(mime, 0.96);
+
+                const link = document.createElement('a');
+                link.download = safeFilename(format, suffix);
+                link.href = dataUrl;
+                link.click();
+            }
+
+            sendExportLog(format, 1);
+            showStudioToast(`Dokumen halaman ${activeSlideIndex + 1} berhasil di-export (${format.toUpperCase()})!`);
+        } catch (err) {
+            console.error(err);
+            showStudioToast(err?.message || 'Gagal mengekspor dokumen.', true);
+        } finally {
+            setBatchProgress(false);
         }
-
-        sendExportLog(format, 1);
-        showStudioToast(`Sertifikat halaman ${activeSlideIndex + 1} berhasil di-export (${format.toUpperCase()})!`);
     }
 
     async function exportBatchPdf() {
@@ -3258,9 +4637,10 @@
                 blob = pdf.output('blob');
                 filename = safeFilename('pdf', `_${slides.length}Hal`);
             } else {
-                renderCanvas(true);
-                const pdf = buildSinglePdfFromCanvas(canvas, baseWidth, baseHeight, 0.93);
-                renderCanvas(false);
+                setBatchProgress(true, 'Menyiapkan PDF Final...', 'Menempelkan komponen & TTD terproteksi...', 45);
+                const rendered = await renderSlideToOffscreenCanvas(getActiveSlide(), true, 'png');
+                setBatchProgress(true, 'Mengunggah ke Google Drive...', 'Mengirim dokumen ke Google Drive...', 90);
+                const pdf = buildSinglePdfFromCanvas(rendered.canvas, rendered.width, rendered.height, 0.93);
                 blob = pdf.output('blob');
                 filename = safeFilename('pdf');
             }
@@ -3292,7 +4672,7 @@
         }
     }
 
-    function bindFileDropTarget(el) {
+    function bindFileDropTarget(el, preferCropOnLetter = false) {
         if (!el) return;
         ['dragenter', 'dragover'].forEach(e => el.addEventListener(e, ev => {
             ev.preventDefault();
@@ -3304,13 +4684,18 @@
         }));
         el.addEventListener('drop', ev => {
             if (ev.dataTransfer?.files?.length) {
-                handleBaseFilesUpload(ev.dataTransfer.files, slides.length > 0);
+                if (LETTER_DATA.mode === 'letter' && preferCropOnLetter) {
+                    openUnivCropModalFromFile(ev.dataTransfer.files[0]);
+                } else {
+                    handleBaseFilesUpload(ev.dataTransfer.files, slides.length > 0);
+                }
             }
         });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         if (typeof lucide !== 'undefined') lucide.createIcons();
+        initUnivCropInteraction();
 
         document.addEventListener('click', (e) => {
             if (!document.getElementById('exportMenuWrap')?.contains(e.target)) {
@@ -3324,8 +4709,8 @@
             }
         });
 
-        bindFileDropTarget(document.getElementById('baseDropZone'));
-        bindFileDropTarget(document.getElementById('emptyStageState'));
+        bindFileDropTarget(document.getElementById('baseDropZone'), true);
+        bindFileDropTarget(document.getElementById('emptyStageState'), false);
     });
 </script>
 @endpush

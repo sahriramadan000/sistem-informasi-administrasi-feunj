@@ -270,13 +270,23 @@
                             </div>
                         </label>
 
-                        <label for="can_access_certificates" class="perm-card sm:col-span-2">
+                        <label for="can_access_certificates" class="perm-card">
                             <input type="checkbox" id="can_access_certificates" name="can_access_certificates" value="1"
                                 {{ old('can_access_certificates', $user->can_access_certificates) ? 'checked' : '' }}
                                 class="mt-0.5 w-4 h-4 text-[#FF4D00] border-gray-300 rounded focus:ring-orange-500/30 cursor-pointer">
                             <div>
                                 <span class="text-xs font-bold text-gray-900 block">Fitur Studio Sertifikat</span>
-                                <span class="text-[11px] text-gray-500">Akses khusus tempel nomor, TTD pejabat &amp; stempel pada sertifikat (Admin selalu memiliki akses)</span>
+                                <span class="text-[11px] text-gray-500">Akses khusus tempel nomor, TTD &amp; stempel pada sertifikat</span>
+                            </div>
+                        </label>
+
+                        <label for="can_access_letter_studio" class="perm-card">
+                            <input type="checkbox" id="can_access_letter_studio" name="can_access_letter_studio" value="1"
+                                {{ old('can_access_letter_studio', $user->can_access_letter_studio) ? 'checked' : '' }}
+                                class="mt-0.5 w-4 h-4 text-[#FF4D00] border-gray-300 rounded focus:ring-orange-500/30 cursor-pointer">
+                            <div>
+                                <span class="text-xs font-bold text-gray-900 block">Fitur Studio Surat (SIPERMAWA)</span>
+                                <span class="text-[11px] text-gray-500">Akses khusus ganti kop surat, nomor, &amp; blok TTD pada surat Universitas</span>
                             </div>
                         </label>
                     </div>

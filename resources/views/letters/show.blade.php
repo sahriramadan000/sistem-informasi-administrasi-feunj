@@ -392,12 +392,17 @@
                     </div>
                 @endif
 
-                {{-- SHORTCUT STUDIO SERTIFIKAT --}}
+                {{-- SHORTCUT STUDIO SERTIFIKAT & STUDIO SURAT (SIPERMAWA) --}}
                 @php
                     $isCertificateLetter = $letter->letterType?->is_certificate
                         || str_contains(strtolower($letter->letterType?->name ?? ''), 'sertifikat');
+                    $isLetterStudioType = $letter->letterType?->supports_letter_studio
+                        || str_contains(strtolower($letter->letterType?->name ?? ''), 'sipermawa')
+                        || strtolower($letter->letterType?->code ?? '') === 'smw';
+                    $user = auth()->user();
                 @endphp
-                @if (auth()->user()?->canAccessCertificateStudio() && ($isCertificateLetter || $letter->status === 'final'))
+
+                @if ($user?->canAccessCertificateStudio() && ($isCertificateLetter || (!$isLetterStudioType && $letter->status === 'final')))
                 <div class="mac-card overflow-hidden {{ $isCertificateLetter ? 'border-indigo-200/90 bg-gradient-to-br from-indigo-50/40 via-white to-blue-50/30' : 'border-gray-200/90' }}">
                     <div class="px-5 py-3.5 border-b {{ $isCertificateLetter ? 'border-indigo-100 bg-indigo-50/60' : 'border-gray-100 bg-gray-50/50' }} flex items-center justify-between">
                         <div class="flex items-center gap-2.5">
@@ -415,10 +420,37 @@
                         <p class="text-xs text-gray-600 leading-relaxed">
                             Tempel nomor surat resmi, tanda tangan pejabat, dan stempel fakultas pada desain sertifikat (PDF / PNG / JPG), lalu export atau arsipkan langsung ke Google Drive.
                         </p>
-                        <a href="{{ route('letters.certificate-studio', $letter) }}"
+                        <a href="{{ route('letters.certificate-studio', ['letter' => $letter, 'mode' => 'certificate']) }}"
                             class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold text-xs rounded-xl shadow-xs hover:shadow-md transition-all active:scale-[0.98]">
                             <i data-lucide="sparkles" class="w-4 h-4"></i>
                             <span>Buka Studio Sertifikat</span>
+                        </a>
+                    </div>
+                </div>
+                @endif
+
+                @if ($user?->canAccessLetterStudio() && ($isLetterStudioType || (!$isCertificateLetter && $letter->status === 'final')))
+                <div class="mac-card overflow-hidden {{ $isLetterStudioType ? 'border-emerald-200/90 bg-gradient-to-br from-emerald-50/40 via-white to-teal-50/30' : 'border-gray-200/90' }}">
+                    <div class="px-5 py-3.5 border-b {{ $isLetterStudioType ? 'border-emerald-100 bg-emerald-50/60' : 'border-gray-100 bg-gray-50/50' }} flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <i data-lucide="file-pen-line" class="w-4.5 h-4.5 {{ $isLetterStudioType ? 'text-emerald-600' : 'text-gray-500' }}"></i>
+                            <h3 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Studio Surat (Kop &amp; TTD)</h3>
+                        </div>
+                        @if ($isLetterStudioType)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                Rekomendasi
+                            </span>
+                        @endif
+                    </div>
+
+                    <div class="p-5 space-y-3">
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            Ganti Kop Surat Universitas dengan Kop FEB UNJ, timpa nomor surat, dan susun blok TTD pejabat baru tanpa mengubah isi body surat.
+                        </p>
+                        <a href="{{ route('letters.certificate-studio', ['letter' => $letter, 'mode' => 'letter']) }}"
+                            class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-xs hover:shadow-md transition-all active:scale-[0.98]">
+                            <i data-lucide="layout-template" class="w-4 h-4"></i>
+                            <span>Buka Studio Surat</span>
                         </a>
                     </div>
                 </div>

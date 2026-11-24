@@ -82,6 +82,7 @@ Route::prefix('master')->name('master.')->group(function () {
     Route::post('letter-types/{letterType}/toggle-requires-purpose', [LetterTypeController::class, 'toggleRequiresPurpose'])->name('letter-types.toggle-requires-purpose');
     Route::post('letter-types/{letterType}/toggle-requires-drive-archive', [LetterTypeController::class, 'toggleRequiresDriveArchive'])->name('letter-types.toggle-requires-drive-archive');
     Route::post('letter-types/{letterType}/toggle-is-certificate', [LetterTypeController::class, 'toggleIsCertificate'])->name('letter-types.toggle-is-certificate');
+    Route::post('letter-types/{letterType}/toggle-supports-letter-studio', [LetterTypeController::class, 'toggleSupportsLetterStudio'])->name('letter-types.toggle-supports-letter-studio');
     
     Route::resource('signatories', SignatoryController::class);
     Route::resource('certificate-stamps', CertificateStampController::class)->except(['create', 'edit', 'show']);
@@ -98,6 +99,8 @@ Route::post('letters/{letter}/archive-link', [LetterController::class, 'updateAr
 Route::get('letters/{letter}/certificate-studio', [CertificateStudioController::class, 'show'])->name('letters.certificate-studio')->middleware(['auth', 'role:admin,operator']);
 Route::post('letters/{letter}/certificate-studio/log-export', [CertificateStudioController::class, 'logExport'])->name('letters.certificate-studio.log-export')->middleware(['auth', 'role:admin,operator']);
 Route::post('certificate-studio/quick-asset', [CertificateStudioController::class, 'uploadQuickAsset'])->name('certificate-studio.quick-asset')->middleware(['auth', 'role:admin,operator']);
+Route::get('studio/assets/signature-preview/{signatory}', [CertificateStudioController::class, 'previewSignature'])->name('studio.signature-preview')->middleware(['auth', 'role:admin,operator']);
+Route::post('certificate-studio/stamp-signatures', [CertificateStudioController::class, 'stampSignatures'])->name('certificate-studio.stamp-signatures')->middleware(['auth', 'role:admin,operator']);
 Route::post('certificate-studio/presets', [CertificateStudioController::class, 'savePreset'])->name('certificate-studio.presets.store')->middleware(['auth', 'role:admin,operator']);
 Route::delete('certificate-studio/presets/{preset}', [CertificateStudioController::class, 'deletePreset'])->name('certificate-studio.presets.destroy')->middleware(['auth', 'role:admin,operator']);
 Route::resource('letters', LetterController::class);

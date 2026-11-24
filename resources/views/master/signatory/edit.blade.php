@@ -318,7 +318,9 @@
                                         <img id="sigPreviewImg"
                                             src="{{ $signatory->signature_url ?? '' }}"
                                             alt="Preview TTD"
-                                            class="{{ $signatory->signature_path ? '' : 'hidden' }} max-h-14 max-w-full object-contain">
+                                            draggable="false"
+                                            oncontextmenu="return false"
+                                            class="{{ $signatory->signature_path ? '' : 'hidden' }} max-h-14 max-w-full object-contain select-none">
                                         <span id="sigPreviewPlaceholder" class="{{ $signatory->signature_path ? 'hidden' : '' }} text-[10px] text-gray-400 text-center px-1">Belum ada TTD</span>
                                     </div>
                                     <div class="flex-1 min-w-0 space-y-2">
@@ -331,7 +333,7 @@
                                                 <span>Hapus spesimen TTD saat ini</span>
                                             </label>
                                         @else
-                                            <p class="text-[11px] text-gray-400">Gunakan PNG transparan agar rapi saat ditempel di Studio Sertifikat.</p>
+                                            <p class="text-[11px] text-gray-400">Gunakan PNG transparan. Disimpan di private storage &amp; dilindungi watermark pratinjau.</p>
                                         @endif
                                     </div>
                                 </div>
@@ -341,6 +343,48 @@
                                         {{ $message }}
                                     </p>
                                 @enderror
+                            </div>
+
+                            {{-- Field 5b: Pembatasan Akses TTD per User --}}
+                            <div class="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-200/70 space-y-3">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="space-y-0.5">
+                                        <span class="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                                            <i data-lucide="shield-lock" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                            Batasi Pengguna TTD Ini (Whitelist)
+                                        </span>
+                                        <p class="text-[11px] text-gray-500">
+                                            Jika aktif, hanya user terdaftar yang boleh memakai TTD pejabat ini di Studio (Admin selalu dapat mengakses).
+                                        </p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-0.5">
+                                        <input type="hidden" name="restrict_signature_access" value="0">
+                                        <input type="checkbox" id="restrict_signature_access" name="restrict_signature_access" value="1"
+                                            {{ old('restrict_signature_access', $signatory->restrict_signature_access) ? 'checked' : '' }}
+                                            class="sr-only peer"
+                                            onchange="document.getElementById('allowedUsersWrap')?.classList.toggle('hidden', !this.checked)">
+                                        <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 shadow-inner"></div>
+                                    </label>
+                                </div>
+
+                                <div id="allowedUsersWrap" class="{{ old('restrict_signature_access', $signatory->restrict_signature_access) ? '' : 'hidden' }} pt-2 border-t border-indigo-100 space-y-2">
+                                    <span class="block text-[11px] font-bold text-indigo-900">Pilih User yang Diizinkan:</span>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                                        @forelse ($studioUsers as $u)
+                                            <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-indigo-100 hover:border-indigo-300 cursor-pointer text-xs">
+                                                <input type="checkbox" name="allowed_user_ids[]" value="{{ $u->id }}"
+                                                    {{ in_array($u->id, old('allowed_user_ids', $allowedUserIds)) ? 'checked' : '' }}
+                                                    class="rounded border-indigo-300 text-indigo-600">
+                                                <div class="min-w-0">
+                                                    <p class="font-bold text-gray-800 truncate">{{ $u->name }}</p>
+                                                    <p class="text-[10px] text-gray-400 truncate">{{ $u->username }} &bull; {{ ucfirst($u->role) }}</p>
+                                                </div>
+                                            </label>
+                                        @empty
+                                            <p class="text-[11px] text-gray-400 col-span-2 italic">Belum ada user operator aktif.</p>
+                                        @endforelse
+                                    </div>
+                                </div>
                             </div>
 
                             {{-- Field 6: Status Aktif (Apple iOS Style Toggle Switch) --}}

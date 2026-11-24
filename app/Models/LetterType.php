@@ -26,6 +26,7 @@ class LetterType extends Model
         'requires_purpose',
         'requires_drive_archive',
         'is_certificate',
+        'supports_letter_studio',
     ];
 
     /**
@@ -39,6 +40,7 @@ class LetterType extends Model
         'requires_purpose' => 'boolean',
         'requires_drive_archive' => 'boolean',
         'is_certificate' => 'boolean',
+        'supports_letter_studio' => 'boolean',
     ];
 
     /**

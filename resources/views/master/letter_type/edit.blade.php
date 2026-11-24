@@ -326,6 +326,38 @@
                                 </div>
                             </div>
 
+                            {{-- Field: Fitur Studio Surat / SIPERMAWA (Apple iOS Style Toggle Switch) --}}
+                            <div>
+                                <div class="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/80 hover:bg-gray-50 transition-colors">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="space-y-1">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs font-bold text-gray-900">Fitur Studio Surat (Ganti Kop, Nomor &amp; TTD)</span>
+                                                <span id="letterStudioIndicatorBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold {{ old('supports_letter_studio', $letterType->supports_letter_studio) ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-gray-100 text-gray-700 border border-gray-300' }}">
+                                                    <span class="w-1.5 h-1.5 rounded-full {{ old('supports_letter_studio', $letterType->supports_letter_studio) ? 'bg-emerald-500' : 'bg-gray-400' }}"></span>
+                                                    {{ old('supports_letter_studio', $letterType->supports_letter_studio) ? 'Aktif' : 'Nonaktif' }}
+                                                </span>
+                                            </div>
+                                            <p id="letterStudioDescriptionText" class="text-xs text-gray-500 leading-relaxed">
+                                                {{ old('supports_letter_studio', $letterType->supports_letter_studio) ? 'Memunculkan shortcut Studio Surat (SIPERMAWA) untuk ganti Kop Fakultas, nomor surat, & susunan TTD baru.' : 'Aktifkan jika jenis surat ini memerlukan penggantian Kop Surat / TTD dari dokumen asal Universitas (misal: SIPERMAWA).' }}
+                                            </p>
+                                        </div>
+
+                                        <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-0.5">
+                                            <input type="hidden" name="supports_letter_studio" value="0">
+                                            <input type="checkbox"
+                                                   id="supports_letter_studio"
+                                                   name="supports_letter_studio"
+                                                   value="1"
+                                                   {{ old('supports_letter_studio', $letterType->supports_letter_studio) ? 'checked' : '' }}
+                                                   class="sr-only peer"
+                                                   onchange="handleLetterStudioToggle(this)">
+                                            <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
                             {{-- Field: Status Aktif (Apple iOS Style Toggle Switch) --}}
                             <div>
                                 <div class="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/80 hover:bg-gray-50 transition-colors">
@@ -682,6 +714,24 @@
             badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-300';
             badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Nonaktif';
             desc.textContent = 'Aktifkan jika jenis surat ini dipakai untuk menerbitkan sertifikat kegiatan.';
+        }
+    }
+
+    // iOS Letter Studio (SIPERMAWA) Toggle Handler
+    function handleLetterStudioToggle(checkbox) {
+        const isChecked = checkbox.checked;
+        const badge = document.getElementById('letterStudioIndicatorBadge');
+        const desc = document.getElementById('letterStudioDescriptionText');
+        if (!badge || !desc) return;
+
+        if (isChecked) {
+            badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Aktif';
+            desc.textContent = 'Memunculkan shortcut Studio Surat (SIPERMAWA) untuk ganti Kop Fakultas, nomor surat, & susunan TTD baru.';
+        } else {
+            badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-300';
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Nonaktif';
+            desc.textContent = 'Aktifkan jika jenis surat ini memerlukan penggantian Kop Surat / TTD dari dokumen asal Universitas (misal: SIPERMAWA).';
         }
     }
 

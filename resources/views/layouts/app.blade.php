@@ -812,7 +812,7 @@
             {{-- Main Content --}}
             <div class="flex flex-1 flex-col min-w-0">
                 {{-- Top Header (Minimal Apple macOS Toolbar) --}}
-                <header class="sticky top-0 z-10 flex h-16 flex-shrink-0 items-center ios-header">
+                <header class="sticky top-0 z-40 flex h-16 flex-shrink-0 items-center ios-header">
                     <div class="flex flex-1 justify-between items-center px-4 sm:px-6 lg:px-6">
                         {{-- Left: macOS Sidebar Controls + Apple Two-Tier Page Header --}}
                         <div class="flex items-center min-w-0 space-x-2 sm:space-x-2.5">

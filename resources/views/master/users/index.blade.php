@@ -169,6 +169,12 @@
                                             Sertifikat
                                         </span>
                                     @endif
+                                    @if($user->can_access_letter_studio && !$user->isAdmin())
+                                        <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/70" title="Diizinkan mengakses Studio Surat (SIPERMAWA)">
+                                            <i data-lucide="file-pen-line" class="w-2.5 h-2.5"></i>
+                                            Studio Surat
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3.5 whitespace-nowrap">
                                     @if($user->is_active)

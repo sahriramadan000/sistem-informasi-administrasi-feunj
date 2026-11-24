@@ -31,7 +31,8 @@ class LetterTypeController extends Controller
             'destroy',
             'toggleRequiresPurpose',
             'toggleRequiresDriveArchive',
-            'toggleIsCertificate'
+            'toggleIsCertificate',
+            'toggleSupportsLetterStudio'
         ]);
     }
 
@@ -106,6 +107,7 @@ class LetterTypeController extends Controller
             'requires_purpose' => 'boolean',
             'requires_drive_archive' => 'boolean',
             'is_certificate' => 'boolean',
+            'supports_letter_studio' => 'boolean',
         ]);
 
         try {
@@ -114,6 +116,7 @@ class LetterTypeController extends Controller
             $validated['requires_purpose'] = $request->boolean('requires_purpose');
             $validated['requires_drive_archive'] = $request->boolean('requires_drive_archive');
             $validated['is_certificate'] = $request->boolean('is_certificate');
+            $validated['supports_letter_studio'] = $request->boolean('supports_letter_studio');
 
             // Simpan data menggunakan transaction
             DB::transaction(function () use ($validated) {
@@ -173,6 +176,7 @@ class LetterTypeController extends Controller
             'requires_purpose' => 'boolean',
             'requires_drive_archive' => 'boolean',
             'is_certificate' => 'boolean',
+            'supports_letter_studio' => 'boolean',
         ]);
 
         try {
@@ -181,6 +185,7 @@ class LetterTypeController extends Controller
             $validated['requires_purpose'] = $request->boolean('requires_purpose');
             $validated['requires_drive_archive'] = $request->boolean('requires_drive_archive');
             $validated['is_certificate'] = $request->boolean('is_certificate');
+            $validated['supports_letter_studio'] = $request->boolean('supports_letter_studio');
 
             // Update data menggunakan transaction
             DB::transaction(function () use ($letterType, $validated) {
@@ -384,6 +389,48 @@ class LetterTypeController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat memperbarui status Studio Sertifikat.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Toggle supports_letter_studio field via AJAX
+     */
+    public function toggleSupportsLetterStudio(Request $request, LetterType $letterType)
+    {
+        try {
+            $validated = $request->validate([
+                'supports_letter_studio' => 'required|boolean',
+            ]);
+
+            DB::transaction(function () use ($letterType, $validated) {
+                $letterType->update([
+                    'supports_letter_studio' => $validated['supports_letter_studio'],
+                ]);
+            });
+
+            AuditLogService::log('update', 'LetterType', $letterType->id, [
+                'code' => $letterType->code,
+                'name' => $letterType->name,
+                'supports_letter_studio' => $letterType->supports_letter_studio,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'supports_letter_studio' => $letterType->supports_letter_studio,
+                'message' => 'Status Studio Surat berhasil diperbarui.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            Log::error('Error toggling supports_letter_studio', [
+                'id' => $letterType->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui status Studio Surat.',
             ], 500);
         }
     }
