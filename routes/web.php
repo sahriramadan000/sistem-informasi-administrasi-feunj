@@ -25,6 +25,7 @@ use App\Http\Controllers\LegalizationImportController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\RoomReservationController;
 use App\Http\Controllers\LetterArchiveController;
+use App\Http\Controllers\ToolsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -114,6 +115,15 @@ Route::prefix('letter-archives')->name('letter-archives.')->middleware(['auth'])
 // Modul Arsip Digital (Dedicated Read-Only Portal)
 Route::prefix('archives')->name('archives.')->middleware(['auth'])->group(function () {
     Route::get('/', [LetterArchiveController::class, 'portal'])->name('index');
+});
+
+// Modul Tools Administrasi (Dapat diakses seluruh pengguna terautentikasi)
+Route::prefix('tools')->name('tools.')->middleware(['auth'])->group(function () {
+    Route::get('/', [ToolsController::class, 'index'])->name('index');
+    Route::get('/qr-barcode', [ToolsController::class, 'qrBarcode'])->name('qr-barcode');
+    Route::get('/pdf-image', [ToolsController::class, 'pdfImage'])->name('pdf-image');
+    Route::get('/pdf-manager', [ToolsController::class, 'pdfManager'])->name('pdf-manager');
+    Route::get('/admin-helper', [ToolsController::class, 'adminHelper'])->name('admin-helper');
 });
 
 // Profile Routes (All authenticated users)

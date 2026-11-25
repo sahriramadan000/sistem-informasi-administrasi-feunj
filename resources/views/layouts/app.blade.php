@@ -836,6 +836,8 @@
                                     $modName = 'Legalisir';
                                 } elseif (request()->routeIs('room-reservations.*', 'master.rooms.*', 'master.room-groups.*')) {
                                     $modName = 'Ruangan';
+                                } elseif (request()->routeIs('tools.*')) {
+                                    $modName = 'Tools';
                                 } elseif (request()->routeIs('admin.*', 'master.users.*')) {
                                     $modName = 'Pengaturan';
                                 }

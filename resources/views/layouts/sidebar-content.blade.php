@@ -23,6 +23,8 @@
                                 Layanan Legalisir
                             @elseif(request()->routeIs('room-reservations.*', 'master.rooms.*', 'master.room-groups.*'))
                                 Peminjaman Ruang
+                            @elseif(request()->routeIs('tools.*'))
+                                Tools Administrasi
                             @else
                                 Persuratan &amp; Arsip
                             @endif
@@ -88,6 +90,17 @@
                     @endif
                 </a>
             @endif
+
+            <a href="{{ route('tools.index') }}"
+                class="flex items-center justify-between px-2.5 py-2 text-xs font-semibold rounded-xl transition-colors {{ request()->routeIs('tools.*') ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-700 hover:bg-gray-100' }}">
+                <span class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full {{ request()->routeIs('tools.*') ? 'bg-orange-500' : 'bg-gray-300' }}"></span>
+                    Tools Administrasi
+                </span>
+                @if(request()->routeIs('tools.*'))
+                    <i data-lucide="check" style="width: 14px; height: 14px; color: #ea580c;"></i>
+                @endif
+            </a>
 
             @if(auth()->user()->isAdmin())
                 <a href="{{ route('admin.dashboard') }}"
@@ -291,6 +304,56 @@
                 </div>
             @endif
         @endif
+
+    @elseif(request()->routeIs('tools.*'))
+        {{-- ========================================== --}}
+        {{-- NAVIGASI MODUL TOOLS ADMINISTRASI --}}
+        {{-- ========================================== --}}
+        <div class="ios-nav-section">
+            <div class="ios-section-title sidebar-hide-on-collapsed">Main Menu</div>
+            <a href="{{ route('tools.index') }}" class="ios-nav-item {{ request()->routeIs('tools.index') ? 'active' : '' }}" title="Semua Tools">
+                <span class="ios-item-label">
+                    <i data-lucide="layout-grid" class="ios-menu-icon"></i>
+                    <span class="truncate sidebar-hide-on-collapsed">Semua Tools</span>
+                </span>
+            </a>
+        </div>
+
+        <div class="ios-nav-section pt-2">
+            <div class="ios-section-title sidebar-hide-on-collapsed">Studio &amp; Dokumen</div>
+            <a href="{{ route('tools.qr-barcode') }}" class="ios-nav-item {{ request()->routeIs('tools.qr-barcode') ? 'active' : '' }}" title="QR & Barcode Studio">
+                <span class="ios-item-label">
+                    <i data-lucide="qr-code" class="ios-menu-icon"></i>
+                    <span class="truncate sidebar-hide-on-collapsed">QR &amp; Barcode Studio</span>
+                </span>
+                <i data-lucide="chevron-right" class="ios-right-chevron sidebar-hide-on-collapsed"></i>
+            </a>
+            <a href="{{ route('tools.pdf-image') }}" class="ios-nav-item {{ request()->routeIs('tools.pdf-image') ? 'active' : '' }}" title="PDF ke Gambar & Kompres">
+                <span class="ios-item-label">
+                    <i data-lucide="file-image" class="ios-menu-icon"></i>
+                    <span class="truncate sidebar-hide-on-collapsed">PDF &harr; Gambar &amp; Kompres</span>
+                </span>
+                <i data-lucide="chevron-right" class="ios-right-chevron sidebar-hide-on-collapsed"></i>
+            </a>
+            <a href="{{ route('tools.pdf-manager') }}" class="ios-nav-item {{ request()->routeIs('tools.pdf-manager') ? 'active' : '' }}" title="Kelola & Watermark PDF">
+                <span class="ios-item-label">
+                    <i data-lucide="files" class="ios-menu-icon"></i>
+                    <span class="truncate sidebar-hide-on-collapsed">Kelola &amp; Watermark PDF</span>
+                </span>
+                <i data-lucide="chevron-right" class="ios-right-chevron sidebar-hide-on-collapsed"></i>
+            </a>
+        </div>
+
+        <div class="ios-nav-section pt-2">
+            <div class="ios-section-title sidebar-hide-on-collapsed">Utilitas Kampus</div>
+            <a href="{{ route('tools.admin-helper') }}" class="ios-nav-item {{ request()->routeIs('tools.admin-helper') ? 'active' : '' }}" title="Helper Administrasi">
+                <span class="ios-item-label">
+                    <i data-lucide="sparkles" class="ios-menu-icon"></i>
+                    <span class="truncate sidebar-hide-on-collapsed">Helper Administrasi</span>
+                </span>
+                <i data-lucide="chevron-right" class="ios-right-chevron sidebar-hide-on-collapsed"></i>
+            </a>
+        </div>
 
     @elseif(request()->routeIs('archives.*') || (request()->routeIs('letter-archives.*') && ($isReadOnlyPortal ?? false)))
         {{-- ========================================== --}}

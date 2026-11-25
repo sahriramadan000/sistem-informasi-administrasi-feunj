@@ -116,11 +116,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Cek apakah user punya akses ke lebih dari 1 modul
+     * Cek apakah user punya akses ke lebih dari 1 modul (Modul Tools selalu tersedia untuk semua user)
      */
     public function hasMultipleModules(): bool
     {
-        $count = 0;
+        $count = 1; // Modul Tools Administrasi tersedia untuk seluruh pengguna terautentikasi
         if ($this->can_access_letters) $count++;
         if ($this->can_access_archives) $count++;
         if ($this->can_access_legalizations) $count++;

@@ -37,7 +37,7 @@ class ModuleSwitcherController extends Controller
             return redirect()->route('admin.dashboard'); // Pengaturan Sistem
         }
 
-        // Tidak punya akses
-        abort(403, 'Anda tidak memiliki akses ke modul manapun. Hubungi Administrator.');
+        // Fallback ke Tools Administrasi yang dapat diakses seluruh pengguna aktif
+        return redirect()->route('tools.index');
     }
 }

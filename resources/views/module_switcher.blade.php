@@ -1062,12 +1062,7 @@
 
             {{-- ── Module Cards Section ── --}}
             @php
-                $hasAny =
-                    auth()->user()->can_access_letters ||
-                    auth()->user()->can_access_archives ||
-                    auth()->user()->can_access_legalizations ||
-                    auth()->user()->can_access_room_reservations ||
-                    auth()->user()->isAdmin();
+                $hasAny = true; // Modul Tools Administrasi tersedia untuk seluruh pengguna aktif
             @endphp
 
             @if ($hasAny)
@@ -1096,6 +1091,9 @@
                         </button>
                         <button type="button" class="category-pill" data-filter="fasilitas">
                             Fasilitas <span class="category-count" data-count-for="fasilitas">0</span>
+                        </button>
+                        <button type="button" class="category-pill" data-filter="utilitas">
+                            Utilitas <span class="category-count" data-count-for="utilitas">0</span>
                         </button>
                         <button type="button" class="category-pill" data-filter="sistem">
                             Sistem <span class="category-count" data-count-for="sistem">0</span>
@@ -1291,6 +1289,45 @@
                             </span>
                         </a>
                     @endif
+
+                    {{-- ── Card: Modul Tools Administrasi ── --}}
+                    <a href="{{ route('tools.index') }}" class="module-card" data-module-id="tools" data-category="utilitas" data-keywords="tools pdf jpg png merge split compress watermark qr code barcode custom logo template terbilang helper utilitas" aria-label="Buka Modul Tools Administrasi">
+                        <div class="card-visual">
+                            <img src="{{ asset('images/modules/tools.jpg') . '?v=' . (file_exists(public_path('images/modules/tools.jpg')) ? filemtime(public_path('images/modules/tools.jpg')) : time()) }}" alt="Ilustrasi Modul Tools Administrasi" class="card-visual-img" loading="lazy">
+                            <div class="card-badge-icon" title="Tools Administrasi">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="card-content">
+                            <h2 class="card-title">Tools Administrasi</h2>
+                            <p class="card-desc">
+                                QR Code &amp; Barcode custom logo beserta template desain, konverter PDF ke JPG/PNG, penggabung/pemisah/kompres PDF, watermark, &amp; helper admin.
+                            </p>
+
+                            <div class="card-footer">
+                                <span class="card-action-btn">
+                                    Buka Modul
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                                    </svg>
+                                </span>
+                                <span class="card-status-info">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                                    </svg>
+                                    PDF, QR &amp; Helper
+                                </span>
+                            </div>
+                        </div>
+                        <span class="compact-arrow" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                            </svg>
+                        </span>
+                    </a>
 
                     {{-- ── Card 4: Modul Pengaturan Sistem ── --}}
                     @if (auth()->user()->isAdmin())
