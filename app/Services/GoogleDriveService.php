@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\GoogleDriveException;
 use App\Models\DriveFolder;
 use App\Models\Letter;
+use App\Models\LetterPurpose;
 use App\Models\LetterType;
 use App\Models\SystemSetting;
 use Illuminate\Http\UploadedFile;
@@ -20,6 +21,7 @@ class GoogleDriveService
     protected const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
     protected const DRIVE_UPLOAD_BASE = 'https://www.googleapis.com/upload/drive/v3';
     protected const TOKEN_CACHE_KEY = 'google_drive_access_token';
+    protected const ORPHAN_CONVERT_CACHE_KEY = 'gdrive_convert_orphan_file_ids';
 
     public function isConfigured(): bool
     {
@@ -303,9 +305,11 @@ class GoogleDriveService
     }
 
     /**
-     * Pastikan struktur folder {Root}/{Tahun}/{Tipe Surat} tersedia di Google Drive.
+     * Pastikan struktur folder {Root}/{Tahun}/{Tipe Surat}[/{Keperluan Surat}] tersedia di Google Drive.
+     * Catatan: Tabel drive_folders tetap menyimpan {Tahun}/{Tipe Surat} untuk kompatibilitas Arsip Digital,
+     * sedangkan subfolder {Keperluan Surat} di-cache langsung melalui Laravel Cache khusus saat upload ke Google Drive.
      */
-    public function ensureFolderHierarchy(int $year, LetterType $letterType): array
+    public function ensureFolderHierarchy(int $year, LetterType $letterType, ?LetterPurpose $letterPurpose = null): array
     {
         $rootFolderId = $this->getRootFolderId();
         if (empty($rootFolderId)) {
@@ -316,56 +320,76 @@ class GoogleDriveService
         }
 
         $token = $this->getAccessToken();
-
-        // Cek cache database untuk folder Tipe Surat pada Tahun terkait
-        $cachedTypeFolder = DriveFolder::where('year', $year)
-            ->where('letter_type_id', $letterType->id)
-            ->first();
-
-        if ($cachedTypeFolder && $this->folderExists($token, $cachedTypeFolder->folder_id)) {
-            return [
-                'folder_id' => $cachedTypeFolder->folder_id,
-                'folder_path' => "{$year} / {$cachedTypeFolder->folder_name}",
-            ];
-        }
+        $typeLabel = trim(($letterType->code ? "{$letterType->code} - " : '') . $letterType->name);
 
         try {
-            // 1. Folder Tahun
-            $cachedYearFolder = DriveFolder::where('year', $year)
-                ->whereNull('letter_type_id')
+            // 1. Pastikan Folder Tipe Surat ({Tahun}/{Tipe Surat}) via cache tabel drive_folders
+            $cachedTypeFolder = DriveFolder::where('year', $year)
+                ->where('letter_type_id', $letterType->id)
                 ->first();
 
-            if ($cachedYearFolder && $this->folderExists($token, $cachedYearFolder->folder_id)) {
-                $yearFolderId = $cachedYearFolder->folder_id;
+            if ($cachedTypeFolder && $this->folderExists($token, $cachedTypeFolder->folder_id)) {
+                $typeFolderId = $cachedTypeFolder->folder_id;
+                $typeLabel = $cachedTypeFolder->folder_name ?: $typeLabel;
             } else {
-                $yearFolder = $this->findOrCreateFolder($token, (string) $year, $rootFolderId);
-                $yearFolderId = $yearFolder['id'];
+                $cachedYearFolder = DriveFolder::where('year', $year)
+                    ->whereNull('letter_type_id')
+                    ->first();
+
+                if ($cachedYearFolder && $this->folderExists($token, $cachedYearFolder->folder_id)) {
+                    $yearFolderId = $cachedYearFolder->folder_id;
+                } else {
+                    $yearFolder = $this->findOrCreateFolder($token, (string) $year, $rootFolderId);
+                    $yearFolderId = $yearFolder['id'];
+
+                    DriveFolder::updateOrCreate(
+                        ['year' => $year, 'letter_type_id' => null],
+                        [
+                            'folder_id' => $yearFolderId,
+                            'folder_name' => (string) $year,
+                            'parent_folder_id' => $rootFolderId,
+                        ]
+                    );
+                }
+
+                $typeFolder = $this->findOrCreateFolder($token, $typeLabel, $yearFolderId);
+                $typeFolderId = $typeFolder['id'];
 
                 DriveFolder::updateOrCreate(
-                    ['year' => $year, 'letter_type_id' => null],
+                    ['year' => $year, 'letter_type_id' => $letterType->id],
                     [
-                        'folder_id' => $yearFolderId,
-                        'folder_name' => (string) $year,
-                        'parent_folder_id' => $rootFolderId,
+                        'folder_id' => $typeFolderId,
+                        'folder_name' => $typeLabel,
+                        'parent_folder_id' => $yearFolderId,
                     ]
                 );
             }
 
-            // 2. Folder Tipe Surat (misal: "SK - Surat Keputusan")
-            $typeLabel = trim(($letterType->code ? "{$letterType->code} - " : '') . $letterType->name);
-            $typeFolder = $this->findOrCreateFolder($token, $typeLabel, $yearFolderId);
+            // 2. Subfolder Keperluan Surat di Google Drive (di-cache via Laravel Cache, tanpa mengubah DB drive_folders)
+            if ($letterPurpose) {
+                $cleanPurpose = str_replace(['/', '\\'], '-', (string) $letterPurpose->name);
+                $cleanPurpose = preg_replace('/\s+/', ' ', trim($cleanPurpose));
+                $purposeLabel = trim(Str::limit($cleanPurpose ?: 'Lainnya', 100, ''));
 
-            DriveFolder::updateOrCreate(
-                ['year' => $year, 'letter_type_id' => $letterType->id],
-                [
-                    'folder_id' => $typeFolder['id'],
-                    'folder_name' => $typeLabel,
-                    'parent_folder_id' => $yearFolderId,
-                ]
-            );
+                $cacheKey = "gdrive_purpose_folder:{$typeFolderId}:" . md5($purposeLabel);
+                $cachedPurposeId = Cache::get($cacheKey);
+
+                if (is_string($cachedPurposeId) && $cachedPurposeId !== '' && $this->folderExists($token, $cachedPurposeId)) {
+                    $purposeFolderId = $cachedPurposeId;
+                } else {
+                    $purposeFolder = $this->findOrCreateFolder($token, $purposeLabel, $typeFolderId);
+                    $purposeFolderId = $purposeFolder['id'];
+                    Cache::put($cacheKey, $purposeFolderId, now()->addHours(12));
+                }
+
+                return [
+                    'folder_id' => $purposeFolderId,
+                    'folder_path' => "{$year} / {$typeLabel} / {$purposeLabel}",
+                ];
+            }
 
             return [
-                'folder_id' => $typeFolder['id'],
+                'folder_id' => $typeFolderId,
                 'folder_path' => "{$year} / {$typeLabel}",
             ];
         } catch (GoogleDriveException $e) {
@@ -374,6 +398,7 @@ class GoogleDriveService
             $errorId = ErrorTrackingService::logError($e, 'GoogleDriveService.ensureFolderHierarchy', [
                 'year' => $year,
                 'letter_type_id' => $letterType->id,
+                'letter_purpose_id' => $letterPurpose?->id,
                 'root_folder_id' => $rootFolderId,
             ]);
 
@@ -389,11 +414,11 @@ class GoogleDriveService
     }
 
     /**
-     * Unggah file arsip surat ke Google Drive sesuai Tahun & Tipe Surat.
+     * Unggah file arsip surat ke Google Drive sesuai Tahun, Tipe Surat, dan Keperluan Surat.
      */
     public function uploadLetterFile(UploadedFile $file, Letter $letter): array
     {
-        $letter->loadMissing('letterType');
+        $letter->loadMissing(['letterType', 'letterPurpose']);
 
         if (!$letter->letterType) {
             throw new GoogleDriveException(
@@ -403,7 +428,7 @@ class GoogleDriveService
         }
 
         $year = (int) ($letter->year ?: ($letter->letter_date?->year ?? date('Y')));
-        $hierarchy = $this->ensureFolderHierarchy($year, $letter->letterType);
+        $hierarchy = $this->ensureFolderHierarchy($year, $letter->letterType, $letter->letterPurpose);
         $targetFolderId = $hierarchy['folder_id'];
         $standardName = $this->buildStandardFileName($file, $letter);
         $token = $this->getAccessToken();
@@ -488,6 +513,253 @@ class GoogleDriveService
     }
 
     /**
+     * Deteksi MIME type asli dari magic bytes file Word/RTF (termasuk .doc SIPERMAWA yang sering berformat RTF/HTML).
+     */
+    public function detectWordMimeType(string $realPath, string $extension = ''): ?string
+    {
+        if ($realPath === '' || !file_exists($realPath)) {
+            return null;
+        }
+
+        $header = @file_get_contents($realPath, false, null, 0, 128);
+        if ($header === false || $header === '') {
+            return null;
+        }
+
+        if (str_starts_with($header, "PK\x03\x04")) {
+            return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        }
+
+        if (str_starts_with($header, "\xD0\xCF\x11\xE0")) {
+            return 'application/msword';
+        }
+
+        $trimmed = ltrim($header, "\xEF\xBB\xBF \t\r\n");
+        if (str_starts_with($trimmed, '{\rtf')) {
+            return 'application/rtf';
+        }
+
+        $lower = strtolower($trimmed);
+        foreach (['<html', '<!doctype', '<?xml', '<meta', '<head', '<body', '<div'] as $prefix) {
+            if (str_starts_with($lower, $prefix)) {
+                return 'text/html';
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Hapus permanen file sementara di Google Drive (tanpa masuk Trash).
+     */
+    public function permanentlyDeleteFile(?string $fileId, ?string $token = null): bool
+    {
+        if (empty($fileId)) {
+            return true;
+        }
+
+        try {
+            $accessToken = $token ?: $this->getAccessToken();
+            $response = Http::withToken($accessToken)
+                ->connectTimeout(3)
+                ->timeout(5)
+                ->delete(self::DRIVE_API_BASE . "/files/{$fileId}");
+
+            if ($response->successful() || $response->status() === 404) {
+                return true;
+            }
+
+            throw new \RuntimeException("HTTP {$response->status()}: " . $response->body());
+        } catch (Throwable $e) {
+            ErrorTrackingService::logError($e, 'GoogleDriveService.permanentlyDeleteFile', [
+                'file_id' => $fileId,
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Bersihkan sisa file sementara yang mungkin gagal dihapus pada konversi sebelumnya (maks. 3 per eksekusi).
+     */
+    protected function cleanupOrphanConvertFiles(string $token): void
+    {
+        $orphans = Cache::get(self::ORPHAN_CONVERT_CACHE_KEY, []);
+        if (!is_array($orphans) || empty($orphans)) {
+            return;
+        }
+
+        $remaining = [];
+        $processed = 0;
+
+        foreach ($orphans as $fileId) {
+            if (!is_string($fileId) || $fileId === '') {
+                continue;
+            }
+            if ($processed >= 3) {
+                $remaining[] = $fileId;
+                continue;
+            }
+
+            $processed++;
+            $response = Http::withToken($token)
+                ->connectTimeout(2)
+                ->timeout(3)
+                ->delete(self::DRIVE_API_BASE . "/files/{$fileId}");
+
+            if (!$response->successful() && $response->status() !== 404) {
+                $remaining[] = $fileId;
+            }
+        }
+
+        if (empty($remaining)) {
+            Cache::forget(self::ORPHAN_CONVERT_CACHE_KEY);
+        } else {
+            Cache::put(self::ORPHAN_CONVERT_CACHE_KEY, array_slice(array_values(array_unique($remaining)), 0, 50), now()->addHours(24));
+        }
+    }
+
+    /**
+     * Konversi sementara file Word/RTF (.doc, .docx, .rtf) ke PDF menggunakan Google Drive API,
+     * lalu langsung hapus permanen file sementara dari Google Drive.
+     */
+    public function convertWordToPdf(UploadedFile $file): string
+    {
+        if (!$this->isConnected()) {
+            throw new GoogleDriveException(
+                GoogleDriveException::NOT_CONNECTED,
+                'Konversi file Word memerlukan koneksi Google Drive aktif. Hubungi Admin atau simpan file Word sebagai PDF terlebih dahulu.'
+            );
+        }
+
+        $sourceMime = $this->detectWordMimeType(
+            (string) $file->getRealPath(),
+            strtolower((string) $file->getClientOriginalExtension())
+        );
+
+        if (!$sourceMime) {
+            throw new GoogleDriveException(
+                GoogleDriveException::UPLOAD_FAILED,
+                'Format isi file Word tidak valid atau rusak. Pastikan file .doc/.docx/.rtf dapat dibuka di Microsoft Word atau simpan sebagai PDF.'
+            );
+        }
+
+        $token = $this->getAccessToken();
+
+        try {
+            $this->cleanupOrphanConvertFiles($token);
+        } catch (Throwable $e) {
+            // Non-blocking orphan cleanup
+        }
+
+        $tempFileId = null;
+
+        try {
+            $boundary = '-------' . Str::random(24);
+            $metadata = json_encode([
+                'name' => '[TMP_CONVERT]_' . Str::random(12),
+                'mimeType' => 'application/vnd.google-apps.document',
+            ]);
+
+            $rawContent = file_get_contents((string) $file->getRealPath());
+            if ($rawContent === false || $rawContent === '') {
+                throw new GoogleDriveException(
+                    GoogleDriveException::UPLOAD_FAILED,
+                    'File Word kosong atau tidak dapat dibaca.'
+                );
+            }
+
+            $body = "--{$boundary}\r\n"
+                . "Content-Type: application/json; charset=UTF-8\r\n\r\n"
+                . "{$metadata}\r\n"
+                . "--{$boundary}\r\n"
+                . "Content-Type: {$sourceMime}\r\n\r\n"
+                . $rawContent . "\r\n"
+                . "--{$boundary}--";
+
+            $uploadResp = Http::withToken($token)
+                ->connectTimeout(5)
+                ->timeout(12)
+                ->withBody($body, "multipart/related; boundary={$boundary}")
+                ->post(self::DRIVE_UPLOAD_BASE . '/files?uploadType=multipart&fields=id');
+
+            $uploadJson = $uploadResp->json() ?? [];
+            if (!$uploadResp->successful() || empty($uploadJson['id'])) {
+                $status = $uploadResp->status();
+                $errMsg = $uploadJson['error']['message'] ?? $uploadResp->body();
+
+                if ($status === 429 || str_contains(strtolower((string) $errMsg), 'rate limit')) {
+                    throw new GoogleDriveException(
+                        GoogleDriveException::UPLOAD_FAILED,
+                        'Batas permintaan Google Drive tercapai sementara. Tunggu beberapa detik atau simpan file Word sebagai PDF.',
+                        (string) $errMsg,
+                        null,
+                        429
+                    );
+                }
+
+                throw new \RuntimeException("Upload konversi gagal [{$status}]: {$errMsg}");
+            }
+
+            $tempFileId = $uploadJson['id'];
+
+            $exportResp = Http::withToken($token)
+                ->connectTimeout(5)
+                ->timeout(12)
+                ->get(self::DRIVE_API_BASE . "/files/{$tempFileId}/export", [
+                    'mimeType' => 'application/pdf',
+                ]);
+
+            if (!$exportResp->successful()) {
+                $status = $exportResp->status();
+                if ($status === 429) {
+                    throw new GoogleDriveException(
+                        GoogleDriveException::UPLOAD_FAILED,
+                        'Batas ekspor Google Drive tercapai sementara. Coba lagi sebentar atau simpan sebagai PDF di Word.',
+                        $exportResp->body(),
+                        null,
+                        429
+                    );
+                }
+                throw new \RuntimeException("Ekspor PDF gagal [{$status}]: " . $exportResp->body());
+            }
+
+            $pdfBinary = $exportResp->body();
+            if (!str_starts_with($pdfBinary, '%PDF')) {
+                throw new \RuntimeException('Respons ekspor Google Drive bukan PDF yang valid.');
+            }
+
+            return $pdfBinary;
+        } catch (GoogleDriveException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            $errorId = ErrorTrackingService::logError($e, 'GoogleDriveService.convertWordToPdf', [
+                'filename' => $file->getClientOriginalName(),
+                'source_mime' => $sourceMime,
+            ]);
+
+            throw new GoogleDriveException(
+                GoogleDriveException::UPLOAD_FAILED,
+                'Gagal mengonversi file Word lewat Google Drive. Pastikan file tidak terproteksi password, atau simpan sebagai PDF di Word lalu unggah PDF-nya.',
+                $e->getMessage(),
+                $errorId,
+                502,
+                $e
+            );
+        } finally {
+            if ($tempFileId) {
+                $deleted = $this->permanentlyDeleteFile($tempFileId, $token);
+                if (!$deleted) {
+                    $orphans = Cache::get(self::ORPHAN_CONVERT_CACHE_KEY, []);
+                    $orphans = is_array($orphans) ? $orphans : [];
+                    $orphans[] = $tempFileId;
+                    Cache::put(self::ORPHAN_CONVERT_CACHE_KEY, array_slice(array_values(array_unique($orphans)), 0, 50), now()->addHours(24));
+                }
+            }
+        }
+    }
+
+    /**
      * Putuskan koneksi OAuth Google Drive.
      */
     public function disconnect(): void
@@ -499,19 +771,68 @@ class GoogleDriveService
     }
 
     /**
-     * Susun nama file standar: {YYYY-MM-DD}_{NomorSurat}_{SlugPerihal}.{ext}
+     * Bersihkan segmen nama file dan pangkas secara rapi di batas kata jika melebihi batas panjang.
+     */
+    protected function sanitizeFileSegment(?string $value, int $maxLength): string
+    {
+        $cleaned = preg_replace('/[<>:"\/\\\\|?*\x00-\x1F]+/', '_', (string) $value);
+        $cleaned = preg_replace('/\s+/', '_', (string) $cleaned);
+        $cleaned = preg_replace('/_+/', '_', (string) $cleaned);
+        $cleaned = trim((string) $cleaned, "_- \t\n\r");
+
+        if ($cleaned === '') {
+            return '';
+        }
+
+        if (mb_strlen($cleaned) <= $maxLength) {
+            return $cleaned;
+        }
+
+        $cut = mb_substr($cleaned, 0, $maxLength);
+        $lastUnderscore = mb_strrpos($cut, '_');
+        if ($lastUnderscore !== false && $lastUnderscore >= (int) floor($maxLength * 0.45)) {
+            $cut = mb_substr($cut, 0, $lastUnderscore);
+        }
+
+        return trim($cut, '_-') ?: mb_substr($cleaned, 0, $maxLength);
+    }
+
+    /**
+     * Susun nama file standar: {nama_mahasiswa}-{keperluan_surat}-{nomor_surat}.{ext}
+     * dengan pembatasan panjang agar aman di Google Drive maupun sistem file lokal.
      */
     public function buildStandardFileName(UploadedFile $file, Letter $letter): string
     {
-        $datePart = $letter->letter_date ? $letter->letter_date->format('Y-m-d') : date('Y-m-d');
-        $numberPart = preg_replace('/[^A-Za-z0-9\-]+/', '-', (string) $letter->letter_number);
-        $numberPart = trim((string) $numberPart, '-') ?: 'SURAT';
-        $subjectPart = Str::slug(Str::limit((string) $letter->subject, 60, ''));
+        $letter->loadMissing('letterPurpose');
+
+        $rawStudent = $letter->student_name ?: $letter->recipient;
+        $rawPurpose = $letter->letterPurpose?->name ?: $letter->subject;
+        $rawNumber = $letter->letter_number;
+
+        $studentPart = $this->sanitizeFileSegment($rawStudent, 40);
+        $purposePart = $this->sanitizeFileSegment($rawPurpose, 40);
+        $numberPart = $this->sanitizeFileSegment($rawNumber, 45);
+
+        $join = fn() => collect([$studentPart, $purposePart, $numberPart])
+            ->filter(fn($s) => $s !== '')
+            ->implode('-');
+
+        $base = $join();
+        if (mb_strlen($base) > 120 && $purposePart !== '') {
+            $excess = mb_strlen($base) - 120;
+            $purposePart = $this->sanitizeFileSegment($purposePart, max(12, mb_strlen($purposePart) - $excess));
+            $base = $join();
+        }
+        if (mb_strlen($base) > 120 && $studentPart !== '') {
+            $excess = mb_strlen($base) - 120;
+            $studentPart = $this->sanitizeFileSegment($studentPart, max(12, mb_strlen($studentPart) - $excess));
+            $base = $join();
+        }
+
+        $base = $base !== '' ? $base : 'Surat';
         $ext = strtolower($file->getClientOriginalExtension() ?: 'pdf');
 
-        return collect([$datePart, $numberPart, $subjectPart])
-            ->filter()
-            ->implode('_') . ".{$ext}";
+        return "{$base}.{$ext}";
     }
 
     protected function fetchAboutWithToken(string $token): array

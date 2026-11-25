@@ -403,8 +403,8 @@
                                     <i data-lucide="crop" class="w-4 h-4"></i>
                                 </div>
                                 <p class="text-xs font-bold text-gray-900">Upload &amp; Crop Isi Surat</p>
-                                <p class="text-[10px] text-gray-500">Pilih PDF/gambar surat dari Universitas untuk diambil body-nya</p>
-                                <input type="file" id="univLetterFileInput" accept=".pdf,.png,.jpg,.jpeg" class="hidden" onchange="openUnivCropModalFromFile(this.files[0])">
+                                <p class="text-[10px] text-gray-500">Pilih PDF, Word (.doc/.docx/.rtf), atau gambar surat Universitas (maks. 5 MB untuk Word)</p>
+                                <input type="file" id="univLetterFileInput" accept=".pdf,.doc,.docx,.rtf,.png,.jpg,.jpeg" class="hidden" onchange="openUnivCropModalFromFile(this.files[0])">
                             </label>
 
                             <p id="baseFileNameLabel" class="hidden text-[10.5px] text-gray-500 truncate"></p>
@@ -469,7 +469,7 @@
                     <div class="pt-3 border-t border-gray-100 space-y-2">
                         <span class="block text-[11px] font-extrabold uppercase tracking-wider text-gray-500">Alat Penutup (Whiteout)</span>
                         <div class="grid grid-cols-1 gap-1.5">
-                            <button type="button" onclick="addWhiteoutLayer(0.5, 0.25, 0.35, 0.04, 'Penutup Teks')"
+                            <button type="button" onclick="addWhiteoutLayer(0.395, 0.175, 0.35, 0.024, 'Penutup Nomor')"
                                 class="shortcut-chip flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 hover:bg-slate-100 border border-gray-200/80 text-xs font-semibold text-gray-700 cursor-pointer">
                                 <i data-lucide="eraser" class="w-3.5 h-3.5 text-amber-600"></i>
                                 <span>+ Kotak Penutup Bebas</span>
@@ -701,9 +701,9 @@
             </div>
 
             {{-- Artboard Viewport --}}
-            <div id="stageWrapper" class="flex-1 min-h-0 studio-stage-bg flex items-center justify-center overflow-auto p-4 sm:p-6 relative">
+            <div id="stageWrapper" class="flex-1 min-h-0 studio-stage-bg flex overflow-auto p-4 sm:p-6 relative">
                 {{-- Empty State --}}
-                <div id="emptyStageState" class="text-center max-w-xs sm:max-w-sm space-y-3.5 p-8 rounded-3xl bg-white/90 backdrop-blur-sm border border-gray-200/80 shadow-sm">
+                <div id="emptyStageState" class="m-auto text-center max-w-xs sm:max-w-sm space-y-3.5 p-8 rounded-3xl bg-white/90 backdrop-blur-sm border border-gray-200/80 shadow-sm">
                     @if ($studioMode === 'letter')
                         <div class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-600 flex items-center justify-center mx-auto">
                             <i data-lucide="layout-template" class="w-7 h-7"></i>
@@ -756,7 +756,7 @@
                 </div>
 
                 {{-- Interactive Canvas --}}
-                <canvas id="studioCanvas" oncontextmenu="return false" class="hidden rounded-lg shadow-[0_12px_40px_rgba(15,23,42,0.14)] ring-1 ring-black/5 bg-white touch-none select-none"></canvas>
+                <canvas id="studioCanvas" oncontextmenu="return false" class="hidden m-auto flex-shrink-0 rounded-lg shadow-[0_12px_40px_rgba(15,23,42,0.14)] ring-1 ring-black/5 bg-white touch-none select-none"></canvas>
             </div>
 
             {{-- Bottom Filmstrip Dock --}}
@@ -1254,7 +1254,7 @@
         <div class="px-5 py-2 bg-gray-50 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs flex-shrink-0">
             <div class="flex flex-wrap items-center gap-1.5">
                 <span class="text-[11px] font-bold text-gray-500 mr-1">Preset:</span>
-                <button type="button" onclick="setCropPreset(0.14, 0.935, 0.03, 0.97)"
+                <button type="button" onclick="setCropPreset(0.14, 0.945, 0.03, 0.97)"
                     class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold cursor-pointer">
                     Standar (Tanpa Kop &amp; Footer)
                 </button>
@@ -1312,6 +1312,10 @@
         id: {{ $letter->id }},
         mode: @json($studioMode),
         number: @json($letter->letter_number),
+        studentName: @json($letter->student_name ?? ''),
+        recipient: @json($letter->recipient ?? ''),
+        purposeName: @json($letter->letterPurpose?->name ?? ''),
+        subject: @json($letter->subject ?? ''),
         formattedDate: @json($formattedLetterDate),
         letterTypeId: {{ $letter->letter_type_id ?? 'null' }},
         primarySigId: {{ $letter->signatory_id ?? 'null' }},
@@ -1324,6 +1328,7 @@
         logExportUrl: @json(route('letters.certificate-studio.log-export', $letter)),
         quickAssetUrl: @json(route('certificate-studio.quick-asset')),
         stampSignaturesUrl: @json(route('certificate-studio.stamp-signatures')),
+        convertWordUrl: @json(route('certificate-studio.convert-word')),
         savePresetUrl: @json(route('certificate-studio.presets.store')),
         defaultStampUrl: @json($stamps->first()?->file_url),
         defaultStampName: @json($stamps->first()?->name ?? 'Stempel FEB UNJ'),
@@ -1346,6 +1351,7 @@
     let slides = [];
     let activeSlideIndex = -1;
     let masterNormalizedLayers = [];
+    let activeBaseLetterhead = { url: null, name: null };
     const pdfDocsMap = new Map();
 
     let baseImage = null;
@@ -1944,6 +1950,7 @@
         }
         slides = [];
         activeSlideIndex = -1;
+        activeBaseLetterhead = { url: null, name: null };
         baseImage = null;
         layers = [];
         masterNormalizedLayers = [];
@@ -2309,13 +2316,13 @@
             renderLayerList();
             return;
         }
-        addTextLayer(textVal, 0.223, 0.175, 'number', 'Nomor Surat (Latar Putih)', {
+        addTextLayer(textVal, 0.225, 0.175, 'number', 'Nomor Surat (Latar Putih)', {
             bgFill: true,
             bgColor: '#ffffff',
-            bgMinWidthPct: 34,
+            bgMinWidthPct: 36,
             color: '#000000',
             align: 'left',
-            fontSize: Math.max(14, Math.round(baseHeight * 0.0132)),
+            fontSize: Math.max(14, Math.round(baseHeight * 0.0136)),
         });
     }
 
@@ -2376,7 +2383,7 @@
         pdfDoc: null,
         totalPages: 1,
         activeIdx: 0,
-        masterCrop: { top: 0.14, bottom: 0.935, left: 0.03, right: 0.97 },
+        masterCrop: { top: 0.14, bottom: 0.945, left: 0.03, right: 0.97 },
         pages: [],
         dispScale: 1,
         dragMode: null,
@@ -2430,6 +2437,8 @@
             tmp.getContext('2d').drawImage(img, 0, 0, tmp.width, tmp.height);
             const thumbUrl = tmp.toDataURL('image/jpeg', 0.82);
 
+            activeBaseLetterhead = { url, name: label };
+
             if (slides.length === 0) {
                 slides.push({
                     id: uid('sld_'),
@@ -2438,6 +2447,8 @@
                     sourceType: 'image',
                     dataUrl: url,
                     thumbUrl: thumbUrl,
+                    baseLetterheadUrl: url,
+                    baseLetterheadName: label,
                     width: w,
                     height: h,
                     useMasterLayout: false,
@@ -2450,6 +2461,8 @@
                     s.sourceType = 'image';
                     s.dataUrl = url;
                     s.thumbUrl = thumbUrl;
+                    s.baseLetterheadUrl = url;
+                    s.baseLetterheadName = label;
                     s.width = w;
                     s.height = h;
                     s.useMasterLayout = false;
@@ -2469,22 +2482,101 @@
         }
     }
 
+    const convertedWordPdfCache = new Map();
+    let isConvertingWord = false;
+
+    async function convertUniversityWordToPdfBuffer(file) {
+        const cacheKey = `${file.name}|${file.size}|${file.lastModified}`;
+        if (convertedWordPdfCache.has(cacheKey)) {
+            return convertedWordPdfCache.get(cacheKey).slice().buffer;
+        }
+
+        const fd = new FormData();
+        fd.append('document', file);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 28000);
+
+        try {
+            const resp = await fetch(LETTER_DATA.convertWordUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+                body: fd,
+                signal: controller.signal,
+            });
+
+            if (!resp.ok) {
+                let errMsg = 'Gagal mengonversi dokumen Word. Simpan sebagai PDF di Word lalu unggah PDF-nya.';
+                try {
+                    const errJson = await resp.json();
+                    if (errJson?.message) errMsg = errJson.message;
+                } catch {}
+                throw new Error(errMsg);
+            }
+
+            const pdfBuf = await resp.arrayBuffer();
+            if (convertedWordPdfCache.size >= 10) {
+                const oldestKey = convertedWordPdfCache.keys().next().value;
+                if (oldestKey) convertedWordPdfCache.delete(oldestKey);
+            }
+            convertedWordPdfCache.set(cacheKey, new Uint8Array(pdfBuf).slice());
+            return pdfBuf;
+        } catch (err) {
+            if (err?.name === 'AbortError') {
+                throw new Error('Konversi Word melewati batas waktu. Coba ulangi atau simpan sebagai PDF di Word lalu unggah.');
+            }
+            throw err;
+        } finally {
+            clearTimeout(timeoutId);
+        }
+    }
+
     async function openUnivCropModalFromFile(file) {
         if (!file) return;
         const inputEl = document.getElementById('univLetterFileInput');
         if (inputEl) inputEl.value = '';
 
-        const ext = file.name.split('.').pop().toLowerCase();
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
         const cleanBase = file.name.replace(/\.[^/.]+$/, '') || 'Surat_Universitas';
-        setBatchProgress(true, 'Membuka Dokumen Universitas...', `Memuat "${file.name}"...`, 35);
+        const isWordFile = ['doc', 'docx', 'rtf'].includes(ext);
+
+        if (isWordFile) {
+            if (isConvertingWord) {
+                showStudioToast('Konversi dokumen Word sebelumnya masih berjalan...', true);
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                showStudioToast('Ukuran file Word maksimal 5 MB. Simpan sebagai PDF jika file lebih besar.', true);
+                return;
+            }
+            isConvertingWord = true;
+            setBatchProgress(
+                true,
+                'Mengonversi Dokumen Word...',
+                `Memproses "${file.name}" menjadi PDF via Google Drive (maks. 28 detik)...`,
+                25
+            );
+        } else {
+            setBatchProgress(true, 'Membuka Dokumen Universitas...', `Memuat "${file.name}"...`, 35);
+        }
 
         try {
             univCropState.fileName = cleanBase;
-            univCropState.masterCrop = { top: 0.14, bottom: 0.935, left: 0.03, right: 0.97 };
+            univCropState.masterCrop = { top: 0.14, bottom: 0.945, left: 0.03, right: 0.97 };
             univCropState.activeIdx = 0;
 
-            if (ext === 'pdf') {
-                const buffer = await file.arrayBuffer();
+            if (ext === 'pdf' || isWordFile) {
+                const buffer = isWordFile
+                    ? await convertUniversityWordToPdfBuffer(file)
+                    : await file.arrayBuffer();
+
+                if (isWordFile) {
+                    setBatchProgress(true, 'Merender Halaman PDF...', `Menyiapkan pratinjau "${file.name}" untuk di-crop...`, 75);
+                }
+
                 const pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
                 univCropState.pdfDoc = pdfDoc;
                 univCropState.totalPages = pdfDoc.numPages;
@@ -2513,7 +2605,7 @@
                 }];
             } else {
                 setBatchProgress(false);
-                showStudioToast('Format surat harus PDF, PNG, atau JPG.', true);
+                showStudioToast('Format surat harus PDF, Word (.doc/.docx/.rtf), PNG, atau JPG.', true);
                 return;
             }
 
@@ -2526,7 +2618,9 @@
         } catch (err) {
             console.error(err);
             setBatchProgress(false);
-            showStudioToast('Gagal membaca file surat Universitas.', true);
+            showStudioToast(err?.message || 'Gagal membaca file surat Universitas.', true);
+        } finally {
+            if (isWordFile) isConvertingWord = false;
         }
     }
 
@@ -2877,6 +2971,8 @@
                     sourceType: 'image',
                     dataUrl: tplUrl,
                     thumbUrl: tplThumb,
+                    baseLetterheadUrl: activeBaseLetterhead.url || tplSlide?.baseLetterheadUrl || tplUrl,
+                    baseLetterheadName: activeBaseLetterhead.name || tplSlide?.baseLetterheadName || LETTER_DATA.defaultLetterheadName,
                     width: tplW,
                     height: tplH,
                     useMasterLayout: false,
@@ -2996,9 +3092,16 @@
             const img = await loadCachedImage(url);
             const aspect = (img.naturalHeight || 1) / (img.naturalWidth || 1);
 
-            const defaultWidthPct = role === 'stamp' ? 0.165 : 0.21;
-            const defaultXPct = role === 'stamp' ? 0.425 : 0.55;
-            const defaultYPct = role === 'stamp' ? 0.74 : 0.745;
+            const isLetterMode = LETTER_DATA.mode === 'letter';
+            const defaultWidthPct = role === 'stamp'
+                ? (isLetterMode ? 0.20 : 0.165)
+                : (isLetterMode ? 0.16 : 0.21);
+            const defaultXPct = role === 'stamp'
+                ? (isLetterMode ? 0.515 : 0.425)
+                : (isLetterMode ? 0.598 : 0.55);
+            const defaultYPct = role === 'stamp'
+                ? (isLetterMode ? 0.738 : 0.74)
+                : (isLetterMode ? 0.738 : 0.745);
 
             const widthPx = baseWidth * (customPct?.wPct ?? defaultWidthPct);
             const heightPx = widthPx * aspect;
@@ -3993,9 +4096,38 @@
     });
 
     // ── Presets ──
+    function isPresetReusableLayer(layer) {
+        if (!layer) return false;
+        if (LETTER_DATA.mode === 'letter') {
+            if (layer.role === 'body_crop') return false;
+            if (layer.type === 'image' && String(layer.url || '').startsWith('data:')) return false;
+        }
+        return true;
+    }
+
+    function getLetterPageOnePresetSource() {
+        syncCurrentLayersToState();
+        if (LETTER_DATA.mode !== 'letter' || slides.length === 0 || activeSlideIndex === 0) {
+            return { list: layers, refW: baseWidth, refH: baseHeight };
+        }
+        const slide0 = slides[0];
+        const norm0 = slide0.useMasterLayout
+            ? masterNormalizedLayers
+            : (slide0.customNormalizedLayers || masterNormalizedLayers);
+        return {
+            list: materializeLayers(norm0, slide0.width, slide0.height),
+            refW: slide0.width || baseWidth,
+            refH: slide0.height || baseHeight,
+        };
+    }
+
     function openPresetModal() {
-        if (!layers.length) {
-            showStudioToast('Tambahkan minimal 1 elemen sebelum menyimpan preset.', true);
+        const { list } = getLetterPageOnePresetSource();
+        const reusable = list.filter(isPresetReusableLayer);
+        const hasBaseKop = LETTER_DATA.mode === 'letter' && !!(activeBaseLetterhead.url || slides[0]?.baseLetterheadUrl || slides[0]?.dataUrl);
+
+        if (!reusable.length && !hasBaseKop) {
+            showStudioToast('Tambahkan minimal 1 elemen (TTD, stempel, nomor surat, penutup, atau base kop) sebelum menyimpan preset.', true);
             return;
         }
         document.getElementById('presetModal').classList.remove('hidden');
@@ -4005,47 +4137,62 @@
         document.getElementById('presetModal').classList.add('hidden');
     }
 
-    function serializeLayersAsPreset() {
-        return layers.map(l => ({
-            type: l.type,
-            role: l.role,
-            name: l.name,
-            locked: !!l.locked,
-            text: l.text || '',
-            xPct: l.x / baseWidth,
-            yPct: l.y / baseHeight,
-            fontSizePct: l.fontSize ? l.fontSize / baseHeight : null,
-            fontFamily: l.fontFamily || null,
-            bold: !!l.bold,
-            italic: !!l.italic,
-            underline: !!l.underline,
-            strikethrough: !!l.strikethrough,
-            uppercase: !!l.uppercase,
-            letterSpacing: l.letterSpacing ?? 0,
-            textShadow: !!l.textShadow,
-            color: l.color || null,
-            bgFill: !!l.bgFill,
-            bgColor: l.bgColor || '#ffffff',
-            bgMinWidthPct: l.bgMinWidthPct || 0,
-            align: l.align || 'center',
-            widthPct: l.width ? l.width / baseWidth : null,
-            heightPct: l.height ? l.height / baseHeight : null,
-            rotation: l.rotation || 0,
-            opacity: l.opacity ?? 100,
-            removeBg: !!l.removeBg,
-            bgThreshold: l.bgThreshold || 225,
-            whiteBacking: !!l.whiteBacking,
-            signatoryId: l.signatoryId || null,
-            url: l.url || null,
-            usePrefixNo: l.type === 'text' && l.role === 'number' && (l.text || '').startsWith('No.'),
-            useNomorPrefix: l.type === 'text' && l.role === 'number' && (l.text || '').startsWith('Nomor:'),
-        }));
+    function serializeLayersAsPreset(sourceLayers = layers, refW = baseWidth, refH = baseHeight) {
+        const safeW = refW || 1;
+        const safeH = refH || 1;
+        return (sourceLayers || [])
+            .filter(isPresetReusableLayer)
+            .map(l => ({
+                type: l.type,
+                role: l.role,
+                name: l.name,
+                locked: !!l.locked,
+                text: l.text || '',
+                xPct: l.x / safeW,
+                yPct: l.y / safeH,
+                fontSizePct: l.fontSize ? l.fontSize / safeH : null,
+                fontFamily: l.fontFamily || null,
+                bold: !!l.bold,
+                italic: !!l.italic,
+                underline: !!l.underline,
+                strikethrough: !!l.strikethrough,
+                uppercase: !!l.uppercase,
+                letterSpacing: l.letterSpacing ?? 0,
+                textShadow: !!l.textShadow,
+                color: l.color || null,
+                bgFill: !!l.bgFill,
+                bgColor: l.bgColor || '#ffffff',
+                bgMinWidthPct: l.bgMinWidthPct || 0,
+                align: l.align || 'center',
+                widthPct: l.width ? l.width / safeW : null,
+                heightPct: l.height ? l.height / safeH : null,
+                aspect: l.aspect || 1,
+                rotation: l.rotation || 0,
+                opacity: l.opacity ?? 100,
+                removeBg: !!l.removeBg,
+                bgThreshold: l.bgThreshold || 225,
+                whiteBacking: !!l.whiteBacking,
+                signatoryId: l.signatoryId || null,
+                url: l.url || null,
+                usePrefixNo: l.type === 'text' && l.role === 'number' && (l.text || '').startsWith('No.'),
+                useNomorPrefix: l.type === 'text' && l.role === 'number' && (l.text || '').startsWith('Nomor:'),
+            }));
     }
 
     async function submitSavePreset(e) {
         e.preventDefault();
         const name = document.getElementById('presetNameInput').value.trim();
         if (!name) return;
+
+        const { list, refW, refH } = getLetterPageOnePresetSource();
+        const configPayload = {
+            mode: LETTER_DATA.mode,
+            items: serializeLayersAsPreset(list, refW, refH),
+        };
+        if (LETTER_DATA.mode === 'letter') {
+            configPayload.baseLetterheadUrl = activeBaseLetterhead.url || slides[0]?.baseLetterheadUrl || slides[0]?.dataUrl || null;
+            configPayload.baseLetterheadName = activeBaseLetterhead.name || slides[0]?.baseLetterheadName || LETTER_DATA.defaultLetterheadName || 'Kop Surat FEB UNJ';
+        }
 
         const resp = await fetch(LETTER_DATA.savePresetUrl, {
             method: 'POST',
@@ -4057,7 +4204,7 @@
             body: JSON.stringify({
                 name,
                 letter_type_id: LETTER_DATA.letterTypeId,
-                config: { items: serializeLayersAsPreset() },
+                config: configPayload,
             }),
         });
         const data = await resp.json();
@@ -4074,16 +4221,36 @@
     }
 
     async function applySelectedPreset() {
-        if (!ensureBaseReady()) return;
         const id = document.getElementById('presetSelect').value;
         const preset = PRESETS_DATA[id];
-        if (!preset || !preset.config?.items) {
+        if (!preset || !preset.config || !Array.isArray(preset.config.items)) {
             showStudioToast('Pilih preset posisi terlebih dahulu.', true);
             return;
         }
 
+        if (LETTER_DATA.mode === 'letter' && preset.config.baseLetterheadUrl) {
+            const currentBaseUrl = activeBaseLetterhead.url || slides[0]?.baseLetterheadUrl || slides[0]?.dataUrl;
+            if (slides.length === 0 || currentBaseUrl !== preset.config.baseLetterheadUrl) {
+                await selectLetterheadAsBase(
+                    preset.config.baseLetterheadUrl,
+                    preset.config.baseLetterheadName || 'Kop Surat FEB UNJ'
+                );
+            }
+        }
+
+        if (!ensureBaseReady()) return;
+
+        if (LETTER_DATA.mode === 'letter' && slides.length > 0 && activeSlideIndex !== 0) {
+            await switchSlide(0);
+        }
+
         const normItems = [];
         for (const item of preset.config.items) {
+            if (LETTER_DATA.mode === 'letter') {
+                if (item.role === 'body_crop') continue;
+                if (item.type === 'image' && String(item.url || '').startsWith('data:')) continue;
+            }
+
             if (item.type === 'whiteout') {
                 normItems.push({
                     id: uid('wht_'),
@@ -4172,11 +4339,17 @@
             }
         }
 
-        if (LETTER_DATA.mode === 'letter' && getActiveSlide()) {
-            const active = getActiveSlide();
-            active.useMasterLayout = false;
-            active.customNormalizedLayers = normItems;
-            layers = materializeLayers(normItems, baseWidth, baseHeight);
+        if (LETTER_DATA.mode === 'letter' && slides.length > 0) {
+            const slide0 = slides[0];
+            const existingBodyNorm = normalizeLayers(
+                layers.filter(l => !isPresetReusableLayer(l)),
+                baseWidth,
+                baseHeight
+            );
+            const combinedNorm = [...existingBodyNorm, ...normItems];
+            slide0.useMasterLayout = false;
+            slide0.customNormalizedLayers = combinedNorm;
+            layers = materializeLayers(combinedNorm, baseWidth, baseHeight);
         } else {
             masterNormalizedLayers = normItems;
             slides.forEach(s => {
@@ -4186,6 +4359,7 @@
             layers = materializeLayers(masterNormalizedLayers, baseWidth, baseHeight);
         }
 
+        await preloadLayerImages();
         selectedLayerId = layers[0]?.id || null;
         pushHistory();
         renderCanvas();
@@ -4194,7 +4368,7 @@
         renderFilmstrip();
         updateMultiSlideUI();
         showStudioToast(LETTER_DATA.mode === 'letter'
-            ? `Preset "${preset.name}" diterapkan pada halaman aktif.`
+            ? `Preset "${preset.name}" diterapkan pada Halaman 1 (base kop & elemen surat).`
             : `Preset "${preset.name}" diterapkan ke seluruh sertifikat.`);
     }
 
@@ -4345,10 +4519,46 @@
     }
 
     // ── Offscreen Rendering & Export Helpers ──
+    function sanitizeFileSegment(value, maxLength = 40) {
+        let cleaned = String(value || '')
+            .replace(/[<>:"\/\\|?*\x00-\x1F]+/g, '_')
+            .replace(/\s+/g, '_')
+            .replace(/_+/g, '_')
+            .replace(/^[_-]+|[_-]+$/g, '');
+        if (!cleaned) return '';
+        if (cleaned.length <= maxLength) return cleaned;
+
+        let cut = cleaned.slice(0, maxLength);
+        const lastUnderscore = cut.lastIndexOf('_');
+        if (lastUnderscore >= Math.floor(maxLength * 0.45)) {
+            cut = cut.slice(0, lastUnderscore);
+        }
+        return cut.replace(/^[_-]+|[_-]+$/g, '') || cleaned.slice(0, maxLength);
+    }
+
     function safeFilename(ext, suffix = '') {
-        const prefix = LETTER_DATA.mode === 'letter' ? 'Surat' : 'Sertifikat';
-        const cleanNum = (LETTER_DATA.number || prefix).replace(/[^A-Za-z0-9\-]+/g, '-');
-        return `${prefix}_${cleanNum}${suffix}.${ext}`;
+        const fallbackPrefix = LETTER_DATA.mode === 'letter' ? 'Surat' : 'Sertifikat';
+        let studentPart = sanitizeFileSegment(LETTER_DATA.studentName || LETTER_DATA.recipient, 40);
+        let purposePart = sanitizeFileSegment(LETTER_DATA.purposeName || LETTER_DATA.subject, 40);
+        const numberPart = sanitizeFileSegment(LETTER_DATA.number, 45);
+        const cleanSuffix = String(suffix || '');
+
+        const buildBase = () => [studentPart, purposePart, numberPart].filter(Boolean).join('-') + cleanSuffix;
+        let base = buildBase();
+
+        if (base.length > 120 && purposePart) {
+            const excess = base.length - 120;
+            purposePart = sanitizeFileSegment(purposePart, Math.max(12, purposePart.length - excess));
+            base = buildBase();
+        }
+        if (base.length > 120 && studentPart) {
+            const excess = base.length - 120;
+            studentPart = sanitizeFileSegment(studentPart, Math.max(12, studentPart.length - excess));
+            base = buildBase();
+        }
+
+        if (!base) base = fallbackPrefix + cleanSuffix;
+        return `${base}.${ext}`;
     }
 
     function safeSlideSlug(label, idx) {

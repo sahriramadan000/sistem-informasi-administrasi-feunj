@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\GoogleDriveException;
 use App\Models\CertificatePreset;
 use App\Models\CertificateStamp;
 use App\Models\Letter;
@@ -36,7 +37,7 @@ class CertificateStudioController extends Controller
      */
     public function show(Letter $letter, Request $request)
     {
-        $letter->load(['letterType', 'signatory', 'classification', 'creator']);
+        $letter->load(['letterType', 'letterPurpose', 'signatory', 'classification', 'creator']);
 
         $user = auth()->user();
         $canCert = $user->canAccessCertificateStudio();
@@ -469,5 +470,78 @@ class CertificateStudioController extends Controller
             'Content-Type' => $outputFormat === 'jpg' ? 'image/jpeg' : 'image/png',
             'Cache-Control' => 'no-store, no-cache, must-revalidate, private',
         ]);
+    }
+
+    /**
+     * Konversi sementara file Word/RTF Universitas (.doc, .docx, .rtf) ke PDF untuk dipotong di Studio Surat.
+     */
+    public function convertUniversityWord(Request $request, GoogleDriveService $driveService)
+    {
+        if (!auth()->user()?->canAccessLetterStudio()) {
+            abort(403, 'Anda tidak memiliki izin akses ke Studio Surat.');
+        }
+
+        $request->validate([
+            'document' => 'required|file|max:5120',
+        ], [
+            'document.max' => 'Ukuran file Word maksimal 5 MB. Simpan sebagai PDF terlebih dahulu jika file lebih besar.',
+        ]);
+
+        $file = $request->file('document');
+        $ext = strtolower((string) $file->getClientOriginalExtension());
+        if (!in_array($ext, ['doc', 'docx', 'rtf'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Format file harus .doc, .docx, atau .rtf.',
+            ], 422);
+        }
+
+        $cacheDir = storage_path('app/private/tmp_word_pdf');
+        if (!File::isDirectory($cacheDir)) {
+            File::makeDirectory($cacheDir, 0755, true);
+        }
+
+        // Bersihkan cache PDF sementara yang berusia > 15 menit agar disk shared hosting tetap ringan
+        $now = time();
+        foreach (File::glob($cacheDir . DIRECTORY_SEPARATOR . '*.pdf') as $oldFile) {
+            if (($now - (int) @filemtime($oldFile)) > 900) {
+                @File::delete($oldFile);
+            }
+        }
+
+        $hash = hash_file('sha256', (string) $file->getRealPath());
+        $cacheFile = $cacheDir . DIRECTORY_SEPARATOR . $hash . '.pdf';
+
+        try {
+            $fromCache = false;
+            if (File::exists($cacheFile) && ($now - (int) File::lastModified($cacheFile)) <= 900) {
+                $pdfBinary = File::get($cacheFile);
+                $fromCache = true;
+            } else {
+                $pdfBinary = $driveService->convertWordToPdf($file);
+                File::put($cacheFile, $pdfBinary);
+            }
+
+            return response($pdfBinary, 200, [
+                'Content-Type' => 'application/pdf',
+                'Cache-Control' => 'no-store, no-cache, must-revalidate, private',
+                'X-Conversion-Cache' => $fromCache ? 'HIT' : 'MISS',
+            ]);
+        } catch (GoogleDriveException $e) {
+            $status = (int) $e->getCode();
+            $httpStatus = ($status >= 400 && $status < 600) ? $status : 422;
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getFormattedUserMessage(),
+            ], $httpStatus);
+        } catch (\Throwable $e) {
+            $errorId = ErrorTrackingService::logError($e, 'CertificateStudioController.convertUniversityWord');
+
+            return response()->json([
+                'success' => false,
+                'message' => "Gagal mengonversi file Word ke PDF (Kode Error: {$errorId}). Anda tetap dapat Save As PDF di Word lalu unggah PDF-nya.",
+            ], 500);
+        }
     }
 }
